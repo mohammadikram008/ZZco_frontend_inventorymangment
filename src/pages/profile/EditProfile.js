@@ -1,13 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import Card from "../../components/card/Card";
-import Loader from "../../components/loader/Loader";
-import { selectUser } from "../../redux/features/auth/authSlice";
-import "./Profile.scss";
+import { Box, Button, TextField, Typography, CircularProgress, Avatar, Grid } from "@mui/material";
 import { toast } from "react-toastify";
+import { selectUser } from "../../redux/features/auth/authSlice";
 import { updateUser } from "../../services/authService";
 import ChangePassword from "../../components/changePassword/ChangePassword";
+import Card from "../../components/card/Card";
 
 const EditProfile = () => {
   const navigate = useNavigate();
@@ -22,18 +21,17 @@ const EditProfile = () => {
   }, [email, navigate]);
 
   const initialState = {
-    name: user?.name,
-    email: user?.email,
-    phone: user?.phone,
-    bio: user?.bio,
-    photo: user?.photo,
+    name: user?.name || "",
+    email: user?.email || "",
+    phone: user?.phone || "",
+    photo: user?.photo || "",
   };
   const [profile, setProfile] = useState(initialState);
-  const [profileImage, setProfileImage] = useState("");
+  const [profileImage, setProfileImage] = useState(null);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setProfile({ ...profile, [name]: value });
+    setProfile((prevProfile) => ({ ...prevProfile, [name]: value }));
   };
 
   const handleImageChange = (e) => {
@@ -44,7 +42,6 @@ const EditProfile = () => {
     e.preventDefault();
     setIsLoading(true);
     try {
-      // Handle Image upload
       let imageURL;
       if (
         profileImage &&
@@ -57,92 +54,88 @@ const EditProfile = () => {
         image.append("cloud_name", "zinotrust");
         image.append("upload_preset", "wk66xdkq");
 
-        // First save image to cloudinary
+        // Save image to Cloudinary
         const response = await fetch(
           "https://api.cloudinary.com/v1_1/zinotrust/image/upload",
           { method: "post", body: image }
         );
         const imgData = await response.json();
         imageURL = imgData.url.toString();
-
-        // Save Profile
-        const formData = {
-          name: profile.name,
-          phone: profile.phone,
-          bio: profile.bio,
-          photo: profileImage ? imageURL : profile.photo,
-        };
-
-        const data = await updateUser(formData);
-        console.log(data);
-        toast.success("User updated");
-        navigate("/profile");
-        setIsLoading(false);
       }
+
+      // Save Profile
+      const formData = {
+        name: profile.name,
+        phone: profile.phone,
+        photo: imageURL || profile.photo,
+      };
+
+      const data = await updateUser(formData);
+      console.log(data);
+      toast.success("User updated");
+      navigate("/profile");
     } catch (error) {
-      console.log(error);
+      console.error(error);
+      toast.error("Failed to update profile");
+    } finally {
       setIsLoading(false);
-      toast.error(error.message);
     }
   };
 
   return (
-    <div className="profile --my2">
-      {isLoading && <Loader />}
+    <Box sx={{ padding: 3 }}>
+      {isLoading && <CircularProgress />}
+      <Grid container spacing={3} g>
+        <Grid item md={6}>
 
-      <Card cardClass={"card --flex-dir-column"}>
-        <span className="profile-photo">
-          <img src={user?.photo} alt="profilepic" />
-        </span>
-        <form className="--form-control --m" onSubmit={saveProfile}>
-          <span className="profile-data">
-            <p>
-              <label>Name:</label>
-              <input
-                type="text"
-                name="name"
-                value={profile?.name}
-                onChange={handleInputChange}
-              />
-            </p>
-            <p>
-              <label>Email:</label>
-              <input type="text" name="email" value={profile?.email} disabled />
-              <br />
-              <code>Email cannot be changed.</code>
-            </p>
-            <p>
-              <label>Phone:</label>
-              <input
-                type="text"
-                name="phone"
-                value={profile?.phone}
-                onChange={handleInputChange}
-              />
-            </p>
-            <p>
-              <label>Bio:</label>
-              <textarea
-                name="bio"
-                value={profile?.bio}
-                onChange={handleInputChange}
-                cols="30"
-                rows="10"
-              ></textarea>
-            </p>
-            <p>
-              <label>Photo:</label>
-              <input type="file" name="image" onChange={handleImageChange} />
-            </p>
-            <div>
-              <button className="--btn --btn-primary">Edit Profile</button>
-            </div>
-          </span>
-        </form>
-      </Card>
-      <br />
-      <ChangePassword />
-    </div>
+
+          <Card>
+            <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", mb: 3 }}>
+              <Avatar src={profile.photo} sx={{ width: 100, height: 100, mb: 2 }} />
+              <Typography variant="h6">Edit Profile</Typography>
+            </Box>
+
+            <form onSubmit={saveProfile}>
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 2 ,p:3}}>
+                <TextField
+                  fullWidth
+                  label="Name"
+                  name="name"
+                  value={profile.name}
+                  onChange={handleInputChange}
+                />
+                <TextField
+                  fullWidth
+                  label="Email"
+                  name="email"
+                  value={profile.email}
+                  disabled
+                />
+                <TextField
+                  fullWidth
+                  label="Phone"
+                  name="phone"
+                  value={profile.phone}
+                  onChange={handleInputChange}
+                />
+                <Button variant="contained" component="label">
+                  Upload Photo
+                  <input type="file" hidden onChange={handleImageChange} />
+                </Button>
+                <Button variant="contained" color="primary" type="submit">
+                  Save Changes
+                </Button>
+              </Box>
+            </form>
+          </Card>
+        </Grid>
+        <Grid md={6} item>
+          <Box sx={{ mt: 3 }}>
+            <ChangePassword />
+          </Box>
+        </Grid>
+      </Grid>
+    </Box>
   );
 };
 

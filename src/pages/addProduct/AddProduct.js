@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { Fragment, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import Loader from "../../components/loader/Loader";
@@ -7,6 +7,7 @@ import {
   createProduct,
   selectIsLoading,
 } from "../../redux/features/product/productSlice";
+import { Grid } from "@mui/material";
 
 const initialState = {
   name: "",
@@ -22,7 +23,8 @@ const AddProduct = () => {
   const [productImage, setProductImage] = useState("");
   const [imagePreview, setImagePreview] = useState(null);
   const [description, setDescription] = useState("");
-
+  const [paymentMethod, setPaymentMethod] = useState("");
+  const [chequeDate, setChequeDate] = useState("");
   const isLoading = useSelector(selectIsLoading);
 
   const { name, category, price, quantity } = product;
@@ -36,26 +38,27 @@ const AddProduct = () => {
     setProductImage(e.target.files[0]);
     setImagePreview(URL.createObjectURL(e.target.files[0]));
   };
-
   const generateKSKU = (category) => {
     const letter = category.slice(0, 3).toUpperCase();
     const number = Date.now();
     const sku = letter + "-" + number;
     return sku;
   };
+  const handlePaymentMethodChange = (event) => {
+    setPaymentMethod(event.target.value);
+  };
 
-  const saveProduct = async (e) => {
-    e.preventDefault();
-    const formData = new FormData();
-    formData.append("name", name);
-    formData.append("sku", generateKSKU(category));
-    formData.append("category", category);
-    formData.append("quantity", Number(quantity));
-    formData.append("price", price);
-    formData.append("description", description);
-    formData.append("image", productImage);
-
-    console.log(...formData);
+  const saveProduct = async ({ chequeDate }) => {
+    const sku = generateKSKU(category);
+    const formData = {
+      name,
+      sku,
+      category,
+      quantity: Number(quantity),
+      price,
+      paymentMethod,
+      chequeDate: paymentMethod === "Cheque" ? chequeDate : null,
+    };
 
     await dispatch(createProduct(formData));
 
@@ -63,20 +66,26 @@ const AddProduct = () => {
   };
 
   return (
-    <div>
-      {isLoading && <Loader />}
-      <h3 className="--mt">Add New Product</h3>
-      <ProductForm
-        product={product}
-        productImage={productImage}
-        imagePreview={imagePreview}
-        description={description}
-        setDescription={setDescription}
-        handleInputChange={handleInputChange}
-        handleImageChange={handleImageChange}
-        saveProduct={saveProduct}
-      />
-    </div>
+    <Fragment>
+      <Grid container flexDirection={"column"}>
+        {isLoading && <Loader />}
+        <h3 className="--mt">Add New Product</h3>
+        <Grid item display={"flex"} justifyContent={"center"} alignItems={"center"}>
+          <ProductForm
+            product={product}
+            productImage={productImage}
+            imagePreview={imagePreview}
+            description={description}
+            paymentMethod={paymentMethod}
+            setDescription={setDescription}
+            handleInputChange={handleInputChange}
+            handleImageChange={handleImageChange}
+            handlePaymentMethodChange={handlePaymentMethodChange}
+            saveProduct={saveProduct}
+          />
+        </Grid>
+      </Grid>
+    </Fragment>
   );
 };
 

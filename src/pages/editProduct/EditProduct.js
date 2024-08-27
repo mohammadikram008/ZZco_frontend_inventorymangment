@@ -23,18 +23,19 @@ const EditProduct = () => {
   const [productImage, setProductImage] = useState("");
   const [imagePreview, setImagePreview] = useState(null);
   const [description, setDescription] = useState("");
-
+  const [paymentMethod, setPaymentMethod] = useState("");
+  const [chequeDate, setChequeDate] = useState("");
   useEffect(() => {
     dispatch(getProduct(id));
   }, [dispatch, id]);
-
+  const { name, category, price, quantity } = product;
   useEffect(() => {
     setProduct(productEdit);
 
     setImagePreview(
       productEdit && productEdit.image ? `${productEdit.image.filePath}` : null
     );
-
+   
     setDescription(
       productEdit && productEdit.description ? productEdit.description : ""
     );
@@ -49,27 +50,32 @@ const EditProduct = () => {
     setProductImage(e.target.files[0]);
     setImagePreview(URL.createObjectURL(e.target.files[0]));
   };
-
-  const saveProduct = async (e) => {
-    e.preventDefault();
-    const formData = new FormData();
-    formData.append("name", product?.name);
-
-    formData.append("category", product?.category);
-    formData.append("quantity", product?.quantity);
-    formData.append("price", product?.price);
-    formData.append("description", description);
-    if (productImage) {
-      formData.append("image", productImage);
-    }
-
-    console.log(...formData);
+  const generateKSKU = (category) => {
+    const letter = category.slice(0, 3).toUpperCase();
+    const number = Date.now();
+    const sku = letter + "-" + number;
+    return sku;
+  };
+  const saveProduct = async () => {
+   
+    const sku = generateKSKU(category);
+    const formData = {
+      name,
+      sku,
+      category,
+      quantity: Number(quantity),
+      price,
+      paymentMethod,
+      chequeDate: paymentMethod === "Cheque" ? chequeDate : null,
+    };
 
     await dispatch(updateProduct({ id, formData }));
     await dispatch(getProducts());
     navigate("/dashboard");
   };
-
+  const handlePaymentMethodChange = (event) => {
+    setPaymentMethod(event.target.value);
+  };
   return (
     <div>
       {isLoading && <Loader />}
@@ -79,9 +85,11 @@ const EditProduct = () => {
         productImage={productImage}
         imagePreview={imagePreview}
         description={description}
+        paymentMethod={paymentMethod}
         setDescription={setDescription}
         handleInputChange={handleInputChange}
         handleImageChange={handleImageChange}
+        handlePaymentMethodChange={handlePaymentMethodChange}
         saveProduct={saveProduct}
       />
     </div>

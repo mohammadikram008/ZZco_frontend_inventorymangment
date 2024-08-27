@@ -50,6 +50,44 @@ export const loginUser = async (userData) => {
   }
 };
 
+// loginCustomer
+export const loginCustomer = async (userData) => {
+  try {
+    const response = await axios.post(
+      `${BACKEND_URL}/api/users/Customerlogin`,
+      userData
+    );
+    if (response.statusText === "OK") {
+      toast.success("Login Successful...");
+    }
+    return response.data;
+  } catch (error) {
+    const message =
+      (error.response && error.response.data && error.response.data.message) ||
+      error.message ||
+      error.toString();
+    toast.error(message);
+  }
+};
+// loginManager
+export const loginManager = async (userData) => {
+  try {
+    const response = await axios.post(
+      `${BACKEND_URL}/api/users/managerlogin`,
+      userData
+    );
+    if (response.statusText === "OK") {
+      toast.success("Login Successful...");
+    }
+    return response.data;
+  } catch (error) {
+    const message =
+      (error.response && error.response.data && error.response.data.message) ||
+      error.message ||
+      error.toString();
+    toast.error(message);
+  }
+};
 // Logout User
 export const logoutUser = async () => {
   try {

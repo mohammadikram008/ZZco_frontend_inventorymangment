@@ -1,134 +1,129 @@
-import React from "react";
-import ReactQuill from "react-quill";
-import "react-quill/dist/quill.snow.css";
-import Card from "../../card/Card";
+import React, { useState } from "react";
+import { 
+  Card, 
+  CardContent, 
+  TextField, 
+  Button, 
+  Select, 
+  MenuItem, 
+  FormControl, 
+  InputLabel, 
+  Grid 
+} from "@mui/material";
+import { styled } from "@mui/system";
 
-import "./ProductForm.scss";
+const ImagePreview = styled('img')({
+  width: '100%',
+  maxHeight: '300px',
+  objectFit: 'cover',
+  marginTop: '16px',
+});
 
 const ProductForm = ({
   product,
-  productImage,
   imagePreview,
   description,
   setDescription,
   handleInputChange,
   handleImageChange,
+  handlePaymentMethodChange,
+  paymentMethod,
   saveProduct,
 }) => {
+  const [chequeDate, setChequeDate] = useState("");
+
+  const handleChequeDateChange = (event) => {
+    setChequeDate(event.target.value);
+  };
+
+  const handleFormSubmit = (event) => {
+    event.preventDefault();
+    saveProduct({ chequeDate });
+  };
+
   return (
-    <div className="add-product">
-      <Card cardClass={"card"}>
-        <form onSubmit={saveProduct}>
-          <Card cardClass={"group"}>
-            <label>Product Image</label>
-            <code className="--color-dark">
-              Supported Formats: jpg, jpeg, png
-            </code>
-            <input
-              type="file"
-              name="image"
-              onChange={(e) => handleImageChange(e)}
+    <div>
+      <Card>
+        <CardContent>
+          <form onSubmit={handleFormSubmit}>
+            <TextField
+              label="Product Name"
+              name="name"
+              value={product?.name || ''}
+              onChange={handleInputChange}
+              fullWidth
+              margin="normal"
             />
 
-            {imagePreview != null ? (
-              <div className="image-preview">
-                <img src={imagePreview} alt="product" />
-              </div>
-            ) : (
-              <p>No image set for this poduct.</p>
+            <TextField
+              label="Product Category"
+              name="category"
+              value={product?.category || ''}
+              onChange={handleInputChange}
+              fullWidth
+              margin="normal"
+            />
+
+            <TextField
+              type="number"
+              label="Product Price"
+              name="price"
+              value={product?.price || ''}
+              onChange={handleInputChange}
+              fullWidth
+              margin="normal"
+            />
+
+            <TextField
+              type="number"
+              label="Product Quantity"
+              name="quantity"
+              value={product?.quantity || ''}
+              onChange={handleInputChange}
+              fullWidth
+              margin="normal"
+            />
+
+            <FormControl fullWidth margin="normal">
+              <InputLabel>Payment Method</InputLabel>
+              <Select
+                value={paymentMethod}
+                onChange={handlePaymentMethodChange}
+                label="Payment Method"
+              >
+                <MenuItem value="Cash">Cash</MenuItem>
+                <MenuItem value="Online">Online</MenuItem>
+                <MenuItem value="Cheque">Cheque</MenuItem>
+                <MenuItem value="Cheque">Credit</MenuItem>
+              </Select>
+            </FormControl>
+
+            {paymentMethod === "Cheque" && (
+              <TextField
+                fullWidth
+                label="Cheque Date"
+                type="date"
+                value={chequeDate}
+                onChange={handleChequeDateChange}
+                // InputLabelProps={{ shrink: true }}
+                margin="normal"
+              />
             )}
-          </Card>
-          <label>Product Name:</label>
-          <input
-            type="text"
-            placeholder="Product name"
-            name="name"
-            value={product?.name}
-            onChange={handleInputChange}
-          />
 
-          <label>Product Category:</label>
-          <input
-            type="text"
-            placeholder="Product Category"
-            name="category"
-            value={product?.category}
-            onChange={handleInputChange}
-          />
-
-          <label>Product Price:</label>
-          <input
-            type="text"
-            placeholder="Product Price"
-            name="price"
-            value={product?.price}
-            onChange={handleInputChange}
-          />
-
-          <label>Product Quantity:</label>
-          <input
-            type="text"
-            placeholder="Product Quantity"
-            name="quantity"
-            value={product?.quantity}
-            onChange={handleInputChange}
-          />
-
-          <label>Product Description:</label>
-          <ReactQuill
-            theme="snow"
-            value={description}
-            onChange={setDescription}
-            modules={ProductForm.modules}
-            formats={ProductForm.formats}
-          />
-
-          <div className="--my">
-            <button type="submit" className="--btn --btn-primary">
+            <Button
+              type="submit"
+              variant="contained"
+              color="primary"
+              fullWidth
+              sx={{ mt: 2 }}
+            >
               Save Product
-            </button>
-          </div>
-        </form>
+            </Button>
+          </form>
+        </CardContent>
       </Card>
     </div>
   );
 };
-
-ProductForm.modules = {
-  toolbar: [
-    [{ header: "1" }, { header: "2" }, { font: [] }],
-    [{ size: [] }],
-    ["bold", "italic", "underline", "strike", "blockquote"],
-    [{ align: [] }],
-    [{ color: [] }, { background: [] }],
-    [
-      { list: "ordered" },
-      { list: "bullet" },
-      { indent: "-1" },
-      { indent: "+1" },
-    ],
-    ["clean"],
-  ],
-};
-ProductForm.formats = [
-  "header",
-  "font",
-  "size",
-  "bold",
-  "italic",
-  "underline",
-  "strike",
-  "blockquote",
-  "color",
-  "background",
-  "list",
-  "bullet",
-  "indent",
-  "link",
-  "video",
-  "image",
-  "code-block",
-  "align",
-];
 
 export default ProductForm;

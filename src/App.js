@@ -14,12 +14,26 @@ import "react-toastify/dist/ReactToastify.css";
 import { useDispatch } from "react-redux";
 import { getLoginStatus } from "./services/authService";
 import { SET_LOGIN } from "./redux/features/auth/authSlice";
+
+//ADD 
 import AddProduct from "./pages/addProduct/AddProduct";
+import AddCustomer from "./pages/customer/Customer.jsx";
+import AddManager from "./pages/AddManager/Manager.jsx";
+import Order from "./pages/Orders/Order.jsx";
 import ProductDetail from "./components/product/productDetail/ProductDetail";
+import SaleProduct from "./pages/SaleProduct/Sales.js";
+
+//Edite
 import EditProduct from "./pages/editProduct/EditProduct";
+//Accounts
 import Profile from "./pages/profile/Profile";
 import EditProfile from "./pages/profile/EditProfile";
 import Contact from "./pages/contact/Contact";
+import EditCustomer from "./pages/profile/EditProfile";
+import EditManager from "./pages/profile/EditProfile";
+
+
+
 
 axios.defaults.withCredentials = true;
 
@@ -41,8 +55,9 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        {/* 
         <Route path="/forgot" element={<Forgot />} />
-        <Route path="/resetpassword/:resetToken" element={<Reset />} />
+        <Route path="/resetpassword/:resetToken" element={<Reset />} /> */}
 
         <Route
           path="/dashboard"
@@ -64,6 +79,36 @@ function App() {
             </Sidebar>
           }
         />
+        <Route
+          path="/add-supplier"
+          element={
+            <Sidebar>
+              <Layout>
+                <AddCustomer />
+              </Layout>
+            </Sidebar>
+          }
+        />
+        <Route
+          path="/add-manager"
+          element={
+            <Sidebar>
+              <Layout>
+                <AddManager />
+              </Layout>
+            </Sidebar>
+          }
+        />
+        {/* <Route
+          path="/order"
+          element={
+            <Sidebar>
+              <Layout>
+                <Order />
+              </Layout>
+            </Sidebar>
+          }
+        /> */}
         <Route
           path="/product-detail/:id"
           element={
@@ -104,6 +149,37 @@ function App() {
             </Sidebar>
           }
         />
+        {/* <Route
+          path="/edit-customer"
+          element={
+            <Sidebar>
+              <Layout>
+                <EditCustomer />
+              </Layout>
+            </Sidebar>
+          }
+        /> */}
+        {/* <Route
+          path="/edit-manager"
+          element={
+            <Sidebar>
+              <Layout>
+                <EditManager />
+              </Layout>
+            </Sidebar>
+          }
+        /> */}
+           <Route
+          path="/Add-sale"
+          element={
+            <Sidebar>
+              <Layout>
+                <SaleProduct />
+              </Layout>
+            </Sidebar>
+          }
+        />
+
         <Route
           path="/contact-us"
           element={

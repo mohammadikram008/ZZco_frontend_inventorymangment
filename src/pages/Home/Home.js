@@ -14,11 +14,13 @@ const Home = () => {
         </div>
 
         <ul className="home-links">
-          <ShowOnLogout>
+          {/* <ShowOnLogout>
             <li>
+            <button className="--btn --btn-primary">
               <Link to="/register">Register</Link>
+            </button>
             </li>
-          </ShowOnLogout>
+          </ShowOnLogout> */}
           <ShowOnLogout>
             <li>
               <button className="--btn --btn-primary">
@@ -38,19 +40,19 @@ const Home = () => {
       {/* HERO SECTION */}
       <section className="container hero">
         <div className="hero-text">
-          <h2>Inventory {"&"} Stock Management Solution</h2>
+          <h2>ZZco {"&"} Stock Management Solution</h2>
           <p>
-            Inventory system to control and manage proucts in the warehouse in
-            real timeand integrated to make it easier to develop your business.
+            Inventory system to control and manage proucts in the ZZco
+           
           </p>
-          <div className="hero-buttons">
+          {/* <div className="hero-buttons">
             <button className="--btn --btn-secondary">
               <Link to="/dashboard">Free Trial 1 Month</Link>
             </button>
-          </div>
+          </div> */}
           <div className="--flex-start">
             <NumberText num="14K" text="Brand Owners" />
-            <NumberText num="23K" text="Active Users" />
+            <NumberText num="23K" text="Users" />
             <NumberText num="500+" text="Partners" />
           </div>
         </div>

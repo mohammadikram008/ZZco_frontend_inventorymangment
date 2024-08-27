@@ -103,32 +103,37 @@ const ProductList = ({ products, isLoading }) => {
             <table>
               <thead>
                 <tr>
-                  <th>s/n</th>
+                  <th>#S/N</th>
                   <th>Name</th>
                   <th>Category</th>
-                  <th>Price</th>
+                  <th>Price  (Rs)</th>
                   <th>Quantity</th>
                   <th>Value</th>
+                  <th>Payment Method</th>
                   <th>Action</th>
                 </tr>
               </thead>
 
               <tbody>
                 {currentItems.map((product, index) => {
-                  const { _id, name, category, price, quantity } = product;
+                  const { _id, name, category, price, quantity,paymentMethod } = product;
                   return (
                     <tr key={_id}>
                       <td>{index + 1}</td>
                       <td>{shortenText(name, 16)}</td>
                       <td>{category}</td>
                       <td>
-                        {"$"}
+                       
                         {price}
                       </td>
                       <td>{quantity}</td>
                       <td>
-                        {"$"}
+                        
                         {price * quantity}
+                      </td>
+                      <td>
+                        
+                        {paymentMethod}
                       </td>
                       <td className="icons">
                         <span>
