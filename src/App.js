@@ -31,6 +31,8 @@ import EditProfile from "./pages/profile/EditProfile";
 import Contact from "./pages/contact/Contact";
 import EditCustomer from "./pages/profile/EditProfile";
 import EditManager from "./pages/profile/EditProfile";
+import AddExpenses from "./pages/ownAccount/AddExpenses.js";
+import ViewExpenses from "./pages/ownAccount/ViewExpenses.js";
 
 
 
@@ -149,26 +151,26 @@ function App() {
             </Sidebar>
           }
         />
-        {/* <Route
-          path="/edit-customer"
+        <Route
+          path="/add-expenses"
           element={
             <Sidebar>
               <Layout>
-                <EditCustomer />
-              </Layout>
+              <AddExpenses/>
+                            </Layout>
             </Sidebar>
           }
-        /> */}
-        {/* <Route
-          path="/edit-manager"
+        />
+        <Route
+          path="/view-expenses"
           element={
             <Sidebar>
               <Layout>
-                <EditManager />
+               <ViewExpenses/>
               </Layout>
             </Sidebar>
           }
-        /> */}
+        />
            <Route
           path="/Add-sale"
           element={

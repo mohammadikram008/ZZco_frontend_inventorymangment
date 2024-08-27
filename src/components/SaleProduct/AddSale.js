@@ -30,10 +30,12 @@ export default function AddSale({
     chequeDate: "",
   });
   const [open, setOpen] = useState(true);
+  const [image, setImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState("");
   const cancelButtonRef = useRef(null);
   const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-
   const API_URL = `${BACKEND_URL}/api`;
+
   // Handling Input Change for input fields
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -43,14 +45,34 @@ export default function AddSale({
     }));
   };
 
+  // Handle Image Change
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImage(file);
+      setImagePreview(URL.createObjectURL(file));
+    }
+  };
+
   // POST Data
   const addSale = () => {
+    const formData = new FormData();
+    formData.append("productID", sale.productID);
+    formData.append("customerID", sale.customerID);
+    formData.append("stockSold", sale.stockSold);
+    formData.append("saleDate", sale.saleDate);
+    formData.append("totalSaleAmount", sale.totalSaleAmount);
+    formData.append("paymentMethod", sale.paymentMethod);
+    if (sale.paymentMethod === "cheque") {
+      formData.append("chequeDate", sale.chequeDate);
+    }
+    if (image) {
+      formData.append("image", image);
+    }
+
     fetch(`${API_URL}/sales/`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(sale),
+      body: formData,
     })
       .then((response) => {
         if (!response.ok) {
@@ -80,7 +102,6 @@ export default function AddSale({
     >
       <DialogTitle>
         <Box display="flex" alignItems="center">
-          {/* <PlusIcon color="primary" /> */}
           <Box ml={1}>Add Sale</Box>
         </Box>
       </DialogTitle>
@@ -174,6 +195,7 @@ export default function AddSale({
                   <MenuItem value="cash">Cash</MenuItem>
                   <MenuItem value="online">Online</MenuItem>
                   <MenuItem value="cheque">Cheque</MenuItem>
+                  <MenuItem value="credit">Credit</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
@@ -189,6 +211,22 @@ export default function AddSale({
                   InputLabelProps={{ shrink: true }}
                   margin="normal"
                 />
+              </Grid>
+            )}
+            {(sale.paymentMethod === "cheque" || sale.paymentMethod === "credit" || sale.paymentMethod === "online") && (
+              <Grid item xs={12}>
+                <TextField
+                  type="file"
+                  label="Upload Image"
+                  name="image"
+                  onChange={handleImageChange}
+                  fullWidth
+                  margin="normal"
+                  InputLabelProps={{ shrink: true }}
+                />
+                {imagePreview && (
+                  <img src={imagePreview} alt="Preview" style={{ width: "100%", maxHeight: "300px", marginTop: "16px", objectFit: "cover" }} />
+                )}
               </Grid>
             )}
             <Grid item xs={12}>

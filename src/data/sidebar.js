@@ -41,7 +41,17 @@ const menu = [
   {
     title: "Own Account",
     icon: <BsCartDashFill />,
-    path: "/add-sale",
+    childrens: [
+      {
+        title: "Add Exenses",
+        path: "/add-expenses",
+      },
+      {
+        title: "View Expenses",
+        path: "/view-expenses",
+      },
+    
+    ],
   },
   // {
   //   title: "Order",

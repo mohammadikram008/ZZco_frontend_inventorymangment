@@ -49,13 +49,12 @@ const ProductList = ({ products, isLoading }) => {
         },
         {
           label: "Cancel",
-          // onClick: () => alert('Click No')
         },
       ],
     });
   };
 
-  //   Begin Pagination
+  // Begin Pagination
   const [currentItems, setCurrentItems] = useState([]);
   const [pageCount, setPageCount] = useState(0);
   const [itemOffset, setItemOffset] = useState(0);
@@ -72,7 +71,7 @@ const ProductList = ({ products, isLoading }) => {
     const newOffset = (event.selected * itemsPerPage) % filteredProducts.length;
     setItemOffset(newOffset);
   };
-  //   End Pagination
+  // End Pagination
 
   useEffect(() => {
     dispatch(FILTER_PRODUCTS({ products, search }));
@@ -106,35 +105,28 @@ const ProductList = ({ products, isLoading }) => {
                   <th>#S/N</th>
                   <th>Name</th>
                   <th>Category</th>
-                  <th>Price  (Rs)</th>
+                  <th>Price (Rs)</th>
                   <th>Quantity</th>
                   <th>Value</th>
                   <th>Payment Method</th>
+                  <th>Status</th>
                   <th>Action</th>
                 </tr>
               </thead>
 
               <tbody>
                 {currentItems.map((product, index) => {
-                  const { _id, name, category, price, quantity,paymentMethod } = product;
+                  const { _id, name, category, price, quantity, paymentMethod, status } = product;
                   return (
                     <tr key={_id}>
                       <td>{index + 1}</td>
                       <td>{shortenText(name, 16)}</td>
                       <td>{category}</td>
-                      <td>
-                       
-                        {price}
-                      </td>
+                      <td>{price}</td>
                       <td>{quantity}</td>
-                      <td>
-                        
-                        {price * quantity}
-                      </td>
-                      <td>
-                        
-                        {paymentMethod}
-                      </td>
+                      <td>{price * quantity}</td>
+                      <td>{paymentMethod}</td>
+                      <td>{status}</td> {/* Display the status value */}
                       <td className="icons">
                         <span>
                           <Link to={`/product-detail/${_id}`}>

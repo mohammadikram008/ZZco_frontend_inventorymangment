@@ -94,20 +94,34 @@ const ProductForm = ({
                 <MenuItem value="Cash">Cash</MenuItem>
                 <MenuItem value="Online">Online</MenuItem>
                 <MenuItem value="Cheque">Cheque</MenuItem>
-                <MenuItem value="Cheque">Credit</MenuItem>
+                <MenuItem value="Credit">Credit</MenuItem>
               </Select>
             </FormControl>
 
-            {paymentMethod === "Cheque" && (
-              <TextField
-                fullWidth
-                label="Cheque Date"
-                type="date"
-                value={chequeDate}
-                onChange={handleChequeDateChange}
-                // InputLabelProps={{ shrink: true }}
-                margin="normal"
-              />
+            {(paymentMethod === "Cheque" || paymentMethod === "Credit" || paymentMethod === "Online") && (
+              <>
+                {paymentMethod === "Cheque" && (
+                  <TextField
+                    fullWidth
+                    label="Cheque Date"
+                    type="date"
+                    value={chequeDate}
+                    onChange={handleChequeDateChange}
+                    InputLabelProps={{ shrink: true }}
+                    margin="normal"
+                  />
+                )}
+                <TextField
+                  type="file"
+                  label="Upload Image"
+                  name="image"
+                  onChange={handleImageChange}
+                  fullWidth
+                  margin="normal"
+                  InputLabelProps={{ shrink: true }}
+                />
+                {imagePreview && <ImagePreview src={imagePreview} alt="Preview" />}
+              </>
             )}
 
             <Button
