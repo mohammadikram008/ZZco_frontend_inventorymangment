@@ -150,7 +150,7 @@ export default function AddSale({
                   labelId="storeID-label"
                   id="storeID"
                   name="customerID"
-                  value={sale.storeID}
+                  value={sale.customerID}
                   onChange={handleInputChange}
                   label="Customer"
                 >
