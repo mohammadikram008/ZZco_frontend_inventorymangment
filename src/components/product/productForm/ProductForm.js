@@ -7,8 +7,7 @@ import {
   Select, 
   MenuItem, 
   FormControl, 
-  InputLabel, 
-  Grid 
+  InputLabel 
 } from "@mui/material";
 import { styled } from "@mui/system";
 
@@ -25,20 +24,53 @@ const ProductForm = ({
   description,
   setDescription,
   handleInputChange,
-  handleImageChange,
+  handleImageChange, // This is the prop function, keep as is
   handlePaymentMethodChange,
   paymentMethod,
   saveProduct,
 }) => {
   const [chequeDate, setChequeDate] = useState("");
+  const [selectedImage, setSelectedImage] = useState(null);
 
+  // Function to handle cheque date change
   const handleChequeDateChange = (event) => {
-    setChequeDate(event.target.value);
+    setChequeDate(event.target.value); // Update chequeDate state
+  };
+
+  const onImageChange = (event) => {
+    const file = event.target.files[0];
+    setSelectedImage(file);
+
+    // Update image preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      handleImageChange(reader.result);
+    };
+    if (file) {
+      reader.readAsDataURL(file);
+    } else {
+      handleImageChange(null);
+    }
   };
 
   const handleFormSubmit = (event) => {
     event.preventDefault();
-    saveProduct({ chequeDate });
+
+    // Create a FormData object to handle file uploads
+    const formData = new FormData();
+    formData.append("name", product?.name || '');
+    formData.append("category", product?.category || '');
+    formData.append("price", product?.price || '');
+    formData.append("quantity", product?.quantity || '');
+    formData.append("paymentMethod", paymentMethod);
+    if (paymentMethod === "Cheque") {
+      formData.append("chequeDate", chequeDate);
+    }
+    if (selectedImage) {
+      formData.append("image", selectedImage); // Add image file to FormData
+    }
+
+    saveProduct(formData); // Pass the FormData object to saveProduct
   };
 
   return (
@@ -106,7 +138,7 @@ const ProductForm = ({
                     label="Cheque Date"
                     type="date"
                     value={chequeDate}
-                    onChange={handleChequeDateChange}
+                    onChange={handleChequeDateChange} // Use the defined function
                     InputLabelProps={{ shrink: true }}
                     margin="normal"
                   />
@@ -115,7 +147,7 @@ const ProductForm = ({
                   type="file"
                   label="Upload Image"
                   name="image"
-                  onChange={handleImageChange}
+                  onChange={onImageChange} // Use the renamed function here
                   fullWidth
                   margin="normal"
                   InputLabelProps={{ shrink: true }}
