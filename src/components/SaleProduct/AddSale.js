@@ -73,10 +73,13 @@ export default function AddSale({
     fetch(`${API_URL}/sales/`, {
       method: "POST",
       body: formData,
+      credentials: "include", // Include credentials to send cookies
     })
       .then((response) => {
         if (!response.ok) {
-          throw new Error("Network response was not ok");
+          return response.json().then((err) => {
+            throw new Error(err.message || "Failed to add sale");
+          });
         }
         return response.json();
       })
@@ -108,6 +111,7 @@ export default function AddSale({
       <DialogContent>
         <form>
           <Grid container spacing={2}>
+            {/* Product Selection */}
             <Grid item xs={12} sm={6}>
               <FormControl fullWidth margin="normal">
                 <InputLabel id="productID-label">Product Name</InputLabel>
@@ -130,6 +134,7 @@ export default function AddSale({
                 </Select>
               </FormControl>
             </Grid>
+            {/* Stock Sold */}
             <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
@@ -143,6 +148,7 @@ export default function AddSale({
                 InputLabelProps={{ shrink: true }}
               />
             </Grid>
+            {/* Store Selection */}
             <Grid item xs={12} sm={6}>
               <FormControl fullWidth margin="normal">
                 <InputLabel id="storeID-label">Store Name</InputLabel>
@@ -165,6 +171,7 @@ export default function AddSale({
                 </Select>
               </FormControl>
             </Grid>
+            {/* Total Sale Amount */}
             <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
@@ -178,6 +185,7 @@ export default function AddSale({
                 InputLabelProps={{ shrink: true }}
               />
             </Grid>
+            {/* Payment Method Selection */}
             <Grid item xs={12} sm={6}>
               <FormControl fullWidth margin="normal">
                 <InputLabel id="paymentMethod-label">Payment Method</InputLabel>
@@ -199,6 +207,7 @@ export default function AddSale({
                 </Select>
               </FormControl>
             </Grid>
+            {/* Cheque Date */}
             {sale.paymentMethod === "cheque" && (
               <Grid item xs={12} sm={6}>
                 <TextField
@@ -213,6 +222,7 @@ export default function AddSale({
                 />
               </Grid>
             )}
+            {/* Image Upload */}
             {(sale.paymentMethod === "cheque" || sale.paymentMethod === "credit" || sale.paymentMethod === "online") && (
               <Grid item xs={12}>
                 <TextField
@@ -229,6 +239,7 @@ export default function AddSale({
                 )}
               </Grid>
             )}
+            {/* Sales Date */}
             <Grid item xs={12}>
               <TextField
                 fullWidth

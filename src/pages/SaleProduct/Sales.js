@@ -1,22 +1,31 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import AddSale from "../../components/SaleProduct/AddSale";
 import { useDispatch, useSelector } from "react-redux";
 import { getProducts } from "../../redux/features/product/productSlice";
 import useRedirectLoggedOutUser from "../../customHook/useRedirectLoggedOutUser";
 import { selectIsLoggedIn } from "../../redux/features/auth/authSlice";
-// import AuthContext from "../../../AuthContext";
-import { Button, Card, CardContent, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Container } from "@mui/material";
+import {
+  Button,
+  Card,
+  CardContent,
+  Typography,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Container
+} from "@mui/material";
 
 function Sales() {
   const [showSaleModal, setShowSaleModal] = useState(false);
   const [sales, setAllSalesData] = useState([]);
-  const [product, setAllProducts] = useState([]);
   const [customer, setAllCustomer] = useState([]);
   const [updatePage, setUpdatePage] = useState(true);
 
-
   const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-
   const API_URL = `${BACKEND_URL}/api`;
 
   useRedirectLoggedOutUser("/login");
@@ -26,11 +35,11 @@ function Sales() {
   const { products, isLoading, isError, message } = useSelector(
     (state) => state.product
   );
-  console.log("productsproducts",products);
-  
-  // const authContext = useContext(AuthContext);
+
+  console.log("productsproducts", products);
+
   useEffect(() => {
-    if (isLoggedIn === true) {
+    if (isLoggedIn) {
       dispatch(getProducts());
     }
 
@@ -38,16 +47,19 @@ function Sales() {
       console.log(message);
     }
   }, [isLoggedIn, isError, message, dispatch]);
-  useEffect(() => {
-    fetchSalesData();
-    fetchCustomerData();
-    // fetchProductsData();
-    // fetchStoresData();
-  }, [updatePage]);
 
- // Fetching Data of All Sales
+  useEffect(() => {
+    if (isLoggedIn) {
+      fetchSalesData();
+      fetchCustomerData();
+    }
+  }, [isLoggedIn, updatePage]);
+
+  // Fetching Data of All Sales
   const fetchCustomerData = () => {
-    fetch(`${API_URL}/customers/allcustomer`)
+    fetch(`${API_URL}/customers/allcustomer`, {
+      credentials: "include", // Include credentials to send cookies
+    })
       .then((response) => response.json())
       .then((data) => {
         setAllCustomer(data);
@@ -55,9 +67,10 @@ function Sales() {
       .catch((err) => console.log(err));
   };
 
-  // Fetching Data of All Sales
   const fetchSalesData = () => {
-    fetch(`${API_URL}/sales/allsales`)
+    fetch(`${API_URL}/sales/allsales`, {
+      credentials: "include", // Include credentials to send cookies
+    })
       .then((response) => response.json())
       .then((data) => {
         setAllSalesData(data);
@@ -65,39 +78,19 @@ function Sales() {
       .catch((err) => console.log(err));
   };
 
-  // Fetching Data of All Products
-  // const fetchProductsData = () => {
-  //   fetch(`http://localhost:4000/api/product/get/${authContext.user}`)
-  //     .then((response) => response.json())
-  //     .then((data) => {
-  //       setAllProducts(data);
-  //     })
-  //     .catch((err) => console.log(err));
-  // };
-
-  // Fetching Data of All Stores
-  // const fetchStoresData = () => {
-  //   fetch(`http://localhost:4000/api/store/get/${authContext.user}`)
-  //     .then((response) => response.json())
-  //     .then((data) => {
-  //       setAllStores(data);
-  //     });
-  // };
-
-  // Modal for Sale Add
   const addSaleModalSetting = () => {
     setShowSaleModal(!showSaleModal);
   };
 
-  // Handle Page Update
   const handlePageUpdate = () => {
     setUpdatePage(!updatePage);
   };
-console.log("sales",sales);
+
+  console.log("sales", sales);
 
   return (
     <Container>
-      <Card sx={{mt:3}}>
+      <Card sx={{ mt: 3 }}>
         <CardContent>
           <Typography variant="h5" gutterBottom>
             Sales
@@ -117,7 +110,6 @@ console.log("sales",sales);
               products={products}
               stores={customer}
               handlePageUpdate={handlePageUpdate}
-              // authContext={authContext}
             />
           )}
 
