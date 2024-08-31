@@ -6,7 +6,9 @@ import { FaBookMedical } from "react-icons/fa";
 import { MdOutlineProductionQuantityLimits } from "react-icons/md";
 import { FaCartPlus } from "react-icons/fa";
 import { BsCartDashFill } from "react-icons/bs";
+import { MdAccountBalance } from "react-icons/md";
 
+import { FaMoneyCheckDollar } from "react-icons/fa6";
 
 const menu = [
   {
@@ -35,12 +37,12 @@ const menu = [
   },
   {
     title: "Cheque Detail",
-    icon: <BsCartDashFill />,
+    icon: <FaMoneyCheckDollar />,
     path: "/add-sale",
   },
   {
     title: "Own Account",
-    icon: <BsCartDashFill />,
+    icon: <MdAccountBalance  />,
     childrens: [
       {
         title: "Add Exenses",
@@ -49,6 +51,10 @@ const menu = [
       {
         title: "View Expenses",
         path: "/view-expenses",
+      },
+      {
+        title: "Bank Accounts",
+        path: "/bank-accounts",
       },
     
     ],
