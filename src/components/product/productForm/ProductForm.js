@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Card,
   CardContent,
@@ -25,10 +25,40 @@ const ProductForm = ({
   handleImageChange,
   handlePaymentMethodChange,
   paymentMethod,
-  chequeDate, // Added chequeDate prop
-  setChequeDate, // Added setChequeDate prop
+  chequeDate,
+  setChequeDate,
   saveProduct,
 }) => {
+  // State to track selected bank
+  const [selectedBank, setSelectedBank] = useState("");
+
+  // List of Pakistani Banks
+  const banks = [
+    { _id: "1", name: "Habib Bank Limited (HBL)" },
+    { _id: "2", name: "United Bank Limited (UBL)" },
+    { _id: "3", name: "National Bank of Pakistan (NBP)" },
+    { _id: "4", name: "MCB Bank Limited" },
+    { _id: "5", name: "Allied Bank Limited (ABL)" },
+    { _id: "6", name: "Bank Alfalah" },
+    { _id: "7", name: "Standard Chartered Bank" },
+    { _id: "8", name: "Meezan Bank" },
+    { _id: "9", name: "Faysal Bank" },
+    { _id: "10", name: "Askari Bank" },
+    { _id: "11", name: "Bank of Punjab (BOP)" },
+    { _id: "12", name: "Soneri Bank" },
+    { _id: "13", name: "JS Bank" },
+    { _id: "14", name: "Summit Bank" },
+    { _id: "15", name: "Silkbank" },
+    { _id: "16", name: "Dubai Islamic Bank" },
+    { _id: "17", name: "Al Baraka Bank" },
+    { _id: "18", name: "Habib Metropolitan Bank" },
+    { _id: "19", name: "Samba Bank" },
+    { _id: "20", name: "Bank Islami Pakistan" },
+    { _id: "21", name: "FINCA Microfinance Bank" },
+    { _id: "22", name: "Mobilink Microfinance Bank" },
+    { _id: "23", name: "Khushhali Microfinance Bank" },
+  ];
+
   const handleFormSubmit = (event) => {
     event.preventDefault();
     saveProduct();
@@ -71,13 +101,36 @@ const ProductForm = ({
               </Select>
             </FormControl>
 
+            {/* Bank Dropdown for Cash Payment */}
+            {paymentMethod === "Cash" && (
+              <FormControl fullWidth margin="normal">
+                <InputLabel id="bankID-label">Select Bank</InputLabel>
+                <Select
+                  labelId="bankID-label"
+                  id="bankID"
+                  value={selectedBank}
+                  onChange={(e) => setSelectedBank(e.target.value)}
+                  label="Bank Name"
+                >
+                  <MenuItem value="">
+                    <em>Select Bank</em>
+                  </MenuItem>
+                  {banks.map((bank) => (
+                    <MenuItem key={bank._id} value={bank._id}>
+                      {bank.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            )}
+
             {paymentMethod === "Cheque" && (
               <TextField
                 fullWidth
                 label="Cheque Date"
                 type="date"
-                value={chequeDate} // Use chequeDate state
-                onChange={(e) => setChequeDate(e.target.value)} // Update chequeDate
+                value={chequeDate}
+                onChange={(e) => setChequeDate(e.target.value)}
                 InputLabelProps={{ shrink: true }}
                 margin="normal"
               />

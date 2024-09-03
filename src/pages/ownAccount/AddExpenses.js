@@ -7,17 +7,13 @@ import {
   Button,
   TextField,
   Grid,
-  Box,
-  Card,
-  CardContent,
-  Typography,
   Container
 } from "@mui/material";
 
 const AddExpense = () => {
   // State to control the dialog visibility
   const [showExpenseModal, setShowExpenseModal] = useState(false);
-  
+
   // State to handle form input values
   const [expense, setExpense] = useState({
     expenseName: "",
@@ -65,97 +61,87 @@ const AddExpense = () => {
 
   return (
     <Container>
-      <Card sx={{ mt: 3 }}>
-        <CardContent>
-          <Typography variant="h5" gutterBottom>
-            Add Expense
-          </Typography>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={toggleExpenseModal}
-            sx={{ mb: 2 }}
-          >
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={toggleExpenseModal}
+        sx={{ mb: 2 }}
+      >
+        Add Expense
+      </Button>
+
+      {/* Single dialog for adding expense */}
+      <Dialog
+        open={showExpenseModal}
+        onClose={toggleExpenseModal}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle>Add Expense</DialogTitle>
+        <DialogContent>
+          <form>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Expense Name"
+                  name="expenseName"
+                  value={expense.expenseName}
+                  onChange={handleInputChange}
+                  margin="normal"
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Amount"
+                  type="number"
+                  name="amount"
+                  value={expense.amount}
+                  onChange={handleInputChange}
+                  margin="normal"
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Description"
+                  name="description"
+                  value={expense.description}
+                  onChange={handleInputChange}
+                  multiline
+                  rows={4}
+                  margin="normal"
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Expense Date"
+                  type="date"
+                  name="expenseDate"
+                  value={expense.expenseDate}
+                  onChange={handleInputChange}
+                  InputLabelProps={{ shrink: true }}
+                  margin="normal"
+                />
+              </Grid>
+            </Grid>
+          </form>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="contained" color="primary" onClick={addExpense}>
             Add Expense
           </Button>
-
-          <Dialog
-            open={showExpenseModal}
-            onClose={toggleExpenseModal}
-            fullWidth
-            maxWidth="sm"
+          <Button
+            variant="outlined"
+            color="secondary"
+            onClick={toggleExpenseModal}
           >
-            <DialogTitle>
-              <Box display="flex" alignItems="center">
-                <Box ml={1}>Add Expense</Box>
-              </Box>
-            </DialogTitle>
-            <DialogContent>
-              <form>
-                <Grid container spacing={2}>
-                  <Grid item xs={12}>
-                    <TextField
-                      fullWidth
-                      label="Expense Name"
-                      name="expenseName"
-                      value={expense.expenseName}
-                      onChange={handleInputChange}
-                      margin="normal"
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <TextField
-                      fullWidth
-                      label="Amount"
-                      type="number"
-                      name="amount"
-                      value={expense.amount}
-                      onChange={handleInputChange}
-                      margin="normal"
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <TextField
-                      fullWidth
-                      label="Description"
-                      name="description"
-                      value={expense.description}
-                      onChange={handleInputChange}
-                      multiline
-                      rows={4}
-                      margin="normal"
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <TextField
-                      fullWidth
-                      label="Expense Date"
-                      type="date"
-                      name="expenseDate"
-                      value={expense.expenseDate}
-                      onChange={handleInputChange}
-                      InputLabelProps={{ shrink: true }}
-                      margin="normal"
-                    />
-                  </Grid>
-                </Grid>
-              </form>
-            </DialogContent>
-            <DialogActions>
-              <Button variant="contained" color="primary" onClick={addExpense}>
-                Add Expense
-              </Button>
-              <Button
-                variant="outlined"
-                color="secondary"
-                onClick={toggleExpenseModal}
-              >
-                Cancel
-              </Button>
-            </DialogActions>
-          </Dialog>
-        </CardContent>
-      </Card>
+            Cancel
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };

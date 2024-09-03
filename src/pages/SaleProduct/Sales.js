@@ -23,6 +23,7 @@ function Sales() {
   const [showSaleModal, setShowSaleModal] = useState(false);
   const [sales, setAllSalesData] = useState([]);
   const [customer, setAllCustomer] = useState([]);
+  const [banks, setBanks] = useState([]); // State to store bank data
   const [updatePage, setUpdatePage] = useState(true);
 
   const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -36,7 +37,7 @@ function Sales() {
     (state) => state.product
   );
 
-  console.log("productsproducts", products);
+  console.log("products:", products);
 
   useEffect(() => {
     if (isLoggedIn) {
@@ -52,6 +53,7 @@ function Sales() {
     if (isLoggedIn) {
       fetchSalesData();
       fetchCustomerData();
+      fetchBankData(); // Fetch bank data on page load
     }
   }, [isLoggedIn, updatePage]);
 
@@ -78,6 +80,17 @@ function Sales() {
       .catch((err) => console.log(err));
   };
 
+  const fetchBankData = () => {
+    fetch(`${API_URL}/banks/allbanks`, {
+      credentials: "include", // Include credentials to send cookies
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        setBanks(data);
+      })
+      .catch((err) => console.log(err));
+  };
+
   const addSaleModalSetting = () => {
     setShowSaleModal(!showSaleModal);
   };
@@ -86,7 +99,19 @@ function Sales() {
     setUpdatePage(!updatePage);
   };
 
-  console.log("sales", sales);
+  console.log("sales:", sales);
+
+  // Helper function to get product name by ID
+  const getProductName = (id) => {
+    const product = products.find((product) => product._id === id);
+    return product ? product.name : "Unknown Product";
+  };
+
+  // Helper function to get customer name by ID
+  const getCustomerName = (id) => {
+    const cust = customer.find((cust) => cust._id === id);
+    return cust ? cust.username : "Unknown Customer";
+  };
 
   return (
     <Container>
@@ -109,6 +134,7 @@ function Sales() {
               addSaleModalSetting={addSaleModalSetting}
               products={products}
               stores={customer}
+              banks={banks} // Pass bank data to AddSale component
               handlePageUpdate={handlePageUpdate}
             />
           )}
@@ -121,16 +147,16 @@ function Sales() {
                   <TableCell>Customer Name</TableCell>
                   <TableCell>Product Sold</TableCell>
                   <TableCell>Sales Date</TableCell>
-                  <TableCell>Total Sale Amount(Rs)</TableCell>
+                  <TableCell>Total Sale Amount (Rs)</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {sales.map((element) => (
                   <TableRow key={element._id}>
-                    <TableCell>{element.productID}</TableCell>
-                    <TableCell>{element.customerID}</TableCell>
+                    <TableCell>{getProductName(element.productID)}</TableCell>
+                    <TableCell>{getCustomerName(element.customerID)}</TableCell>
                     <TableCell>{element.stockSold}</TableCell>
-                    <TableCell>{element.saleDate}</TableCell>
+                    <TableCell>{new Date(element.saleDate).toLocaleDateString()}</TableCell>
                     <TableCell>{element.totalSaleAmount}</TableCell>
                   </TableRow>
                 ))}

@@ -11,7 +11,7 @@ import {
   InputLabel,
   FormControl,
   Grid,
-  Box
+  Box,
 } from "@mui/material";
 
 export default function AddSale({
@@ -28,6 +28,7 @@ export default function AddSale({
     totalSaleAmount: "",
     paymentMethod: "",
     chequeDate: "",
+    bankID: "", // Track selected bank
   });
   const [open, setOpen] = useState(true);
   const [image, setImage] = useState(null);
@@ -35,6 +36,33 @@ export default function AddSale({
   const cancelButtonRef = useRef(null);
   const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
   const API_URL = `${BACKEND_URL}/api`;
+
+  // List of Pakistani Banks
+  const banks = [
+    { _id: "1", name: "Habib Bank Limited (HBL)" },
+    { _id: "2", name: "United Bank Limited (UBL)" },
+    { _id: "3", name: "National Bank of Pakistan (NBP)" },
+    { _id: "4", name: "MCB Bank Limited" },
+    { _id: "5", name: "Allied Bank Limited (ABL)" },
+    { _id: "6", name: "Bank Alfalah" },
+    { _id: "7", name: "Standard Chartered Bank" },
+    { _id: "8", name: "Meezan Bank" },
+    { _id: "9", name: "Faysal Bank" },
+    { _id: "10", name: "Askari Bank" },
+    { _id: "11", name: "Bank of Punjab (BOP)" },
+    { _id: "12", name: "Soneri Bank" },
+    { _id: "13", name: "JS Bank" },
+    { _id: "14", name: "Summit Bank" },
+    { _id: "15", name: "Silkbank" },
+    { _id: "16", name: "Dubai Islamic Bank" },
+    { _id: "17", name: "Al Baraka Bank" },
+    { _id: "18", name: "Habib Metropolitan Bank" },
+    { _id: "19", name: "Samba Bank" },
+    { _id: "20", name: "Bank Islami Pakistan" },
+    { _id: "21", name: "FINCA Microfinance Bank" },
+    { _id: "22", name: "Mobilink Microfinance Bank" },
+    { _id: "23", name: "Khushhali Microfinance Bank" },
+  ];
 
   // Handling Input Change for input fields
   const handleInputChange = (e) => {
@@ -65,6 +93,9 @@ export default function AddSale({
     formData.append("paymentMethod", sale.paymentMethod);
     if (sale.paymentMethod === "cheque") {
       formData.append("chequeDate", sale.chequeDate);
+    }
+    if (sale.paymentMethod === "cash") {
+      formData.append("bankID", sale.bankID); // Append bankID if cash is selected
     }
     if (image) {
       formData.append("image", image);
@@ -207,6 +238,31 @@ export default function AddSale({
                 </Select>
               </FormControl>
             </Grid>
+            {/* Bank Selection for Cash Payment */}
+            {sale.paymentMethod === "cash" && (
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth margin="normal">
+                  <InputLabel id="bankID-label">Bank Name</InputLabel>
+                  <Select
+                    labelId="bankID-label"
+                    id="bankID"
+                    name="bankID"
+                    value={sale.bankID}
+                    onChange={handleInputChange}
+                    label="Bank Name"
+                  >
+                    <MenuItem value="">
+                      <em>Select Bank</em>
+                    </MenuItem>
+                    {banks.map((bank) => (
+                      <MenuItem key={bank._id} value={bank._id}>
+                        {bank.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+            )}
             {/* Cheque Date */}
             {sale.paymentMethod === "cheque" && (
               <Grid item xs={12} sm={6}>
@@ -223,7 +279,9 @@ export default function AddSale({
               </Grid>
             )}
             {/* Image Upload */}
-            {(sale.paymentMethod === "cheque" || sale.paymentMethod === "credit" || sale.paymentMethod === "online") && (
+            {(sale.paymentMethod === "cheque" ||
+              sale.paymentMethod === "credit" ||
+              sale.paymentMethod === "online") && (
               <Grid item xs={12}>
                 <TextField
                   type="file"
@@ -235,7 +293,16 @@ export default function AddSale({
                   InputLabelProps={{ shrink: true }}
                 />
                 {imagePreview && (
-                  <img src={imagePreview} alt="Preview" style={{ width: "100%", maxHeight: "300px", marginTop: "16px", objectFit: "cover" }} />
+                  <img
+                    src={imagePreview}
+                    alt="Preview"
+                    style={{
+                      width: "100%",
+                      maxHeight: "300px",
+                      marginTop: "16px",
+                      objectFit: "cover",
+                    }}
+                  />
                 )}
               </Grid>
             )}
@@ -257,11 +324,7 @@ export default function AddSale({
         </form>
       </DialogContent>
       <DialogActions>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={addSale}
-        >
+        <Button variant="contained" color="primary" onClick={addSale}>
           Add Sale
         </Button>
         <Button

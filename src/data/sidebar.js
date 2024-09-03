@@ -44,10 +44,7 @@ const menu = [
     title: "Own Account",
     icon: <MdAccountBalance  />,
     childrens: [
-      {
-        title: "Add Exenses",
-        path: "/add-expenses",
-      },
+      
       {
         title: "View Expenses",
         path: "/view-expenses",
