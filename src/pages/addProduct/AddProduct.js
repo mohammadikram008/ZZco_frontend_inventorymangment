@@ -24,7 +24,7 @@ const AddProduct = () => {
   const [imagePreview, setImagePreview] = useState(null);
   const [description, setDescription] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("");
-  const [chequeDate, setChequeDate] = useState("");
+  const [chequeDate, setChequeDate] = useState(""); // Define chequeDate state
   const isLoading = useSelector(selectIsLoading);
 
   const { name, category, price, quantity } = product;
@@ -38,30 +38,31 @@ const AddProduct = () => {
     setProductImage(e.target.files[0]);
     setImagePreview(URL.createObjectURL(e.target.files[0]));
   };
-  const generateKSKU = (category) => {
-    const letter = category.slice(0, 3).toUpperCase();
-    const number = Date.now();
-    const sku = letter + "-" + number;
-    return sku;
-  };
+
   const handlePaymentMethodChange = (event) => {
     setPaymentMethod(event.target.value);
   };
 
-  const saveProduct = async ({ chequeDate }) => {
-    const sku = generateKSKU(category);
-    const formData = {
-      name,
-      sku,
-      category,
-      quantity: Number(quantity),
-      price,
-      paymentMethod,
-      chequeDate: paymentMethod === "Cheque" ? chequeDate : null,
-    };
+  const handleChequeDateChange = (event) => {
+    setChequeDate(event.target.value);
+  };
 
+  const saveProduct = async () => {
+    const formData = new FormData();
+    formData.append("name", name);
+    formData.append("category", category);
+    formData.append("quantity", quantity);
+    formData.append("price", price);
+    formData.append("paymentMethod", paymentMethod);
+    if (paymentMethod === "Cheque") {
+      formData.append("chequeDate", chequeDate); // Use chequeDate from state
+    }
+    if (productImage) {
+      formData.append("image", productImage);
+    }
+
+    // Dispatching the createProduct action
     await dispatch(createProduct(formData));
-
     navigate("/dashboard");
   };
 
@@ -81,6 +82,8 @@ const AddProduct = () => {
             handleInputChange={handleInputChange}
             handleImageChange={handleImageChange}
             handlePaymentMethodChange={handlePaymentMethodChange}
+            chequeDate={chequeDate}
+            setChequeDate={setChequeDate}
             saveProduct={saveProduct}
           />
         </Grid>

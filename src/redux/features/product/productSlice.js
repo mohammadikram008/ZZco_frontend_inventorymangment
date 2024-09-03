@@ -19,15 +19,18 @@ export const createProduct = createAsyncThunk(
   "products/create",
   async (formData, thunkAPI) => {
     try {
-      return await productService.createProduct(formData);
+      // Ensure formData is passed correctly as FormData
+      const response = await productService.createProduct(formData);
+      toast.success("Product added successfully");
+      return response;
     } catch (error) {
+      // Handle error
       const message =
-        (error.response &&
-          error.response.data &&
-          error.response.data.message) ||
+        (error.response && error.response.data && error.response.data.message) ||
         error.message ||
         error.toString();
       console.log(message);
+      toast.error(message); // Show error notification
       return thunkAPI.rejectWithValue(message);
     }
   }

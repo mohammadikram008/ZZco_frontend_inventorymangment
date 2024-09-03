@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import Modal from "react-modal";
 import { SpinnerImg } from "../../loader/Loader";
 import "./productList.scss";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
@@ -18,8 +19,12 @@ import {
 } from "../../../redux/features/product/productSlice";
 import { Link } from "react-router-dom";
 
+Modal.setAppElement("#root");
+
 const ProductList = ({ products, isLoading }) => {
   const [search, setSearch] = useState("");
+  const [modalIsOpen, setModalIsOpen] = useState(false);
+  const [currentImage, setCurrentImage] = useState(null);
   const filteredProducts = useSelector(selectFilteredPoducts);
 
   const dispatch = useDispatch();
@@ -33,7 +38,6 @@ const ProductList = ({ products, isLoading }) => {
   };
 
   const delProduct = async (id) => {
-    console.log(id);
     await dispatch(deleteProduct(id));
     await dispatch(getProducts());
   };
@@ -41,7 +45,7 @@ const ProductList = ({ products, isLoading }) => {
   const confirmDelete = (id) => {
     confirmAlert({
       title: "Delete Product",
-      message: "Are you sure you want to delete this product.",
+      message: "Are you sure you want to delete this product?",
       buttons: [
         {
           label: "Delete",
@@ -54,7 +58,17 @@ const ProductList = ({ products, isLoading }) => {
     });
   };
 
-  // Begin Pagination
+  const openModal = (imagePath) => {
+    setCurrentImage(imagePath);
+    setModalIsOpen(true);
+  };
+
+  const closeModal = () => {
+    setModalIsOpen(false);
+    setCurrentImage(null);
+  };
+
+  // Pagination logic
   const [currentItems, setCurrentItems] = useState([]);
   const [pageCount, setPageCount] = useState(0);
   const [itemOffset, setItemOffset] = useState(0);
@@ -62,7 +76,6 @@ const ProductList = ({ products, isLoading }) => {
 
   useEffect(() => {
     const endOffset = itemOffset + itemsPerPage;
-
     setCurrentItems(filteredProducts.slice(itemOffset, endOffset));
     setPageCount(Math.ceil(filteredProducts.length / itemsPerPage));
   }, [itemOffset, itemsPerPage, filteredProducts]);
@@ -71,7 +84,6 @@ const ProductList = ({ products, isLoading }) => {
     const newOffset = (event.selected * itemsPerPage) % filteredProducts.length;
     setItemOffset(newOffset);
   };
-  // End Pagination
 
   useEffect(() => {
     dispatch(FILTER_PRODUCTS({ products, search }));
@@ -86,10 +98,7 @@ const ProductList = ({ products, isLoading }) => {
             <h3>Inventory Items</h3>
           </span>
           <span>
-            <Search
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
+            <Search value={search} onChange={(e) => setSearch(e.target.value)} />
           </span>
         </div>
 
@@ -109,14 +118,14 @@ const ProductList = ({ products, isLoading }) => {
                   <th>Quantity</th>
                   <th>Value</th>
                   <th>Payment Method</th>
+                 
                   <th>Status</th>
                   <th>Action</th>
                 </tr>
               </thead>
-
               <tbody>
                 {currentItems.map((product, index) => {
-                  const { _id, name, category, price, quantity, paymentMethod, status } = product;
+                  const { _id, name, category, price, quantity, paymentMethod, status, image } = product;
                   return (
                     <tr key={_id}>
                       <td>{index + 1}</td>
@@ -126,7 +135,20 @@ const ProductList = ({ products, isLoading }) => {
                       <td>{quantity}</td>
                       <td>{price * quantity}</td>
                       <td>{paymentMethod}</td>
-                      <td>{status}</td> {/* Display the status value */}
+                      {/* <td>
+                        {image && image.filePath ? (
+                          <img
+                            src={`/${image.filePath.replace(/\\/g, '/')}`} // Convert backslashes to forward slashes
+                            alt={image.fileName}
+                            className="thumbnail"
+                            onClick={() => openModal(`/${image.filePath.replace(/\\/g, '/')}`)} // Open modal on click
+                            style={{ width: "50px", cursor: "pointer" }}
+                          />
+                        ) : (
+                          "No Image"
+                        )}
+                      </td> */}
+                      <td>{status}</td>
                       <td className="icons">
                         <span>
                           <Link to={`/product-detail/${_id}`}>
@@ -167,6 +189,14 @@ const ProductList = ({ products, isLoading }) => {
           nextLinkClassName="page-num"
           activeLinkClassName="activePage"
         />
+
+        {/* Modal for displaying the large image */}
+        <Modal isOpen={modalIsOpen} onRequestClose={closeModal} className="image-modal">
+          <div className="modal-content">
+            <span className="close-icon" onClick={closeModal}>&times;</span>
+            {currentImage && <img src={currentImage} alt="Large view" className="large-image" />}
+          </div>
+        </Modal>
       </div>
     </div>
   );

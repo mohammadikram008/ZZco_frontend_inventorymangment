@@ -49,7 +49,7 @@ const ProductSummary = ({ products }) => {
         />
         <InfoBox
           icon={earningIcon}
-          title={"Total Store Value"}
+          title={"Store Value"}
           count={`${formatNumbers(totalStoreValue.toFixed(2))}`}
           bgColor="card2"
         />
@@ -62,6 +62,19 @@ const ProductSummary = ({ products }) => {
         <InfoBox
           icon={categoryIcon}
           title={"All Categories"}
+          count={category.length}
+          bgColor="card4"
+        />
+         <InfoBox
+          icon={categoryIcon}
+          title={"Bank Amount"}
+          count={category.length}
+          bgColor="card1"
+        />
+
+<InfoBox
+          icon={categoryIcon}
+          title={"Cash"}
           count={category.length}
           bgColor="card4"
         />

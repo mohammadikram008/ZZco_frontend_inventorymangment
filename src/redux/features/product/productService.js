@@ -6,8 +6,12 @@ const API_URL = `${BACKEND_URL}/api/products/`;
 
 // Create New Product
 const createProduct = async (formData) => {
-  const response = await axios.post(API_URL, formData);
-  return response.data;
+  const response = await axios.post(API_URL, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data", // Set the content type to handle file uploads
+    },
+  });
+  return response.data; // Return the response data
 };
 
 // Get all products

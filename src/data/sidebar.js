@@ -38,7 +38,7 @@ const menu = [
   {
     title: "Cheque Detail",
     icon: <FaMoneyCheckDollar />,
-    path: "/add-sale",
+    path: "/cheque-details",
   },
   {
     title: "Own Account",
