@@ -7,6 +7,7 @@ import { MdOutlineProductionQuantityLimits } from "react-icons/md";
 import { FaCartPlus } from "react-icons/fa";
 import { BsCartDashFill } from "react-icons/bs";
 import { MdAccountBalance } from "react-icons/md";
+import { FaWarehouse } from "react-icons/fa6";
 
 import { FaMoneyCheckDollar } from "react-icons/fa6";
 
@@ -39,6 +40,12 @@ const menu = [
     title: "Cheque Detail",
     icon: <FaMoneyCheckDollar />,
     path: "/cheque-details",
+  },
+
+  {
+    title: "Warehouse",
+    icon: <FaWarehouse  />,
+    path: "/view-warehouse",
   },
   {
     title: "Own Account",

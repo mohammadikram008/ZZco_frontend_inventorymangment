@@ -33,6 +33,7 @@ import EditCustomer from "./pages/profile/EditProfile";
 import EditManager from "./pages/profile/EditProfile";
 import AddExpenses from "./pages/ownAccount/AddExpenses.js";
 import ViewExpenses from "./pages/ownAccount/ViewExpenses.js";
+import ViewWarehouse from "./pages/Warehouse/ViewWarehouse.js";
 import AddBank from "./pages/ownAccount/bank-accounts/AddBank.jsx";
 
 
@@ -168,6 +169,17 @@ function App() {
             <Sidebar>
               <Layout>
                <ViewExpenses/>
+              </Layout>
+            </Sidebar>
+          }
+        />
+
+<Route
+          path="/view-warehouse"
+          element={
+            <Sidebar>
+              <Layout>
+               <ViewWarehouse/>
               </Layout>
             </Sidebar>
           }
