@@ -5,7 +5,7 @@ import { Edit, Delete } from "@mui/icons-material";
 import ConfirmDeleteModal from "../../../components/Models/ConfirmDeleteModal";
 import EditBankModal from "../../../components/Models/EditBankModal";
 
-const BankList = ({ banks, refreshBanks }) => {
+const BankList = ({ banks, refreshBanks,cash }) => {
   const [selectedBank, setSelectedBank] = useState(null);
   const [isEditModalOpen, setEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -31,10 +31,15 @@ const BankList = ({ banks, refreshBanks }) => {
   };
 
   // Calculate total amount
-  const totalAmount = useMemo(() => {
+  // Calculate total amounts
+  const totalBankAmount = useMemo(() => {
     return banks.reduce((total, bank) => total + (bank.amount || 0), 0);
   }, [banks]);
 
+  const totalCashAmount = useMemo(() => {
+    return cash.reduce((total, cashEntry) => total + (cashEntry.amount || 0), 0);
+  }, [cash]);
+  const totalAmount = totalBankAmount + totalCashAmount;
   const columns = [
     { field: "bankName", headerName: "Bank Name", width: 200 },
     { field: "amount", headerName: "Amount", width: 150, type: 'number' },
@@ -64,7 +69,35 @@ const BankList = ({ banks, refreshBanks }) => {
       ),
     },
   ];
-
+  const Cashcolumns = [
+    { field: "date", headerName: "Date", width: 200 },
+    { field: "amount", headerName: "Amount", width: 150, type: 'number' },
+    {
+      field: "action",
+      headerName: "Action",
+      width: 150,
+      renderCell: (params) => (
+        <Grid container spacing={1}>
+          <Grid item>
+            <IconButton
+              color="primary"
+              onClick={() => openEditModal(params.row)}
+            >
+              <Edit />
+            </IconButton>
+          </Grid>
+          <Grid item>
+            <IconButton
+              color="error"
+              onClick={() => openDeleteModal(params.row)}
+            >
+              <Delete />
+            </IconButton>
+          </Grid>
+        </Grid>
+      ),
+    },
+  ];
   return (
     <Box
       sx={{
@@ -92,7 +125,30 @@ const BankList = ({ banks, refreshBanks }) => {
         pageSizeOptions={[10, 20, 30]}
         rowSelection={false}
       />
+      <Box display={"flex"} justifyContent={"center"} alignContent={"center"}>
 
+      <Typography variant="h3">Cash List</Typography>
+      </Box>
+
+
+      <DataGrid
+        sx={{
+          borderLeft: 0,
+          borderRight: 0,
+          borderRadius: 0,
+          marginTop: 10
+        }}
+        rows={cash}
+        columns={Cashcolumns}
+        getRowId={(row) => row._id}
+        initialState={{
+          pagination: {
+            paginationModel: { page: 0, pageSize: 10 },
+          },
+        }}
+        pageSizeOptions={[10, 20, 30]}
+        rowSelection={false}
+      />
       {/* Display total amount */}
       <Box sx={{ mt: 2, textAlign: 'right' }}>
         <Typography variant="h6">Total Amount: {totalAmount}</Typography>
@@ -103,7 +159,7 @@ const BankList = ({ banks, refreshBanks }) => {
         open={isEditModalOpen}
         onClose={closeModals}
         bank={selectedBank}
-        onSuccess={refreshBanks} 
+        onSuccess={refreshBanks}
       />
 
       {/* Confirm Delete Modal */}
@@ -111,7 +167,7 @@ const BankList = ({ banks, refreshBanks }) => {
         open={isDeleteModalOpen}
         onClose={closeModals}
         bank={selectedBank}
-        onSuccess={refreshBanks} 
+        onSuccess={refreshBanks}
       />
     </Box>
   );

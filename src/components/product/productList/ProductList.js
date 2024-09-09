@@ -118,8 +118,8 @@ const ProductList = ({ products, isLoading }) => {
                   <th>Quantity</th>
                   <th>Value</th>
                   <th>Payment Method</th>
-                 
-                  <th>Status</th>
+                  <th>Cheque Status</th>
+                  <th>Product Status</th>
                   <th>Action</th>
                 </tr>
               </thead>
@@ -148,6 +148,7 @@ const ProductList = ({ products, isLoading }) => {
                           "No Image"
                         )}
                       </td> */}
+                      <td>{status}</td>
                       <td>{status}</td>
                       <td className="icons">
                         <span>

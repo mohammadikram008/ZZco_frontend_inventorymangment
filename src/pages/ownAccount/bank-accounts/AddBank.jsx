@@ -8,8 +8,12 @@ import "react-toastify/dist/ReactToastify.css";
 
 const Customer = () => {
   const [openModal, setOpenModal] = useState(false);
+  const [openCashModal, setOpenCashModal] = useState(false);
   const [bankName, setBankName] = useState(""); // State for bank name
   const [amount, setAmount] = useState(""); // State for amount
+
+  const handleOpenCashModal = () => setOpenCashModal(true);
+  const handleCloseCashModal = () => setOpenCashModal(false);
 
   const handleOpenModal = () => setOpenModal(true);
   const handleCloseModal = () => setOpenModal(false);
@@ -23,6 +27,7 @@ const Customer = () => {
   };
 
   const [banks, setBanks] = useState([]);
+  const [cash, setCash] = useState([]);
 
   const fetchBanks = async () => {
     try {
@@ -33,13 +38,24 @@ const Customer = () => {
       console.error("There was an error fetching the bank data!", error);
     }
   };
+  const fetchCash = async () => {
+    try {
+      const response = await axios.get("http://localhost:5000/api/cash/all");
+      setCash(response.data);
+      console.log("Fetched cash:", response.data);
+    } catch (error) {
+      console.error("There was an error fetching the Cash data!", error);
+    }
+  };
 
   useEffect(() => {
     fetchBanks();
+    fetchCash();
   }, []);
 
   const refreshBanks = () => {
     fetchBanks();
+    fetchCash();
   };
 
   const handleSubmit = async () => {
@@ -57,6 +73,23 @@ const Customer = () => {
     } catch (error) {
       console.error("There was an error adding the bank!", error);
       toast.error("Failed to add bank. Please try again.");
+    }
+  };
+// handle submit cash
+  const handleCashSubmit = async () => {
+    try {
+      const res = await axios.post("http://localhost:5000/api/cash/add", {
+        amount,
+      }, { withCredentials: true });
+
+      if (res) {
+        toast.success("Cash Added Successfully!");
+      }
+      handleCloseCashModal();
+    
+    } catch (error) {
+      console.error("There was an error adding Cash!", error);
+      toast.error("Failed to add Cash. Please try again.");
     }
   };
 
@@ -107,7 +140,7 @@ const Customer = () => {
 
   return (
     <Box sx={{ m: 0, p: 3, width: "100%" }}>
-      <Grid container justifyContent={"flex-end"}>
+      <Grid container justifyContent={"flex-end"} gap={2}>
         <Button 
           variant="outlined" 
           sx={{ borderColor: "dark", color: "dark" }}
@@ -115,8 +148,15 @@ const Customer = () => {
         >
           Add Bank
         </Button>
+        <Button 
+          variant="outlined" 
+          sx={{ borderColor: "dark", color: "dark" }}
+          onClick={handleOpenCashModal}
+        >
+          Add Cash
+        </Button>
       </Grid>
-      <BankList banks={banks} refreshBanks={refreshBanks} />
+      <BankList banks={banks} refreshBanks={refreshBanks} cash={cash}/>
       
       <Modal
         open={openModal}
@@ -155,6 +195,40 @@ const Customer = () => {
             variant="contained" 
             color="primary" 
             onClick={handleSubmit}
+          >
+            Submit
+          </Button>
+        </Box>
+      </Modal>
+      <Modal
+        open={openCashModal}
+        onClose={handleCloseCashModal}
+        aria-labelledby="modal-title"
+        aria-describedby="modal-description"
+      >
+        <Box sx={{ 
+          width: 400, 
+          p: 3, 
+          mx: "auto", 
+          mt: 5, 
+          bgcolor: "background.paper", 
+          boxShadow: 24, 
+          borderRadius: 1 
+        }}>
+     
+          <TextField
+            fullWidth
+            margin="normal"
+            label="Amount"
+            name="amount"
+            type="number"
+            value={amount}
+            onChange={handleAmountChange}
+          />
+          <Button 
+            variant="contained" 
+            color="primary" 
+            onClick={handleCashSubmit}
           >
             Submit
           </Button>

@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import "./ProductSummary.scss";
 import { AiFillDollarCircle } from "react-icons/ai";
 import { BsCart4, BsCartX } from "react-icons/bs";
@@ -13,6 +13,7 @@ import {
   selectOutOfStock,
   selectTotalStoreValue,
 } from "../../../redux/features/product/productSlice";
+import axios from "axios";
 
 // Icons
 const earningIcon = <AiFillDollarCircle size={40} color="#fff" />;
@@ -36,6 +37,35 @@ const ProductSummary = ({ products }) => {
     dispatch(CALC_OUTOFSTOCK(products));
     dispatch(CALC_CATEGORY(products));
   }, [dispatch, products]);
+  const [banks, setBanks] = useState([]);
+  const [cash, setCash] = useState([]);
+  const totalCashAmount = useMemo(() => {
+    return cash.reduce((total, cashEntry) => total + (cashEntry.amount || 0), 0);
+  }, [cash]);
+  const fetchBanks = async () => {
+    try {
+      const response = await axios.get("http://localhost:5000/api/banks/all");
+      setBanks(response.data);
+      console.log("Fetched banks:", response.data);
+    } catch (error) {
+      console.error("There was an error fetching the bank data!", error);
+    }
+  };
+  const fetchCash = async () => {
+    try {
+      const response = await axios.get("http://localhost:5000/api/cash/all");
+      setCash(response.data);
+      console.log("Fetched cash:", response.data);
+    } catch (error) {
+      console.error("There was an error fetching the Cash data!", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchBanks();
+    fetchCash();
+  }, []);
+
 
   return (
     <div className="product-summary">
@@ -65,17 +95,17 @@ const ProductSummary = ({ products }) => {
           count={category.length}
           bgColor="card4"
         />
-         <InfoBox
+        <InfoBox
           icon={categoryIcon}
           title={"Bank Amount"}
-          count={category.length}
+          count={banks.length}
           bgColor="card1"
         />
 
-<InfoBox
+        <InfoBox
           icon={categoryIcon}
           title={"Cash"}
-          count={category.length}
+          count={totalCashAmount}
           bgColor="card4"
         />
       </div>
