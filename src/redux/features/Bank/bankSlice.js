@@ -31,13 +31,13 @@ export const createBank = createAsyncThunk(
   }
 );
 
-// Get all banks
+/// Get all banks
 export const getBanks = createAsyncThunk(
   "bank/getAll",
   async (_, thunkAPI) => {
     try {
-      const response = await bankService.getbanks();
-      return response.data; // Ensure the data is correctly returned
+      const response = await bankService.getAllBanks(); // Changed from getbanks to getAllBanks
+      return response; // Return the response directly, not response.data
     } catch (error) {
       const message =
         (error.response && error.response.data && error.response.data.message) ||

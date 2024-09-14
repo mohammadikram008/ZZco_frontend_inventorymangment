@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Modal,
   Box,
@@ -6,39 +6,79 @@ import {
   Button,
   MenuItem,
   Typography,
+  Grid,
 } from "@mui/material";
-import axios from 'axios'
+import { useSelector, useDispatch } from 'react-redux';
 
-const AddBalanceModal = ({ open, onClose, customer,onSuccess }) => {
+import axios from 'axios'
+import { getBanks } from "../../redux/features/Bank/bankSlice";
+import { toast } from "react-toastify";
+
+const AddBalanceModal = ({ open, onClose, customer, onSuccess }) => {
   const [amount, setAmount] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("");
   const [chequeDate, setChequeDate] = useState("");
+  const [description, setDescription] = useState("");
+  const [selectedBank, setSelectedBank] = useState("");
+  const [image, setImage] = useState(null);
+  const [ImagePreview, setImagePreview] = useState("");
   const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
   const API_URL = `${BACKEND_URL}/api/customers`;
-  const handleSubmit =async () => {
-    // Perform the API call to add the balance to the customer's account
-    const formData = {
-      amount: parseFloat(amount),
-      paymentMethod,
-      chequeDate: paymentMethod === "Cheque" ? chequeDate : null,
-    };
+  const dispatch = useDispatch();
+  const banks = useSelector((state) => state.bank.banks);
 
-    console.log("Adding balance:", formData);
+  useEffect(() => {
+    dispatch(getBanks());
+  }, [dispatch]);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const formData = new FormData();
+    formData.append("amount", amount);
+    formData.append("paymentMethod", paymentMethod);
+    formData.append("description", description);
+
+    if (paymentMethod === "cheque") {
+      formData.append("chequeDate", chequeDate);
+    }
+    if (paymentMethod === "online") {
+      formData.append("bankId", selectedBank);
+    }
+    if (image) {
+      formData.append("image", image);
+    }
+
     try {
-        const response = await axios.post(`${API_URL}/add-customer-balance/${customer._id}`, formData,);
-        console.log(response.data);
-        onSuccess();
-      } catch (error) {
-        console.error('Error adding balance:', error);
-      }
-    // Perform the API call here to update the balance
-    // You can use customer._id to identify the user
-    onClose();
+      const response = await axios.post(
+        `${API_URL}/add-customer-balance/${customer._id}`,
+        formData,
+        {
+          withCredentials: true,
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+      onSuccess();
+      toast.success(response.data.message || 'Balance added successfully');
+      onClose();
+    } catch (error) {
+      console.error('Error adding balance:', error);
+      toast.error('Failed to add balance. Please try again.');
+    }
   };
-
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImage(file);
+      setImagePreview(URL.createObjectURL(file));
+    }
+  };
   return (
     <Modal open={open} onClose={onClose}>
       <Box
+      component="form"
+      onSubmit={handleSubmit}
         sx={{
           position: "absolute",
           top: "50%",
@@ -70,11 +110,27 @@ const AddBalanceModal = ({ open, onClose, customer,onSuccess }) => {
           fullWidth
           margin="normal"
         >
-          <MenuItem value="Cash">Cash</MenuItem>
-          <MenuItem value="Online">Online</MenuItem>
-          <MenuItem value="Cheque">Cheque</MenuItem>
+          <MenuItem value="cash">Cash</MenuItem>
+          <MenuItem value="online">Online</MenuItem>
+          <MenuItem value="cheque">Cheque</MenuItem>
         </TextField>
-        {paymentMethod === "Cheque" && (
+        {paymentMethod === "online" && (
+          <TextField
+            label="Select Bank"
+            select
+            value={selectedBank}
+            onChange={(e) => setSelectedBank(e.target.value)}
+            fullWidth
+            margin="normal"
+          >
+            {banks.map((bank) => (
+              <MenuItem key={bank._id} value={bank._id}>
+                {bank.bankName}
+              </MenuItem>
+            ))}
+          </TextField>
+        )}
+        {paymentMethod === "cheque" && (
           <TextField
             label="Cheque Date"
             type="date"
@@ -82,12 +138,41 @@ const AddBalanceModal = ({ open, onClose, customer,onSuccess }) => {
             onChange={(e) => setChequeDate(e.target.value)}
             fullWidth
             margin="normal"
+            InputLabelProps={{
+              shrink: true,
+            }}
           />
         )}
+        {(paymentMethod === "cheque" ||
+          // sale.paymentMethod === "credit" ||
+          paymentMethod === "online") && (
+            <Grid item xs={12}>
+              <TextField
+                type="file"
+                label="Upload Image"
+                name="image"
+                onChange={handleImageChange}
+                fullWidth
+                margin="normal"
+                InputLabelProps={{ shrink: true }}
+              />
+              {ImagePreview && <ImagePreview src={ImagePreview} alt="Preview" />}
+            </Grid>
+          )}
+        <TextField
+          label="Description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          fullWidth
+          margin="normal"
+          multiline
+          rows={2}
+        />
         <Button
           variant="contained"
           color="primary"
-          onClick={handleSubmit}
+           type="submit"
+          // onClick={handleSubmit}
           fullWidth
         >
           Add Balance

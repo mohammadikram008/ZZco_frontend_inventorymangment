@@ -1,5 +1,23 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import {
+  createWarehouse,
+  getWarehouses,
+  updateWarehouse,
+  deleteWarehouse,
+  selectWarehouses,
+  selectIsLoading
+} from '../../redux/features/WareHouse/warehouseSlice';
+import {
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
   Table,
   TableBody,
   TableCell,
@@ -7,190 +25,236 @@ import {
   TableHead,
   TableRow,
   Paper,
-  Typography,
-  Container,
-  Card,
-  CardContent,
-  Button,
+  CircularProgress,
   Box,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  Grid,
-} from "@mui/material";
+  TablePagination,
+  IconButton,
+  Modal,
+  Typography
+} from '@mui/material';
+import CustomTable from '../../components/CustomTable/CustomTable';
+import axios from 'axios';
+import { toast } from 'react-toastify';
 
-const ViewExpenses = () => {
-  const [expenses, setExpenses] = useState([]);
-  const [showExpenseModal, setShowExpenseModal] = useState(false);
-  const [expense, setExpense] = useState({
-    expenseName: "",
-    amount: "",
-    description: "",
-  });
-
+const WarehouseManager = () => {
+  const dispatch = useDispatch();
+  const warehouses = useSelector(selectWarehouses);
+  const isLoading = useSelector(selectIsLoading);
+  const [editingWarehouse, setEditingWarehouse] = useState(null);
+  const [open, setOpen] = useState(false);
+  const [newWarehouse, setNewWarehouse] = useState({ name: '', location: '' });
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [productsModalOpen, setProductsModalOpen] = useState(false);
+  const [warehouseProducts, setWarehouseProducts] = useState([]);
+  const [loadingProducts, setLoadingProducts] = useState(false);
   const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-  const API_URL = `${BACKEND_URL}/api`;
 
-  // Fetch expenses data
+  const API_URL = `${BACKEND_URL}/api/warehouses`;
+
   useEffect(() => {
-    fetch(`${API_URL}/expenses/all`)
-      .then((response) => response.json())
-      .then((data) => {
-        setExpenses(data); // Set fetched data to state
-      })
-      .catch((err) => console.log(err));
-  }, []);
+    dispatch(getWarehouses());
+  }, [dispatch]);
 
-  // Function to handle input changes
+  const handleClickOpen = () => setOpen(true);
+  const handleClose = () => {
+    setOpen(false);
+    setNewWarehouse({ name: '', location: '' });
+    setEditingWarehouse(null);
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setExpense((prevExpense) => ({
-      ...prevExpense,
-      [name]: value,
-    }));
+    setNewWarehouse(prev => ({ ...prev, [name]: value }));
   };
 
-  // Function to handle form submission
-  const addExpense = () => {
-    fetch(`${API_URL}/expenses/add`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(expense),
-    })
-      .then((response) => response.json())
-      .then(() => {
-        alert("Expense Added");
-        setShowExpenseModal(false); // Close the modal after adding
-        // Optionally, fetch expenses again to refresh the list
-        fetch(`${API_URL}/expenses/all`)
-          .then((response) => response.json())
-          .then((data) => setExpenses(data))
-          .catch((err) => console.log(err));
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-        alert("Failed to add expense. Please try again.");
-      });
+  const handleEdit = (warehouse) => {
+    console.log("warehouseEDIT", warehouse);
+    setEditingWarehouse(warehouse);
+    setNewWarehouse({ name: warehouse.name, location: warehouse.location });
+    setOpen(true);
   };
 
-  // Function to toggle the modal visibility
-  const toggleExpenseModal = () => {
-    setShowExpenseModal(!showExpenseModal);
+  const handleDelete = (id) => {
+    if (window.confirm('Are you sure you want to delete this warehouse?')) {
+      dispatch(deleteWarehouse(id));
+    }
   };
+
+  const handleSubmit = () => {
+    if (editingWarehouse) {
+      dispatch(updateWarehouse({ id: editingWarehouse._id, formData: newWarehouse }));
+    } else {
+      dispatch(createWarehouse(newWarehouse));
+    }
+    handleClose();
+  };
+
+  const handleChangePage = (event, newPage) => setPage(newPage);
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  const handleViewProducts = async (warehouseId) => {
+    console.log("warehouseId", warehouseId);
+    setLoadingProducts(true);
+    try {
+      const response = await axios.get(`${API_URL}/allproducts/${warehouseId}`,{withCredentials:true});
+      console.log("responseRR", response.data);
+      setWarehouseProducts(response.data);
+      setProductsModalOpen(true);
+    } catch (error) {
+      toast.error("Failed to fetch warehouse products");
+    }
+    setLoadingProducts(false);
+  };
+
+  const columns = [
+    { field: 'name', headerName: 'Name' },
+    { field: 'location', headerName: 'Location' },
+    { field: 'createdAt', headerName: 'Created At', renderCell: (params) => new Date(params.value).toLocaleString() },
+    { field: 'updatedAt', headerName: 'Updated At', renderCell: (params) => new Date(params.value).toLocaleString() },
+    {
+      field: 'actions',
+      headerName: 'Actions',
+      renderCell: (params) => (
+        <>
+          <IconButton onClick={() => handleViewProducts(params._id)}>
+            <VisibilityIcon />
+          </IconButton>
+          <IconButton onClick={() => handleEdit(params)}>
+            <EditIcon />
+          </IconButton>
+          <IconButton onClick={() => handleDelete(params._id)}>
+            <DeleteIcon />
+          </IconButton>
+        </>
+      ),
+    },
+  ];
+
+  const productColumns = [
+    { field: 'name', headerName: 'Product Name' },
+    { field: 'category', headerName: 'Category' },
+    { field: 'quantity', headerName: 'Quantity', align: 'right' },
+    { field: 'price', headerName: 'Price', align: 'right' },
+    // { field: 'status', headerName: 'Status' },
+  ];
+
+  if (isLoading) {
+    return <CircularProgress />;
+  }
 
   return (
-    <Container>
-      <Box display="flex" justifyContent="flex-end" mt={2} mb={2}>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={toggleExpenseModal}
-        >
-          Add Expense
+    <div>
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: '20px' }}>
+        <Button variant="contained" color="primary" onClick={handleClickOpen}>
+          Add Warehouse
         </Button>
       </Box>
 
-      <Card sx={{ mt: 3 }}>
-        <CardContent>
-          <Typography variant="h5" gutterBottom>
-            View Warehouse
-          </Typography>
-
-          {expenses.length === 0 ? (
-            <Typography variant="body1">No warehouse found.</Typography>
-          ) : (
-            <TableContainer component={Paper}>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Expense Name</TableCell>
-                    <TableCell>Amount</TableCell>
-                    <TableCell>Description</TableCell>
-                    <TableCell>Expense Date</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {expenses.map((expense) => (
-                    <TableRow key={expense._id}>
-                      <TableCell>{expense.expenseName}</TableCell>
-                      <TableCell>{expense.amount}</TableCell>
-                      <TableCell>{expense.description}</TableCell>
-                      <TableCell>{new Date(expense.createdAt).toLocaleDateString()}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Single dialog for adding expense */}
-      <Dialog
-        open={showExpenseModal}
-        onClose={toggleExpenseModal}
-        fullWidth
-        maxWidth="sm"
+      <Modal
+        open={open}
+        onClose={handleClose}
+        aria-labelledby="warehouse-modal-title"
+        aria-describedby="warehouse-modal-description"
       >
-        <DialogTitle>Add Warehouse</DialogTitle>
-        <DialogContent>
-          <form>
-            <Grid container spacing={2}>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Expense Name"
-                  name="expenseName"
-                  value={expense.expenseName}
-                  onChange={handleInputChange}
-                  margin="normal"
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Amount"
-                  type="number"
-                  name="amount"
-                  value={expense.amount}
-                  onChange={handleInputChange}
-                  margin="normal"
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Description"
-                  name="description"
-                  value={expense.description}
-                  onChange={handleInputChange}
-                  multiline
-                  rows={4}
-                  margin="normal"
-                />
-              </Grid>
-            </Grid>
-          </form>
-        </DialogContent>
-        <DialogActions>
-          <Button variant="contained" color="primary" onClick={addExpense}>
-            Add Warehouse
-          </Button>
-          <Button
-            variant="outlined"
-            color="secondary"
-            onClick={toggleExpenseModal}
-          >
-            Cancel
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Container>
+        <Box sx={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: 400,
+          bgcolor: 'background.paper',
+          boxShadow: 24,
+          p: 4,
+        }}>
+          <Typography id="warehouse-modal-title" variant="h6" component="h2">
+            {editingWarehouse ? 'Edit Warehouse' : 'Add New Warehouse'}
+          </Typography>
+          <TextField
+            autoFocus
+            margin="dense"
+            name="name"
+            label="Warehouse Name"
+            type="text"
+            fullWidth
+            variant="standard"
+            value={newWarehouse.name}
+            onChange={handleInputChange}
+          />
+          <TextField
+            margin="dense"
+            name="location"
+            label="Location"
+            type="text"
+            fullWidth
+            variant="standard"
+            value={newWarehouse.location}
+            onChange={handleInputChange}
+          />
+          <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
+            <Button onClick={handleClose} sx={{ mr: 1 }}>Cancel</Button>
+            <Button onClick={handleSubmit} variant="contained">
+              {editingWarehouse ? 'Update' : 'Add'}
+            </Button>
+          </Box>
+        </Box>
+      </Modal>
+
+      <CustomTable
+        columns={columns}
+        data={warehouses}
+        page={page}
+        rowsPerPage={rowsPerPage}
+        onPageChange={handleChangePage}
+        onRowsPerPageChange={handleChangeRowsPerPage}
+      />
+
+      <Modal
+        open={productsModalOpen}
+        onClose={() => setProductsModalOpen(false)}
+        aria-labelledby="warehouse-products-modal"
+        aria-describedby="modal-modal-description"
+      >
+        <Box sx={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: '80%',
+          bgcolor: 'background.paper',
+          boxShadow: 24,
+          p: 4,
+        }}>
+          <Typography id="warehouse-products-modal" variant="h6" component="h2">
+            Warehouse Products
+          </Typography>
+          <Box sx={{ mt: 2 }}>
+            {warehouseProducts ? (
+              <CustomTable
+                columns={productColumns}
+                data={warehouseProducts}
+                page={0}
+                rowsPerPage={5}
+                onPageChange={(event, newPage) => setPage(newPage)}
+                onRowsPerPageChange={(event) => {
+                  setRowsPerPage(parseInt(event.target.value, 10));
+                  setPage(0);
+                }}
+              />
+            ) : (
+              <CircularProgress />
+            )}
+          </Box>
+          <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
+            <Button onClick={() => setProductsModalOpen(false)}>Close</Button>
+          </Box>
+        </Box>
+      </Modal>
+    </div>
   );
 };
 
-export default ViewExpenses;
+export default WarehouseManager;

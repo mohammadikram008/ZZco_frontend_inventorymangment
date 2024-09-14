@@ -15,8 +15,8 @@ const createBank = async (formData) => {
 };
 
 // Get all bank
-const getbanks = async () => {
-  const response = await axios.get(`${API_URL}/all`);
+const getAllBanks = async () => {
+  const response = await axios.get(`${API_URL}/all`);  
   return response.data;
 };
 
@@ -38,7 +38,7 @@ const updateProduct = async (id, formData) => {
 
 const bankService = {
   createBank,
-  getbanks,
+  getAllBanks,
   // getProduct,
   // deleteProduct,
   // updateProduct,

@@ -126,6 +126,7 @@ const ProductList = ({ products, isLoading }) => {
               <tbody>
                 {currentItems.map((product, index) => {
                   const { _id, name, category, price, quantity, paymentMethod, status, image } = product;
+                  console.log("product", product);
                   return (
                     <tr key={_id}>
                       <td>{index + 1}</td>

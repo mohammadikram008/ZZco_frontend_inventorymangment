@@ -18,6 +18,7 @@ import { SET_LOGIN } from "./redux/features/auth/authSlice";
 //ADD 
 import AddProduct from "./pages/addProduct/AddProduct";
 import AddCustomer from "./pages/customer/Customer.jsx";
+import AddSupplier from "./pages/Supplier/Supplier.jsx";
 import AddManager from "./pages/AddManager/Manager.jsx";
 import Order from "./pages/Orders/Order.jsx";
 import ProductDetail from "./components/product/productDetail/ProductDetail";
@@ -35,8 +36,7 @@ import AddExpenses from "./pages/ownAccount/AddExpenses.js";
 import ViewExpenses from "./pages/ownAccount/ViewExpenses.js";
 import ViewWarehouse from "./pages/Warehouse/ViewWarehouse.js";
 import AddBank from "./pages/ownAccount/bank-accounts/AddBank.jsx";
-
-
+import ChequeDetails from './pages/CheuqeDetail/CheuqeDetails.js';
 
 
 axios.defaults.withCredentials = true;
@@ -59,6 +59,8 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+
+
         {/* 
         <Route path="/forgot" element={<Forgot />} />
         <Route path="/resetpassword/:resetToken" element={<Reset />} /> */}
@@ -84,11 +86,31 @@ function App() {
           }
         />
         <Route
-          path="/add-supplier"
+          path="/cheque-details"
+          element={
+            <Sidebar>
+              <Layout>
+                <ChequeDetails />
+              </Layout>
+            </Sidebar>
+          }
+        />
+        <Route
+          path="/add-customer"
           element={
             <Sidebar>
               <Layout>
                 <AddCustomer />
+              </Layout>
+            </Sidebar>
+          }
+        />
+        <Route
+          path="/add-supplier"
+          element={
+            <Sidebar>
+              <Layout>
+                <AddSupplier />
               </Layout>
             </Sidebar>
           }
@@ -158,8 +180,8 @@ function App() {
           element={
             <Sidebar>
               <Layout>
-              <AddExpenses/>
-                            </Layout>
+                <AddExpenses />
+              </Layout>
             </Sidebar>
           }
         />
@@ -168,35 +190,35 @@ function App() {
           element={
             <Sidebar>
               <Layout>
-               <ViewExpenses/>
+                <ViewExpenses />
               </Layout>
             </Sidebar>
           }
         />
 
-<Route
+        <Route
           path="/view-warehouse"
           element={
             <Sidebar>
               <Layout>
-               <ViewWarehouse/>
+                <ViewWarehouse />
               </Layout>
             </Sidebar>
           }
         />
 
-<Route
+        <Route
           path="/bank-accounts"
           element={
             <Sidebar>
               <Layout>
-              <AddBank/>
+                <AddBank />
               </Layout>
             </Sidebar>
           }
         />
 
-{/* <Route
+        {/* <Route
           path="/view-expenses"
           element={
             <Sidebar>
@@ -207,7 +229,7 @@ function App() {
           }
         /> */}
 
-           <Route
+        <Route
           path="/Add-sale"
           element={
             <Sidebar>

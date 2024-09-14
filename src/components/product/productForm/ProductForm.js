@@ -8,8 +8,10 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
+  Grid,
 } from "@mui/material";
 import { styled } from "@mui/system";
+import { useSelector } from "react-redux";
 
 const ImagePreview = styled("img")({
   width: "100%",
@@ -19,6 +21,9 @@ const ImagePreview = styled("img")({
 });
 
 const ProductForm = ({
+  banks,
+  selectedBank,
+  handleBankChange,
   product,
   imagePreview,
   handleInputChange,
@@ -28,42 +33,17 @@ const ProductForm = ({
   chequeDate,
   setChequeDate,
   saveProduct,
+  warehouses,
+  selectedWarehouse,
+  handleWarehouseChange,
 }) => {
   // State to track selected bank
-  const [selectedBank, setSelectedBank] = useState("");
-
-  // List of Pakistani Banks
-  const banks = [
-    { _id: "1", name: "Habib Bank Limited (HBL)" },
-    { _id: "2", name: "United Bank Limited (UBL)" },
-    { _id: "3", name: "National Bank of Pakistan (NBP)" },
-    { _id: "4", name: "MCB Bank Limited" },
-    { _id: "5", name: "Allied Bank Limited (ABL)" },
-    { _id: "6", name: "Bank Alfalah" },
-    { _id: "7", name: "Standard Chartered Bank" },
-    { _id: "8", name: "Meezan Bank" },
-    { _id: "9", name: "Faysal Bank" },
-    { _id: "10", name: "Askari Bank" },
-    { _id: "11", name: "Bank of Punjab (BOP)" },
-    { _id: "12", name: "Soneri Bank" },
-    { _id: "13", name: "JS Bank" },
-    { _id: "14", name: "Summit Bank" },
-    { _id: "15", name: "Silkbank" },
-    { _id: "16", name: "Dubai Islamic Bank" },
-    { _id: "17", name: "Al Baraka Bank" },
-    { _id: "18", name: "Habib Metropolitan Bank" },
-    { _id: "19", name: "Samba Bank" },
-    { _id: "20", name: "Bank Islami Pakistan" },
-    { _id: "21", name: "FINCA Microfinance Bank" },
-    { _id: "22", name: "Mobilink Microfinance Bank" },
-    { _id: "23", name: "Khushhali Microfinance Bank" },
-  ];
 
   const handleFormSubmit = (event) => {
     event.preventDefault();
     saveProduct();
   };
-
+  console.log("banksbanks", banks);
   return (
     <div>
       <Card>
@@ -86,7 +66,29 @@ const ProductForm = ({
               fullWidth
               margin="normal"
             />
-
+            <FormControl fullWidth margin="normal">
+              <InputLabel id="warehouse-label">Select Warehouse</InputLabel>
+              <Select
+                labelId="warehouse-label"
+                id="warehouse"
+                value={selectedWarehouse}
+                onChange={handleWarehouseChange}
+                label="Warehouse"
+              >
+                <MenuItem value="">
+                  <em>Select Warehouse</em>
+                </MenuItem>
+                {warehouses && warehouses.length > 0 ? (
+                  warehouses.map((warehouse) => (
+                    <MenuItem key={warehouse._id} value={warehouse._id}>
+                      {warehouse.name}
+                    </MenuItem>
+                  ))
+                ) : (
+                  <MenuItem disabled>No warehouses available</MenuItem>
+                )}
+              </Select>
+            </FormControl>
             <FormControl fullWidth margin="normal">
               <InputLabel>Payment Method</InputLabel>
               <Select
@@ -94,37 +96,41 @@ const ProductForm = ({
                 onChange={handlePaymentMethodChange}
                 label="Payment Method"
               >
-                <MenuItem value="Cash">Cash</MenuItem>
-                <MenuItem value="Online">Online</MenuItem>
-                <MenuItem value="Cheque">Cheque</MenuItem>
-                <MenuItem value="Credit">Credit</MenuItem>
+                <MenuItem value="cash">Cash</MenuItem>
+                <MenuItem value="online">Online</MenuItem>
+                <MenuItem value="cheque">Cheque</MenuItem>
+                <MenuItem value="credit">Credit</MenuItem>
               </Select>
             </FormControl>
 
             {/* Bank Dropdown for Cash Payment */}
-            {paymentMethod === "Cash" && (
+            {paymentMethod === "online" && (
               <FormControl fullWidth margin="normal">
                 <InputLabel id="bankID-label">Select Bank</InputLabel>
                 <Select
                   labelId="bankID-label"
                   id="bankID"
                   value={selectedBank}
-                  onChange={(e) => setSelectedBank(e.target.value)}
+                  onChange={handleBankChange}
                   label="Bank Name"
                 >
                   <MenuItem value="">
                     <em>Select Bank</em>
                   </MenuItem>
-                  {banks.map((bank) => (
-                    <MenuItem key={bank._id} value={bank._id}>
-                      {bank.name}
-                    </MenuItem>
-                  ))}
+                  {Array.isArray(banks) && banks.length > 0 ? (
+                    banks.map((bank) => (
+                      <MenuItem key={bank._id} value={bank._id}>
+                        {bank.bankName}
+                      </MenuItem>
+                    ))
+                  ) : (
+                    <MenuItem disabled>No banks available</MenuItem>
+                  )}
                 </Select>
               </FormControl>
             )}
 
-            {paymentMethod === "Cheque" && (
+            {paymentMethod === "cheque" && (
               <TextField
                 fullWidth
                 label="Cheque Date"
@@ -136,16 +142,24 @@ const ProductForm = ({
               />
             )}
 
-            <TextField
-              type="file"
-              label="Upload Image"
-              name="image"
-              onChange={handleImageChange}
-              fullWidth
-              margin="normal"
-              InputLabelProps={{ shrink: true }}
-            />
-            {imagePreview && <ImagePreview src={imagePreview} alt="Preview" />}
+            {(paymentMethod === "cheque" ||
+              // sale.paymentMethod === "credit" ||
+              paymentMethod === "online") && (
+                <Grid item xs={12}>
+                  <TextField
+                    type="file"
+                    label="Upload Image"
+                    name="image"
+                    onChange={handleImageChange}
+                    fullWidth
+                    margin="normal"
+                    InputLabelProps={{ shrink: true }}
+                  />
+                  {imagePreview && <ImagePreview src={imagePreview} alt="Preview" />}
+                </Grid>
+              )}
+
+            {/* {imagePreview && <ImagePreview src={imagePreview} alt="Preview" />} */}
 
             <TextField
               type="number"

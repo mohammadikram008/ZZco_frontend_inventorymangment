@@ -8,7 +8,6 @@ import { FaCartPlus } from "react-icons/fa";
 import { BsCartDashFill } from "react-icons/bs";
 import { MdAccountBalance } from "react-icons/md";
 import { FaWarehouse } from "react-icons/fa6";
-
 import { FaMoneyCheckDollar } from "react-icons/fa6";
 
 const menu = [
@@ -18,24 +17,27 @@ const menu = [
     path: "/dashboard",
   },
   {
-    title: "Buying Product",
-    icon: <FaCartPlus />,
-    path: "/add-product",
-  },  {
     title: "Add Customer",
+    icon: <IoPersonAdd />,
+    path: "/add-customer",
+  },
+  {
+    title: "Add Supplier",
     icon: <IoPersonAdd />,
     path: "/add-supplier",
   },
   {
-    title: "Add Manager",
-    icon: <GrUserManager />,
-    path: "/add-manager",
-  },
+    title: "Buying Product",
+    icon: <FaCartPlus />,
+    path: "/add-product",
+  }, 
   {
     title: "Sale Product",
     icon: <BsCartDashFill />,
     path: "/add-sale",
   },
+ 
+  
   {
     title: "Cheque Detail",
     icon: <FaMoneyCheckDollar />,
@@ -89,6 +91,11 @@ const menu = [
       //   path: "/edit-manager",
       // },
     ],
+  },
+  {
+    title: "Add Manager",
+    icon: <GrUserManager />,
+    path: "/add-manager",
   },
   {
     title: "Report Bug",

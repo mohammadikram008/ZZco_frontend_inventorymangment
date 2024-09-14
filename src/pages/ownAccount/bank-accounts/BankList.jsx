@@ -1,11 +1,11 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { Box, Typography, Grid, IconButton } from "@mui/material";
-import { DataGrid } from "@mui/x-data-grid";
-import { Edit, Delete } from "@mui/icons-material";
+import { Box, Typography } from "@mui/material";
 import ConfirmDeleteModal from "../../../components/Models/ConfirmDeleteModal";
 import EditBankModal from "../../../components/Models/EditBankModal";
+import CustomTable from "../../../components/CustomTable/OwnAccount";
 
-const BankList = ({ banks, refreshBanks,cash }) => {
+const BankList = ({ banks, refreshBanks, cash }) => {
+  console.log("cash",cash);
   const [selectedBank, setSelectedBank] = useState(null);
   const [isEditModalOpen, setEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -30,74 +30,39 @@ const BankList = ({ banks, refreshBanks,cash }) => {
     setSelectedBank(null);
   };
 
-  // Calculate total amount
   // Calculate total amounts
   const totalBankAmount = useMemo(() => {
     return banks.reduce((total, bank) => total + (bank.amount || 0), 0);
   }, [banks]);
 
+  // const totalCashAmount = useMemo(() => {
+  //   return cash.reduce((total, cashEntry) => total + (cashEntry.amount || 0), 0);
+  // }, [cash]);
   const totalCashAmount = useMemo(() => {
-    return cash.reduce((total, cashEntry) => total + (cashEntry.amount || 0), 0);
+    return cash.totalBalance
   }, [cash]);
-  const totalAmount = totalBankAmount + totalCashAmount;
-  const columns = [
-    { field: "bankName", headerName: "Bank Name", width: 200 },
-    { field: "amount", headerName: "Amount", width: 150, type: 'number' },
-    {
-      field: "action",
-      headerName: "Action",
-      width: 150,
-      renderCell: (params) => (
-        <Grid container spacing={1}>
-          <Grid item>
-            <IconButton
-              color="primary"
-              onClick={() => openEditModal(params.row)}
-            >
-              <Edit />
-            </IconButton>
-          </Grid>
-          <Grid item>
-            <IconButton
-              color="error"
-              onClick={() => openDeleteModal(params.row)}
-            >
-              <Delete />
-            </IconButton>
-          </Grid>
-        </Grid>
-      ),
-    },
+
+  // const totalAmount = totalBankAmount + totalCashAmount;
+  const totalAmount = totalBankAmount ;
+
+  const bankColumns = [
+    { field: "bankName", headerName: "Bank Name" },
+    { field: "balance", headerName: "Balance", align: "right" },
   ];
-  const Cashcolumns = [
-    { field: "date", headerName: "Date", width: 200 },
-    { field: "amount", headerName: "Amount", width: 150, type: 'number' },
-    {
-      field: "action",
-      headerName: "Action",
-      width: 150,
-      renderCell: (params) => (
-        <Grid container spacing={1}>
-          <Grid item>
-            <IconButton
-              color="primary"
-              onClick={() => openEditModal(params.row)}
-            >
-              <Edit />
-            </IconButton>
-          </Grid>
-          <Grid item>
-            <IconButton
-              color="error"
-              onClick={() => openDeleteModal(params.row)}
-            >
-              <Delete />
-            </IconButton>
-          </Grid>
-        </Grid>
-      ),
+
+ 
+  const cashColumns = [
+    { field: "createdAt", headerName: "Date", 
+      valueGetter: (params) => {
+        const date = new Date(params.row.createdAt);
+        return date.toISOString().slice(0, 10);
+      },
     },
+    { field: "balance", headerName: "Balance", align: "right" },
+    { field: "type", headerName: "Type" },
+    { field: "totalBalance", headerName: "Total Balance", align: "right" },
   ];
+
   return (
     <Box
       sx={{
@@ -108,50 +73,37 @@ const BankList = ({ banks, refreshBanks,cash }) => {
         width: "auto",
       }}
     >
-      <DataGrid
-        sx={{
-          borderLeft: 0,
-          borderRight: 0,
-          borderRadius: 0,
-        }}
-        rows={banks}
-        columns={columns}
-        getRowId={(row) => row._id}
-        initialState={{
-          pagination: {
-            paginationModel: { page: 0, pageSize: 10 },
-          },
-        }}
-        pageSizeOptions={[10, 20, 30]}
-        rowSelection={false}
+       <Box display={"flex"} justifyContent={"center"} alignContent={"center"} mt={3}>
+        <Typography variant="h3">Banks List</Typography>
+      </Box>
+      <CustomTable
+        columns={bankColumns}
+        data={banks}
+        onEdit={openEditModal}
+        onDelete={openDeleteModal}
       />
-      <Box display={"flex"} justifyContent={"center"} alignContent={"center"}>
 
-      <Typography variant="h3">Cash List</Typography>
+      <Box display={"flex"} justifyContent={"center"} alignContent={"center"} mt={3}>
+        <Typography variant="h3">Cash List</Typography>
       </Box>
 
-
-      <DataGrid
-        sx={{
-          borderLeft: 0,
-          borderRight: 0,
-          borderRadius: 0,
-          marginTop: 10
-        }}
-        rows={cash}
-        columns={Cashcolumns}
-        getRowId={(row) => row._id}
-        initialState={{
-          pagination: {
-            paginationModel: { page: 0, pageSize: 10 },
-          },
-        }}
-        pageSizeOptions={[10, 20, 30]}
-        rowSelection={false}
+      <CustomTable
+        columns={cashColumns}
+        data={cash.allEntries && cash.allEntries}
+        onEdit={openEditModal}
+        onDelete={openDeleteModal}
+        sx={{ marginTop: 3 }}
       />
+
       {/* Display total amount */}
-      <Box sx={{ mt: 2, textAlign: 'right' }}>
-        <Typography variant="h6">Total Amount: {totalAmount}</Typography>
+      <Box display={"flex"} justifyContent={"space-between"} alignItems={"center"}>
+
+      <Box sx={{ mt: 2, textAlign: 'left' }}>
+        <Typography variant="h5">Total Cash Amount: {cash.totalBalance}</Typography>
+      </Box>
+      <Box sx={{ mt:2, textAlign: 'right' }}>
+        <Typography variant="h5">Total Bank Amount: {totalAmount}</Typography>
+      </Box>
       </Box>
 
       {/* Edit Bank Modal */}

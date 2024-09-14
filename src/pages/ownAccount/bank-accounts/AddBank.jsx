@@ -7,6 +7,9 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 const Customer = () => {
+  
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const API_URL = `${BACKEND_URL}/api/cash`;
   const [openModal, setOpenModal] = useState(false);
   const [openCashModal, setOpenCashModal] = useState(false);
   const [bankName, setBankName] = useState(""); // State for bank name
@@ -28,6 +31,11 @@ const Customer = () => {
 
   const [banks, setBanks] = useState([]);
   const [cash, setCash] = useState([]);
+  const [cashData, setCashData] = useState({
+    totalBalance: 0,
+    latestEntry: null,
+    allEntries: []
+  });
 
   const fetchBanks = async () => {
     try {
@@ -40,8 +48,9 @@ const Customer = () => {
   };
   const fetchCash = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/api/cash/all");
-      setCash(response.data);
+      const response = await axios.get(`${API_URL}/all`);
+      // setCash(response);
+      setCashData(response.data);
       console.log("Fetched cash:", response.data);
     } catch (error) {
       console.error("There was an error fetching the Cash data!", error);
@@ -78,13 +87,14 @@ const Customer = () => {
 // handle submit cash
   const handleCashSubmit = async () => {
     try {
-      const res = await axios.post("http://localhost:5000/api/cash/add", {
-        amount,
+      const res = await axios.post(`${API_URL}/add`, {
+        balance:amount,
       }, { withCredentials: true });
 
       if (res) {
-        toast.success("Cash Added Successfully!");
+        toast.success(res.data.message);
       }
+      fetchCash();
       handleCloseCashModal();
     
     } catch (error) {
@@ -156,7 +166,7 @@ const Customer = () => {
           Add Cash
         </Button>
       </Grid>
-      <BankList banks={banks} refreshBanks={refreshBanks} cash={cash}/>
+      <BankList banks={banks} refreshBanks={refreshBanks} cash={cashData}/>
       
       <Modal
         open={openModal}
@@ -200,6 +210,7 @@ const Customer = () => {
           </Button>
         </Box>
       </Modal>
+      
       <Modal
         open={openCashModal}
         onClose={handleCloseCashModal}

@@ -1,8 +1,10 @@
 import React, { useEffect, useMemo, useState } from "react";
 import "./ProductSummary.scss";
 import { AiFillDollarCircle } from "react-icons/ai";
-import { BsCart4, BsCartX } from "react-icons/bs";
+import { BsCart4, BsCartX,BsBank2 } from "react-icons/bs";
 import { BiCategory } from "react-icons/bi";
+import { FaMoneyBillWave } from "react-icons/fa";
+
 import InfoBox from "../../infoBox/InfoBox";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -20,13 +22,16 @@ const earningIcon = <AiFillDollarCircle size={40} color="#fff" />;
 const productIcon = <BsCart4 size={40} color="#fff" />;
 const categoryIcon = <BiCategory size={40} color="#fff" />;
 const outOfStockIcon = <BsCartX size={40} color="#fff" />;
+const bankIcon = <BsBank2 size={40} color="#fff" />; // New bank icon
+const cashIcon = <FaMoneyBillWave size={40} color="#fff" />; // New cash icon
+
 
 // Format Amount
 export const formatNumbers = (x) => {
   return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 };
 
-const ProductSummary = ({ products }) => {
+const ProductSummary = ({ products,bank }) => {
   const dispatch = useDispatch();
   const totalStoreValue = useSelector(selectTotalStoreValue);
   const outOfStock = useSelector(selectOutOfStock);
@@ -40,17 +45,11 @@ const ProductSummary = ({ products }) => {
   const [banks, setBanks] = useState([]);
   const [cash, setCash] = useState([]);
   const totalCashAmount = useMemo(() => {
-    return cash.reduce((total, cashEntry) => total + (cashEntry.amount || 0), 0);
+    return cash.totalBalance;
   }, [cash]);
-  const fetchBanks = async () => {
-    try {
-      const response = await axios.get("http://localhost:5000/api/banks/all");
-      setBanks(response.data);
-      console.log("Fetched banks:", response.data);
-    } catch (error) {
-      console.error("There was an error fetching the bank data!", error);
-    }
-  };
+  const totalBankAmount = useMemo(() => {
+    return bank.reduce((total, bank) => total + (bank.balance || 0), 0);
+  }, [banks]);
   const fetchCash = async () => {
     try {
       const response = await axios.get("http://localhost:5000/api/cash/all");
@@ -62,7 +61,7 @@ const ProductSummary = ({ products }) => {
   };
 
   useEffect(() => {
-    fetchBanks();
+   
     fetchCash();
   }, []);
 
@@ -96,14 +95,14 @@ const ProductSummary = ({ products }) => {
           bgColor="card4"
         />
         <InfoBox
-          icon={categoryIcon}
+          icon={bankIcon}
           title={"Bank Amount"}
-          count={banks.length}
+          count={totalBankAmount}
           bgColor="card1"
         />
 
         <InfoBox
-          icon={categoryIcon}
+          icon={cashIcon}
           title={"Cash"}
           count={totalCashAmount}
           bgColor="card4"

@@ -5,19 +5,17 @@ import ProductSummary from "../../components/product/productSummary/ProductSumma
 import useRedirectLoggedOutUser from "../../customHook/useRedirectLoggedOutUser";
 import { selectIsLoggedIn } from "../../redux/features/auth/authSlice";
 import { getProducts } from "../../redux/features/product/productSlice";
-import { getBanks, selectBanks, selectIsLoading } from "../../redux/features/Bank/bankSlice";  // Import selectors and actions
+import { getBanks, selectBanks, selectIsLoading } from "../../redux/features/Bank/bankSlice";
 
 const Dashboard = () => {
   useRedirectLoggedOutUser("/login");
   const dispatch = useDispatch();
 
   const isLoggedIn = useSelector(selectIsLoggedIn);
-  const { products, isLoading: isLoading, isError, message } = useSelector((state) => state.product);
-  const banks = useSelector(selectBanks);
-  const banksLoading = useSelector(selectIsLoading);
+  const { products, isLoading, isError, message } = useSelector((state) => state.product);
+  const bank = useSelector(selectBanks);
 
-console.log("banks",banks);
-console.log("banksLoading",banksLoading);
+  const banksLoading = useSelector(selectIsLoading);
 
   useEffect(() => {
     if (isLoggedIn === true) {
@@ -30,9 +28,10 @@ console.log("banksLoading",banksLoading);
     }
   }, [isLoggedIn, isError, message, dispatch]);
 
+  
   return (
     <div>
-      <ProductSummary products={products} />
+      <ProductSummary products={products}  bank={bank} />
       <ProductList products={products} isLoading={isLoading} />
     </div>
   );

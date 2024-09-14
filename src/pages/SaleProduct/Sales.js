@@ -16,7 +16,9 @@ import {
   TableHead,
   TableRow,
   Paper,
-  Container
+  Container,
+  TablePagination
+
 } from "@mui/material";
 
 function Sales() {
@@ -25,7 +27,16 @@ function Sales() {
   const [customer, setAllCustomer] = useState([]);
   const [banks, setBanks] = useState([]); // State to store bank data
   const [updatePage, setUpdatePage] = useState(true);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
 
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
   const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
   const API_URL = `${BACKEND_URL}/api`;
 
@@ -151,7 +162,9 @@ function Sales() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {sales.map((element) => (
+                {sales
+                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                  .map((element) => (
                   <TableRow key={element._id}>
                     <TableCell>{getProductName(element.productID)}</TableCell>
                     <TableCell>{getCustomerName(element.customerID)}</TableCell>
@@ -163,6 +176,15 @@ function Sales() {
               </TableBody>
             </Table>
           </TableContainer>
+          <TablePagination
+            rowsPerPageOptions={[5, 10, 25]}
+            component="div"
+            count={sales.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+          />
         </CardContent>
       </Card>
     </Container>
