@@ -74,6 +74,13 @@ const ProductList = ({ products, isLoading }) => {
   const [itemOffset, setItemOffset] = useState(0);
   const itemsPerPage = 5;
 
+  // Log product data after fetching it
+  useEffect(() => {
+    dispatch(getProducts()).then((response) => {
+      console.log("Products fetched:", response.payload); // Log the entire API response
+    });
+  }, [dispatch]);
+
   useEffect(() => {
     const endOffset = itemOffset + itemsPerPage;
     setCurrentItems(filteredProducts.slice(itemOffset, endOffset));
@@ -119,13 +126,17 @@ const ProductList = ({ products, isLoading }) => {
                   <th>Value</th>
                   <th>Payment Method</th>
                   <th>Shipping Type</th> {/* Add Shipping Type Header */}
-                  <th>Product Status</th>
+                  <th>Cheque Status</th>
                   <th>Action</th>
                 </tr>
               </thead>
               <tbody>
                 {currentItems.map((product, index) => {
                   const { _id, name, category, price, quantity, paymentMethod, shippingType, status, image } = product;  // Include shippingType
+
+                  
+                  const displayStatus = status ? "Completed" : "Pending";
+
                   return (
                     <tr key={_id}>
                       <td>{index + 1}</td>
@@ -135,8 +146,8 @@ const ProductList = ({ products, isLoading }) => {
                       <td>{quantity}</td>
                       <td>{price * quantity}</td>
                       <td>{paymentMethod}</td>
-                      <td>{shippingType}</td> {/* Display Shipping Type */}
-                      <td>{status}</td>
+                      <td>{shippingType}</td>  
+                      <td>{displayStatus}</td>  
                       <td className="icons">
                         <span>
                           <Link to={`/product-detail/${_id}`}>

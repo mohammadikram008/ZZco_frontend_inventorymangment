@@ -3,18 +3,17 @@ import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import useRedirectLoggedOutUser from "../../../customHook/useRedirectLoggedOutUser";
 import { selectIsLoggedIn } from "../../../redux/features/auth/authSlice";
-import { getProduct } from "../../../redux/features/product/productSlice";
+import { getProduct, updateReceivedQuantity } from "../../../redux/features/product/productSlice"; 
 import DOMPurify from "dompurify";
 import { 
   Card, CardContent, CardMedia, Typography, Grid, Chip, Box, 
-  Divider, Container, Paper, Tabs, Tab, Button, IconButton, Tooltip
+  Divider, Container, Tabs, Tab, Button, TextField
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { SpinnerImg } from "../../loader/Loader";
 import InfoIcon from '@mui/icons-material/Info';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import DescriptionIcon from '@mui/icons-material/Description';
-import InventoryIcon from '@mui/icons-material/Inventory';
 
 const StyledCard = styled(Card)(({ theme }) => ({
   maxWidth: 1200,
@@ -52,6 +51,7 @@ const ProductDetail = () => {
   const dispatch = useDispatch();
   const { id } = useParams();
   const [tabValue, setTabValue] = useState(0);
+  const [receivedQuantity, setReceivedQuantity] = useState(0); // State to store received quantity
 
   const isLoggedIn = useSelector(selectIsLoggedIn);
   const { product, isLoading, isError, message } = useSelector(
@@ -65,6 +65,24 @@ const ProductDetail = () => {
     return <Chip label="Out Of Stock" color="error" size="small" />;
   };
 
+  // Handle received products input
+  const handleReceivedQuantityChange = (e) => {
+    const inputValue = e.target.value;
+
+    // Check if input is empty or invalid (NaN)
+    if (inputValue === "" || isNaN(inputValue)) {
+      setReceivedQuantity(0); // Set to 0 or handle the default empty state as necessary
+      return;
+    }
+
+    // Set the received quantity without validating
+    const newReceivedQuantity = parseInt(inputValue, 10);
+    setReceivedQuantity(newReceivedQuantity);
+  };
+
+  // Calculate remaining quantity in shipping
+  const remainingInShipping = product?.quantity - receivedQuantity;
+
   useEffect(() => {
     if (isLoggedIn === true) {
       dispatch(getProduct(id));
@@ -74,6 +92,11 @@ const ProductDetail = () => {
       console.log(message);
     }
   }, [isLoggedIn, isError, message, dispatch, id]);
+
+  // Function to submit the received quantity to the backend
+  const handleSubmitReceivedQuantity = () => {
+    dispatch(updateReceivedQuantity({ id, receivedQuantity })); // Dispatch the action to update received quantity
+  };
 
   if (isLoading) {
     return <SpinnerImg />;
@@ -99,8 +122,7 @@ const ProductDetail = () => {
                   alt={product.name}
                 />
                 <OverlayBox>
-                  <Typography variant="h5" gutterBottom>Product Name : {product.name}</Typography>
-                  {/* <Typography variant="subtitle1">SKU: {product.sku}</Typography> */}
+                  <Typography variant="h5" gutterBottom>Product Name: {product.name}</Typography>
                 </OverlayBox>
               </ImageWrapper>
             </Grid>
@@ -113,28 +135,30 @@ const ProductDetail = () => {
                     <Tab icon={<LocalShippingIcon />} label="Shipping" />
                   </Tabs>
                 </Box>
+                
                 {tabValue === 0 && (
                   <Box>
                     <Typography variant="h6" color="primary" gutterBottom>
-                      Price : {product.price}
+                      Price: {product.price}
                     </Typography>
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                      {stockStatus(product.quantity)}
+                      {stockStatus(receivedQuantity)} {/* Display the stock status */}
                       <Typography variant="body2" sx={{ ml: 1 }}>
-                        ({product.quantity} available)
+                        ({receivedQuantity} in stock)
                       </Typography>
                     </Box>
                     <Typography variant="body1" paragraph>
                       Category: {product.category}
                     </Typography>
                     <Typography variant="body1" paragraph>
-                      Store Name : {product.warehouseName}
+                      Store Name: {product.warehouseName}
                     </Typography>
                     <Typography variant="body1" paragraph>
                       Total Value: {product.price * product.quantity}
                     </Typography>
                   </Box>
                 )}
+                
                 {tabValue === 1 && (
                   <Typography variant="body2" 
                     dangerouslySetInnerHTML={{
@@ -142,11 +166,41 @@ const ProductDetail = () => {
                     }}
                   />
                 )}
+                
                 {tabValue === 2 && (
-                  <Typography variant="body2">
-                    Shipping information not available.
-                  </Typography>
+                  <Box>
+                    <Typography variant="h6">Shipping</Typography>
+                    <Typography variant="body1" paragraph>
+                      Total quantity in shipping: {product.quantity} {/* Ensure the correct quantity is displayed */}
+                    </Typography>
+                    <Typography variant="body1" paragraph>
+                      Products received: {receivedQuantity}
+                    </Typography>
+                    <Typography variant="body1" paragraph>
+                      Remaining in shipping: {remainingInShipping > 0 ? remainingInShipping : 0}
+                    </Typography>
+                    
+                    {/* Input for user to enter received products */}
+                    <TextField
+                      label="Products Received"
+                      type="number"
+                      value={receivedQuantity}
+                      onChange={handleReceivedQuantityChange}
+                      InputProps={{ inputProps: { min: 0, max: product.quantity } }}
+                      fullWidth
+                      sx={{ mt: 2 }}
+                    />
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      sx={{ mt: 2 }}
+                      onClick={handleSubmitReceivedQuantity} // Submit received quantity
+                    >
+                      Update Received Quantity
+                    </Button>
+                  </Box>
                 )}
+
                 <Box sx={{ mt: 'auto' }}>
                   <Divider sx={{ my: 2 }} />
                   <Typography variant="caption" display="block" gutterBottom>

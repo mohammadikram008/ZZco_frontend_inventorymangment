@@ -35,6 +35,10 @@ const updateProduct = async (id, formData) => {
   const response = await axios.patch(`${API_URL}${id}`, formData);
   return response.data;
 };
+const updateReceivedQuantity = async (id, receivedQuantity) => {
+  const response = await axios.patch(`${API_URL}receive/${id}`, { receivedQuantity });
+  return response.data;
+};
 
 const productService = {
   createProduct,
@@ -42,6 +46,7 @@ const productService = {
   getProduct,
   deleteProduct,
   updateProduct,
+  updateReceivedQuantity,
 };
 
 export default productService;

@@ -111,6 +111,25 @@ export const updateProduct = createAsyncThunk(
   }
 );
 
+export const updateReceivedQuantity = createAsyncThunk(
+  "products/updateReceivedQuantity",
+  async ({ id, receivedQuantity }, thunkAPI) => {
+    try {
+      return await productService.updateReceivedQuantity(id, receivedQuantity);
+    } catch (error) {
+      const message =
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
+        error.message ||
+        error.toString();
+      return thunkAPI.rejectWithValue(message);
+    }
+  }
+);
+
+
+
 const productSlice = createSlice({
   name: "product",
   initialState,
@@ -231,6 +250,22 @@ const productSlice = createSlice({
         toast.success("Product updated successfully");
       })
       .addCase(updateProduct.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isError = true;
+        state.message = action.payload;
+        toast.error(action.payload);
+      })
+      
+      .addCase(updateReceivedQuantity.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(updateReceivedQuantity.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isSuccess = true;
+        state.product = action.payload;
+        toast.success("Received quantity updated successfully");
+      })
+      .addCase(updateReceivedQuantity.rejected, (state, action) => {
         state.isLoading = false;
         state.isError = true;
         state.message = action.payload;
