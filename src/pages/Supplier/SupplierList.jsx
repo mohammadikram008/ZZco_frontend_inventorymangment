@@ -1,36 +1,38 @@
 import React, { useState } from "react";
-import { Avatar, Box, Button, Grid, IconButton, Typography } from "@mui/material";
+import { Avatar, Box, Grid, IconButton } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
-import { Add, Remove, Delete, History } from "@mui/icons-material";
-import AddBalanceModal from "../../components/Models/AddBalanceModal";
-import MinusBalanceModal from "../../components/Models/MinusBalanceModal";
+import { Add, Delete, History, Remove } from "@mui/icons-material";
+import AddSupplierBalanceModal from "../../components/Models/AddSupplierBalanceModal";
+import MinusSupplierBalanceModal from "../../components/Models/MinusSupplierBalanceModal";
 import ConfirmDeleteModal from "../../components/Models/ConfirmDeleteModal";
-import TransactionHistoryModal from "../../components/Models/TransactionHistoryModal";
+import SupplierTransactionHistoryModal from "../../components/Models/SupplierTransactionHistoryModal";
 
-const CustomerList = ({ customers, refreshCustomers }) => {
-  const [selectedCustomer, setSelectedCustomer] = useState(null);
+const SupplierList = ({ suppliers, refreshSuppliers }) => {
+  const [selectedSupplier, setSelectedSupplier] = useState(null);
   const [isAddModalOpen, setAddModalOpen] = useState(false);
   const [isMinusModalOpen, setMinusModalOpen] = useState(false);
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
   const [isHistoryModalOpen, setHistoryModalOpen] = useState(false);
+  const [supplierList, setSupplierList] = useState(suppliers); // Use state for the supplier list
 
-  const openAddModal = (customer) => {
-    setSelectedCustomer(customer);
+  // Open respective modals
+  const openAddModal = (supplier) => {
+    setSelectedSupplier(supplier);
     setAddModalOpen(true);
   };
 
-  const openMinusModal = (customer) => {
-    setSelectedCustomer(customer);
+  const openMinusModal = (supplier) => {
+    setSelectedSupplier(supplier);
     setMinusModalOpen(true);
   };
 
-  const openDeleteModal = (customer) => {
-    setSelectedCustomer(customer);
+  const openDeleteModal = (supplier) => {
+    setSelectedSupplier(supplier);
     setDeleteModalOpen(true);
   };
 
-  const openHistoryModal = (customer) => {
-    setSelectedCustomer(customer);
+  const openHistoryModal = (supplier) => {
+    setSelectedSupplier(supplier);
     setHistoryModalOpen(true);
   };
 
@@ -39,7 +41,14 @@ const CustomerList = ({ customers, refreshCustomers }) => {
     setMinusModalOpen(false);
     setDeleteModalOpen(false);
     setHistoryModalOpen(false);
-    setSelectedCustomer(null);
+    setSelectedSupplier(null);
+  };
+
+  // Handle successful deletion
+  const handleDeleteSuccess = (deletedSupplierId) => {
+    // Remove the deleted supplier from the supplier list
+    setSupplierList(supplierList.filter(supplier => supplier._id !== deletedSupplierId));
+    closeModals();
   };
 
   const columns = [
@@ -48,7 +57,7 @@ const CustomerList = ({ customers, refreshCustomers }) => {
       headerName: "Avatar",
       width: 100,
       renderCell: (params) => (
-        <Avatar src={params.value} alt={params.row.username} />
+        <Avatar src={params.value || "/default-avatar.png"} alt={params.row.username} />
       ),
     },
     { field: "_id", headerName: "ID", width: 220 },
@@ -63,34 +72,22 @@ const CustomerList = ({ customers, refreshCustomers }) => {
       renderCell: (params) => (
         <Grid container spacing={1}>
           <Grid item>
-            <IconButton
-              color="primary"
-              onClick={() => openAddModal(params.row)}
-            >
+            <IconButton color="primary" onClick={() => openAddModal(params.row)}>
               <Add />
             </IconButton>
           </Grid>
           <Grid item>
-            <IconButton
-              color="secondary"
-              onClick={() => openMinusModal(params.row)}
-            >
+            <IconButton color="secondary" onClick={() => openMinusModal(params.row)}>
               <Remove />
             </IconButton>
           </Grid>
           <Grid item>
-            <IconButton
-              color="error"
-              onClick={() => openDeleteModal(params.row)}
-            >
+            <IconButton color="error" onClick={() => openDeleteModal(params.row)}>
               <Delete />
             </IconButton>
           </Grid>
           <Grid item>
-            <IconButton
-              color="info"
-              onClick={() => openHistoryModal(params.row)}
-            >
+            <IconButton color="info" onClick={() => openHistoryModal(params.row)}>
               <History />
             </IconButton>
           </Grid>
@@ -99,23 +96,16 @@ const CustomerList = ({ customers, refreshCustomers }) => {
     },
   ];
 
+  // Render a simple message if suppliers is not available
+  if (!supplierList || supplierList.length === 0) {
+    return <div>No suppliers available</div>;
+  }
+
   return (
-    <Box
-      sx={{
-        margin: 3,
-        bgcolor: "white",
-        borderRadius: 2,
-        padding: 3,
-        width: "auto",
-      }}
-    >
+    <Box sx={{ margin: 3, bgcolor: "white", borderRadius: 2, padding: 3, width: "auto" }}>
       <DataGrid
-        sx={{
-          borderLeft: 0,
-          borderRight: 0,
-          borderRadius: 0,
-        }}
-        rows={customers}
+        sx={{ borderLeft: 0, borderRight: 0, borderRadius: 0 }}
+        rows={supplierList}
         columns={columns}
         getRowId={(row) => row._id}
         initialState={{
@@ -128,37 +118,46 @@ const CustomerList = ({ customers, refreshCustomers }) => {
       />
 
       {/* Add Balance Modal */}
-      <AddBalanceModal
-        open={isAddModalOpen}
-        onClose={closeModals}
-        customer={selectedCustomer}
-        onSuccess={refreshCustomers} 
-      />
+      {isAddModalOpen && (
+        <AddSupplierBalanceModal
+          open={isAddModalOpen}
+          onClose={closeModals}
+          supplier={selectedSupplier}
+          onSuccess={refreshSuppliers}
+        />
+      )}
 
       {/* Minus Balance Modal */}
-      <MinusBalanceModal
-        open={isMinusModalOpen}
-        onClose={closeModals}
-        customer={selectedCustomer}
-        onSuccess={refreshCustomers} 
-      />
+      {isMinusModalOpen && (
+        <MinusSupplierBalanceModal
+          open={isMinusModalOpen}
+          onClose={closeModals}
+          supplier={selectedSupplier}
+          onSuccess={refreshSuppliers}
+        />
+      )}
 
       {/* Confirm Delete Modal */}
-      <ConfirmDeleteModal
-        open={isDeleteModalOpen}
-        onClose={closeModals}
-        customer={selectedCustomer}
-        onSuccess={refreshCustomers} 
-      />
+      {isDeleteModalOpen && (
+        <ConfirmDeleteModal
+          open={isDeleteModalOpen}
+          onClose={closeModals}
+          entry={selectedSupplier}
+          entryType="supplier"
+          onSuccess={() => handleDeleteSuccess(selectedSupplier._id)} // Pass the ID of the deleted supplier
+        />
+      )}
 
       {/* Transaction History Modal */}
-      <TransactionHistoryModal
-        open={isHistoryModalOpen}
-        onClose={closeModals}
-        customer={selectedCustomer}
-      />
+      {isHistoryModalOpen && (
+        <SupplierTransactionHistoryModal
+          open={isHistoryModalOpen}
+          onClose={closeModals}
+          supplier={selectedSupplier}
+        />
+      )}
     </Box>
   );
 };
 
-export default CustomerList;
+export default SupplierList;

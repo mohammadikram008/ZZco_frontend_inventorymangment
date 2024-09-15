@@ -7,7 +7,7 @@ import "react-toastify/dist/ReactToastify.css";
 
 const Customer = () => {
   const [openModal, setOpenModal] = useState(false);
-  const [username, setUsername] = useState("");
+  const [username, setUsername] = useState("");  
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [phone, setPhone] = useState("");

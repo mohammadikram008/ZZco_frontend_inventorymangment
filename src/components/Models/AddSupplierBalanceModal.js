@@ -16,7 +16,7 @@ const capitalizeFirstLetter = (string) => {
   return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
 };
 
-const MinusBalanceModal = ({ open, onClose, customer, onSuccess }) => {
+const AddSupplierBalanceModal = ({ open, onClose, supplier, onSuccess }) => {
   const [amount, setAmount] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("");
   const [chequeDate, setChequeDate] = useState("");
@@ -31,7 +31,7 @@ const MinusBalanceModal = ({ open, onClose, customer, onSuccess }) => {
     dispatch(getBanks());
   }, [dispatch]);
 
-  const API_URL = `${BACKEND_URL}/api/customers`;
+  const API_URL = `${BACKEND_URL}/api/suppliers`;  // Use suppliers endpoint
 
   const handleSubmit = async () => {
     // Convert paymentMethod to capital case using capitalizeFirstLetter
@@ -41,15 +41,16 @@ const MinusBalanceModal = ({ open, onClose, customer, onSuccess }) => {
       chequeDate: paymentMethod === "cheque" ? chequeDate : null,
       description,
       bankId: paymentMethod === "online" ? selectedBank : null,
+      type: "credit",  // Always "credit" for adding balance
     };
   
-    console.log("Minus balance:", formData);
+    console.log("Add balance:", formData);
     try {
-      const response = await axios.post(`${API_URL}/minus-customer-balance/${customer._id}`, formData);
+      const response = await axios.post(`${API_URL}/${supplier._id}/transaction`, formData);
       console.log(response.data);
       onSuccess();
     } catch (error) {
-      console.error('Error subtracting balance:', error);
+      console.error('Error adding balance:', error);
     }
     onClose();
   };
@@ -70,7 +71,7 @@ const MinusBalanceModal = ({ open, onClose, customer, onSuccess }) => {
         }}
       >
         <Typography variant="h6" gutterBottom>
-          Subtract Balance from {customer?.username}
+          Add Balance to {supplier?.username} {/* Changed customer to supplier */}
         </Typography>
         <TextField
           label="Amount"
@@ -136,11 +137,11 @@ const MinusBalanceModal = ({ open, onClose, customer, onSuccess }) => {
           onClick={handleSubmit}
           fullWidth
         >
-          Subtract Balance
+          Add Balance
         </Button>
       </Box>
     </Modal>
   );
 };
 
-export default MinusBalanceModal;
+export default AddSupplierBalanceModal;

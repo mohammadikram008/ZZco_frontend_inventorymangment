@@ -3,19 +3,19 @@ import { Modal, Box, Typography, Button } from "@mui/material";
 import axios from 'axios';
 import CustomTable from "../CustomTable/CustomTable";
 
-const TransactionHistoryModal = ({ open, onClose, customer }) => {
+const SupplierTransactionHistoryModal = ({ open, onClose, supplier }) => {
   const [transactions, setTransactions] = useState([]); 
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5); 
 
   const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-  const API_URL = `${BACKEND_URL}/api/customers`;
+  const API_URL = `${BACKEND_URL}/api/suppliers`;
 
   useEffect(() => {
-    if (open && customer) {
+    if (open && supplier) {
       const fetchTransactions = async () => {
         try {
-          const response = await axios.get(`${API_URL}/transactionHistory/${customer._id}`);
+          const response = await axios.get(`${API_URL}/${supplier._id}/transaction-history`);
           const transactionHistory = response.data.transactionHistory || [];
           
           // Calculate running balance
@@ -40,9 +40,9 @@ const TransactionHistoryModal = ({ open, onClose, customer }) => {
       
       fetchTransactions();
     }
-  }, [open, customer, API_URL]);
+  }, [open, supplier, API_URL]);
 
-  // Column definitions with color styling
+  // Column definitions with color styling for debit and credit
   const columns = [
     { 
       field: 'date', 
@@ -106,7 +106,7 @@ const TransactionHistoryModal = ({ open, onClose, customer }) => {
           overflow: "auto",
         }}
       >
-        <Typography variant="h6">Ledger for {customer?.username}</Typography>
+        <Typography variant="h6">Ledger for {supplier?.username}</Typography>
         <CustomTable
           columns={columns}
           data={transactions}
@@ -123,4 +123,4 @@ const TransactionHistoryModal = ({ open, onClose, customer }) => {
   );
 };
 
-export default TransactionHistoryModal;
+export default SupplierTransactionHistoryModal;

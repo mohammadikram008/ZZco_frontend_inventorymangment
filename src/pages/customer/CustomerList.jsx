@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import { Avatar, Box, Button, Grid, IconButton, Typography } from "@mui/material";
+import { Avatar, Box, Grid, IconButton } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { Add, Remove, Delete, History } from "@mui/icons-material";
 import AddBalanceModal from "../../components/Models/AddBalanceModal";
 import MinusBalanceModal from "../../components/Models/MinusBalanceModal";
-import ConfirmDeleteModal from "../../components/Models/ConfirmDeleteModal";
+import DeleteCustomerModal from "../../components/Models/DeleteCustomerModal"; // Use the new delete modal
 import TransactionHistoryModal from "../../components/Models/TransactionHistoryModal";
 
 const CustomerList = ({ customers, refreshCustomers }) => {
@@ -48,7 +48,7 @@ const CustomerList = ({ customers, refreshCustomers }) => {
       headerName: "Avatar",
       width: 100,
       renderCell: (params) => (
-        <Avatar src={params.value} alt={params.row.username} />
+        <Avatar src={params.value || "/default-avatar.png"} alt={params.row.username} />
       ),
     },
     { field: "_id", headerName: "ID", width: 220 },
@@ -143,12 +143,12 @@ const CustomerList = ({ customers, refreshCustomers }) => {
         onSuccess={refreshCustomers} 
       />
 
-      {/* Confirm Delete Modal */}
-      <ConfirmDeleteModal
+      {/* Delete Customer Modal */}
+      <DeleteCustomerModal
         open={isDeleteModalOpen}
         onClose={closeModals}
         customer={selectedCustomer}
-        onSuccess={refreshCustomers} 
+        onSuccess={refreshCustomers} // Call to refresh the customer list
       />
 
       {/* Transaction History Modal */}

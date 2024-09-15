@@ -118,15 +118,14 @@ const ProductList = ({ products, isLoading }) => {
                   <th>Quantity</th>
                   <th>Value</th>
                   <th>Payment Method</th>
-                  <th>Cheque Status</th>
+                  <th>Shipping Type</th> {/* Add Shipping Type Header */}
                   <th>Product Status</th>
                   <th>Action</th>
                 </tr>
               </thead>
               <tbody>
                 {currentItems.map((product, index) => {
-                  const { _id, name, category, price, quantity, paymentMethod, status, image } = product;
-                  console.log("product", product);
+                  const { _id, name, category, price, quantity, paymentMethod, shippingType, status, image } = product;  // Include shippingType
                   return (
                     <tr key={_id}>
                       <td>{index + 1}</td>
@@ -136,20 +135,7 @@ const ProductList = ({ products, isLoading }) => {
                       <td>{quantity}</td>
                       <td>{price * quantity}</td>
                       <td>{paymentMethod}</td>
-                      {/* <td>
-                        {image && image.filePath ? (
-                          <img
-                            src={`/${image.filePath.replace(/\\/g, '/')}`} // Convert backslashes to forward slashes
-                            alt={image.fileName}
-                            className="thumbnail"
-                            onClick={() => openModal(`/${image.filePath.replace(/\\/g, '/')}`)} // Open modal on click
-                            style={{ width: "50px", cursor: "pointer" }}
-                          />
-                        ) : (
-                          "No Image"
-                        )}
-                      </td> */}
-                      <td>{status}</td>
+                      <td>{shippingType}</td> {/* Display Shipping Type */}
                       <td>{status}</td>
                       <td className="icons">
                         <span>

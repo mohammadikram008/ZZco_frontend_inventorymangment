@@ -189,14 +189,48 @@ const ViewExpenses = () => {
 
 
   const columns = [
-    { field: 'date', headerName: 'Date', renderCell: (row) => new Date(row.date).toLocaleDateString() },
-    { field: 'type', headerName: 'Type' },
-    { field: 'description', headerName: 'Description' },
-    { field: 'debit', headerName: 'Debit', renderCell: (row) => row.amount > 0 ? row.amount.toFixed(2) : '' },
-    { field: 'credit', headerName: 'Credit', renderCell: (row) => row.amount < 0 ? Math.abs(row.amount).toFixed(2) : '' },
-    { field: 'paymentMethod', headerName: 'Payment Method' },
-    { field: 'balance', headerName: 'Total Amount', renderCell: (row) => row.balance.toFixed(2) },
+    { 
+      field: 'date', 
+      headerName: 'Date', 
+      renderCell: (row) => new Date(row.date).toLocaleDateString() 
+    },
+    { 
+      field: 'type', 
+      headerName: 'Type' 
+    },
+    { 
+      field: 'description', 
+      headerName: 'Description' 
+    },
+    { 
+      field: 'debit', 
+      headerName: 'Debit', 
+      renderCell: (row) => (
+        <span style={{ color: row.amount > 0 ? 'red' : 'inherit' }}>
+          {row.amount > 0 ? row.amount.toFixed(2) : ''}
+        </span>
+      )
+    },
+    { 
+      field: 'credit', 
+      headerName: 'Credit', 
+      renderCell: (row) => (
+        <span style={{ color: row.amount < 0 ? 'green' : 'inherit' }}>
+          {row.amount < 0 ? Math.abs(row.amount).toFixed(2) : ''}
+        </span>
+      )
+    },
+    { 
+      field: 'paymentMethod', 
+      headerName: 'Payment Method' 
+    },
+    { 
+      field: 'balance', 
+      headerName: 'Total Amount', 
+      renderCell: (row) => row.balance.toFixed(2) 
+    }
   ];
+  
 
   const rows = paginatedEntries.map(entry => ({
     ...entry,

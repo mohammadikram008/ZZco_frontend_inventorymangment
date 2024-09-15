@@ -16,7 +16,7 @@ const capitalizeFirstLetter = (string) => {
   return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
 };
 
-const MinusBalanceModal = ({ open, onClose, customer, onSuccess }) => {
+const MinusSupplierBalanceModal = ({ open, onClose, supplier, onSuccess }) => {
   const [amount, setAmount] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("");
   const [chequeDate, setChequeDate] = useState("");
@@ -31,7 +31,7 @@ const MinusBalanceModal = ({ open, onClose, customer, onSuccess }) => {
     dispatch(getBanks());
   }, [dispatch]);
 
-  const API_URL = `${BACKEND_URL}/api/customers`;
+  const API_URL = `${BACKEND_URL}/api/suppliers`;  // Use suppliers endpoint
 
   const handleSubmit = async () => {
     // Convert paymentMethod to capital case using capitalizeFirstLetter
@@ -41,11 +41,12 @@ const MinusBalanceModal = ({ open, onClose, customer, onSuccess }) => {
       chequeDate: paymentMethod === "cheque" ? chequeDate : null,
       description,
       bankId: paymentMethod === "online" ? selectedBank : null,
+      type: "debit",  // Ensure type is set to "debit" for subtracting balance
     };
-  
+
     console.log("Minus balance:", formData);
     try {
-      const response = await axios.post(`${API_URL}/minus-customer-balance/${customer._id}`, formData);
+      const response = await axios.post(`${API_URL}/${supplier._id}/transaction`, formData);
       console.log(response.data);
       onSuccess();
     } catch (error) {
@@ -70,7 +71,7 @@ const MinusBalanceModal = ({ open, onClose, customer, onSuccess }) => {
         }}
       >
         <Typography variant="h6" gutterBottom>
-          Subtract Balance from {customer?.username}
+          Subtract Balance from {supplier?.username}
         </Typography>
         <TextField
           label="Amount"
@@ -143,4 +144,4 @@ const MinusBalanceModal = ({ open, onClose, customer, onSuccess }) => {
   );
 };
 
-export default MinusBalanceModal;
+export default MinusSupplierBalanceModal;

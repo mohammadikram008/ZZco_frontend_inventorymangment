@@ -2,10 +2,10 @@ import React, { useState, useEffect } from "react";
 import {
   Modal,
   Box,
-  TextField,
+  TextField,  
   Button,
   MenuItem,
-  Typography,
+  Typography, 
   Grid,
 } from "@mui/material";
 import { useSelector, useDispatch } from 'react-redux';
@@ -30,43 +30,53 @@ const AddBalanceModal = ({ open, onClose, customer, onSuccess }) => {
   useEffect(() => {
     dispatch(getBanks());
   }, [dispatch]);
+  
+  
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
+    const capitalizeFirstLetter = (string) => {
+      return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
+    };
+  
     const formData = new FormData();
     formData.append("amount", amount);
-    formData.append("paymentMethod", paymentMethod);
+    formData.append("paymentMethod", capitalizeFirstLetter(paymentMethod));  // Capitalize the first letter
     formData.append("description", description);
-
+    
+    if (paymentMethod === "online") {
+      formData.append("bankId", selectedBank);
+      formData.append("image", image);
+    }
+    
     if (paymentMethod === "cheque") {
       formData.append("chequeDate", chequeDate);
     }
-    if (paymentMethod === "online") {
-      formData.append("bankId", selectedBank);
-    }
-    if (image) {
-      formData.append("image", image);
-    }
-
+  
     try {
       const response = await axios.post(
         `${API_URL}/add-customer-balance/${customer._id}`,
         formData,
         {
-          withCredentials: true,
           headers: {
             'Content-Type': 'multipart/form-data',
           },
+          withCredentials: true,
         }
       );
-      onSuccess();
       toast.success(response.data.message || 'Balance added successfully');
       onClose();
     } catch (error) {
-      console.error('Error adding balance:', error);
       toast.error('Failed to add balance. Please try again.');
     }
   };
+  
+  
+  
+  
+  
+  
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -106,7 +116,7 @@ const AddBalanceModal = ({ open, onClose, customer, onSuccess }) => {
           label="Payment Method"
           select
           value={paymentMethod}
-          onChange={(e) => setPaymentMethod(e.target.value)}
+          onChange={(e) => setPaymentMethod(e.target.value.toLowerCase())}
           fullWidth
           margin="normal"
         >

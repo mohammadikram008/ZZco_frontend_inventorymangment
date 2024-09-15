@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   Card,
   CardContent,
@@ -11,7 +11,6 @@ import {
   Grid,
 } from "@mui/material";
 import { styled } from "@mui/system";
-import { useSelector } from "react-redux";
 
 const ImagePreview = styled("img")({
   width: "100%",
@@ -36,19 +35,21 @@ const ProductForm = ({
   warehouses,
   selectedWarehouse,
   handleWarehouseChange,
+  shippingType, // Add shippingType prop
+  handleShippingTypeChange, // Add handleShippingTypeChange prop
 }) => {
-  // State to track selected bank
 
   const handleFormSubmit = (event) => {
     event.preventDefault();
     saveProduct();
   };
-  console.log("banksbanks", banks);
+
   return (
     <div>
       <Card>
         <CardContent>
           <form onSubmit={handleFormSubmit}>
+            {/* Product Name */}
             <TextField
               label="Product Name"
               name="name"
@@ -58,6 +59,7 @@ const ProductForm = ({
               margin="normal"
             />
 
+            {/* Product Category */}
             <TextField
               label="Product Category"
               name="category"
@@ -66,29 +68,34 @@ const ProductForm = ({
               fullWidth
               margin="normal"
             />
+
+            {/* Shipping Type */}
             <FormControl fullWidth margin="normal">
-              <InputLabel id="warehouse-label">Select Warehouse</InputLabel>
-              <Select
-                labelId="warehouse-label"
-                id="warehouse"
-                value={selectedWarehouse}
-                onChange={handleWarehouseChange}
-                label="Warehouse"
-              >
-                <MenuItem value="">
-                  <em>Select Warehouse</em>
-                </MenuItem>
-                {warehouses && warehouses.length > 0 ? (
-                  warehouses.map((warehouse) => (
+              <InputLabel>Shipping Type</InputLabel>
+              <Select value={shippingType} onChange={handleShippingTypeChange}>
+                <MenuItem value="local">Local</MenuItem>
+                <MenuItem value="international">International</MenuItem>
+              </Select>
+            </FormControl>
+
+            {/* Show Warehouse dropdown only if Local shipping is selected */}
+            {shippingType === "local" && (
+              <FormControl fullWidth margin="normal" required>
+                <InputLabel>Select Warehouse</InputLabel>
+                <Select value={selectedWarehouse} onChange={handleWarehouseChange}>
+                  <MenuItem value="">
+                    <em>Select Warehouse</em>
+                  </MenuItem>
+                  {warehouses.map((warehouse) => (
                     <MenuItem key={warehouse._id} value={warehouse._id}>
                       {warehouse.name}
                     </MenuItem>
-                  ))
-                ) : (
-                  <MenuItem disabled>No warehouses available</MenuItem>
-                )}
-              </Select>
-            </FormControl>
+                  ))}
+                </Select>
+              </FormControl>
+            )}
+
+            {/* Payment Method */}
             <FormControl fullWidth margin="normal">
               <InputLabel>Payment Method</InputLabel>
               <Select
@@ -103,7 +110,7 @@ const ProductForm = ({
               </Select>
             </FormControl>
 
-            {/* Bank Dropdown for Cash Payment */}
+            {/* Bank Dropdown for Online Payment */}
             {paymentMethod === "online" && (
               <FormControl fullWidth margin="normal">
                 <InputLabel id="bankID-label">Select Bank</InputLabel>
@@ -117,19 +124,16 @@ const ProductForm = ({
                   <MenuItem value="">
                     <em>Select Bank</em>
                   </MenuItem>
-                  {Array.isArray(banks) && banks.length > 0 ? (
-                    banks.map((bank) => (
-                      <MenuItem key={bank._id} value={bank._id}>
-                        {bank.bankName}
-                      </MenuItem>
-                    ))
-                  ) : (
-                    <MenuItem disabled>No banks available</MenuItem>
-                  )}
+                  {banks.map((bank) => (
+                    <MenuItem key={bank._id} value={bank._id}>
+                      {bank.bankName}
+                    </MenuItem>
+                  ))}
                 </Select>
               </FormControl>
             )}
 
+            {/* Cheque Date for Cheque Payment */}
             {paymentMethod === "cheque" && (
               <TextField
                 fullWidth
@@ -142,25 +146,23 @@ const ProductForm = ({
               />
             )}
 
-            {(paymentMethod === "cheque" ||
-              // sale.paymentMethod === "credit" ||
-              paymentMethod === "online") && (
-                <Grid item xs={12}>
-                  <TextField
-                    type="file"
-                    label="Upload Image"
-                    name="image"
-                    onChange={handleImageChange}
-                    fullWidth
-                    margin="normal"
-                    InputLabelProps={{ shrink: true }}
-                  />
-                  {imagePreview && <ImagePreview src={imagePreview} alt="Preview" />}
-                </Grid>
-              )}
+            {/* File Upload for Cheque or Online Payment */}
+            {(paymentMethod === "cheque" || paymentMethod === "online") && (
+              <Grid item xs={12}>
+                <TextField
+                  type="file"
+                  label="Upload Image"
+                  name="image"
+                  onChange={handleImageChange}
+                  fullWidth
+                  margin="normal"
+                  InputLabelProps={{ shrink: true }}
+                />
+                {imagePreview && <ImagePreview src={imagePreview} alt="Preview" />}
+              </Grid>
+            )}
 
-            {/* {imagePreview && <ImagePreview src={imagePreview} alt="Preview" />} */}
-
+            {/* Product Price */}
             <TextField
               type="number"
               label="Product Price"
@@ -171,6 +173,7 @@ const ProductForm = ({
               margin="normal"
             />
 
+            {/* Product Quantity */}
             <TextField
               type="number"
               label="Product Quantity"
@@ -181,6 +184,7 @@ const ProductForm = ({
               margin="normal"
             />
 
+            {/* Save Button */}
             <Button
               type="submit"
               variant="contained"

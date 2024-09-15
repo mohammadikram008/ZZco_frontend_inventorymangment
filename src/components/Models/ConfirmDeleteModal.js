@@ -5,21 +5,27 @@ import {
   Button,
   Typography,
 } from "@mui/material";
-import axios from 'axios'
-const ConfirmDeleteModal = ({ open, onClose, customer ,onSuccess}) => {
-    const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-    const API_URL = `${BACKEND_URL}/api/customers`;
-  const handleDelete = async() => {
-    // Perform the API call to delete the customer's account
-    console.log("Deleting customer:", customer._id);
+import axios from 'axios';
+
+const ConfirmDeleteModal = ({ open, onClose, entry, entryType, onSuccess }) => {
+  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+
+  // Set API URL depending on whether we're dealing with a supplier
+  const API_URL = entryType === "supplier"
+    ? `${BACKEND_URL}/api/suppliers`
+    : ''; // If entryType is something else, handle that scenario.
+
+  const handleDelete = async () => {
+    if (!entry || !entry._id) return; // Ensure valid entry is selected
+    console.log(`Deleting ${entryType}:`, entry._id); // Log to confirm
+
     try {
-        const response = await axios.delete(`${API_URL}/Delete-customers/${customer._id}`);
-        console.log(response.data);
-        onSuccess();
-      } catch (error) {
-        console.error('Error Delete Customer:', error);
-      }
-    // Perform the API call here to delete the customer
+      const response = await axios.delete(`${API_URL}/delete/${entry._id}`);
+      console.log(response.data);
+      onSuccess();
+    } catch (error) {
+      console.error(`Error deleting ${entryType}:`, error.response?.data || error);
+    }
     onClose();
   };
 
@@ -39,7 +45,7 @@ const ConfirmDeleteModal = ({ open, onClose, customer ,onSuccess}) => {
         }}
       >
         <Typography variant="h6" gutterBottom>
-          Are you sure you want to delete {customer?.username}'s account?
+          Are you sure you want to delete this {entryType} entry?
         </Typography>
         <Button
           variant="contained"
@@ -47,7 +53,7 @@ const ConfirmDeleteModal = ({ open, onClose, customer ,onSuccess}) => {
           onClick={handleDelete}
           fullWidth
         >
-          Delete Account
+          Delete {entryType}
         </Button>
       </Box>
     </Modal>

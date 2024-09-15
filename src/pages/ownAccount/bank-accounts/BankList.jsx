@@ -5,54 +5,52 @@ import EditBankModal from "../../../components/Models/EditBankModal";
 import CustomTable from "../../../components/CustomTable/OwnAccount";
 
 const BankList = ({ banks, refreshBanks, cash }) => {
-  console.log("cash",cash);
-  const [selectedBank, setSelectedBank] = useState(null);
+  const [selectedEntry, setSelectedEntry] = useState(null); // For both bank and cash
+  const [entryType, setEntryType] = useState("bank"); // Track if editing bank or cash
   const [isEditModalOpen, setEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
 
   useEffect(() => {
-    console.log("Banks data:", banks); // Check the data being passed
+    console.log("Banks data:", banks);
   }, [banks]);
 
-  const openEditModal = (bank) => {
-    setSelectedBank(bank);
+  const openEditModal = (entry, type) => {
+    setSelectedEntry(entry);
+    setEntryType(type);
     setEditModalOpen(true);
   };
 
-  const openDeleteModal = (bank) => {
-    setSelectedBank(bank);
+  const openDeleteModal = (entry, type) => {
+    setSelectedEntry(entry);
+    setEntryType(type);
     setDeleteModalOpen(true);
   };
 
   const closeModals = () => {
     setEditModalOpen(false);
     setDeleteModalOpen(false);
-    setSelectedBank(null);
+    setSelectedEntry(null);
   };
 
-  // Calculate total amounts
   const totalBankAmount = useMemo(() => {
-    return banks.reduce((total, bank) => total + (bank.amount || 0), 0);
+    return banks?.reduce((total, bank) => total + (bank.balance || 0), 0) || 0;
   }, [banks]);
 
-  // const totalCashAmount = useMemo(() => {
-  //   return cash.reduce((total, cashEntry) => total + (cashEntry.amount || 0), 0);
-  // }, [cash]);
   const totalCashAmount = useMemo(() => {
-    return cash.totalBalance
+    return cash?.totalBalance || 0;
   }, [cash]);
 
-  // const totalAmount = totalBankAmount + totalCashAmount;
-  const totalAmount = totalBankAmount ;
+  const totalAmount = totalBankAmount;
 
   const bankColumns = [
     { field: "bankName", headerName: "Bank Name" },
     { field: "balance", headerName: "Balance", align: "right" },
   ];
 
- 
   const cashColumns = [
-    { field: "createdAt", headerName: "Date", 
+    {
+      field: "createdAt",
+      headerName: "Date",
       valueGetter: (params) => {
         const date = new Date(params.row.createdAt);
         return date.toISOString().slice(0, 10);
@@ -73,14 +71,14 @@ const BankList = ({ banks, refreshBanks, cash }) => {
         width: "auto",
       }}
     >
-       <Box display={"flex"} justifyContent={"center"} alignContent={"center"} mt={3}>
+      <Box display={"flex"} justifyContent={"center"} alignContent={"center"} mt={3}>
         <Typography variant="h3">Banks List</Typography>
       </Box>
       <CustomTable
         columns={bankColumns}
-        data={banks}
-        onEdit={openEditModal}
-        onDelete={openDeleteModal}
+        data={banks || []} 
+        onEdit={(bank) => openEditModal(bank, "bank")}
+        onDelete={(bank) => openDeleteModal(bank, "bank")}
       />
 
       <Box display={"flex"} justifyContent={"center"} alignContent={"center"} mt={3}>
@@ -89,28 +87,28 @@ const BankList = ({ banks, refreshBanks, cash }) => {
 
       <CustomTable
         columns={cashColumns}
-        data={cash.allEntries && cash.allEntries}
-        onEdit={openEditModal}
-        onDelete={openDeleteModal}
+        data={cash?.allEntries || []} 
+        onEdit={(cashEntry) => openEditModal(cashEntry, "cash")}
+        onDelete={(cashEntry) => openDeleteModal(cashEntry, "cash")}
         sx={{ marginTop: 3 }}
       />
 
       {/* Display total amount */}
       <Box display={"flex"} justifyContent={"space-between"} alignItems={"center"}>
+        <Box sx={{ mt: 2, textAlign: "left" }}>
+          <Typography variant="h5">Total Cash Amount: {cash?.totalBalance || 0}</Typography>
+        </Box>
+        <Box sx={{ mt: 2, textAlign: "right" }}>
+          <Typography variant="h5">Total Bank Amount: {totalAmount}</Typography>
+        </Box>
+      </Box>
 
-      <Box sx={{ mt: 2, textAlign: 'left' }}>
-        <Typography variant="h5">Total Cash Amount: {cash.totalBalance}</Typography>
-      </Box>
-      <Box sx={{ mt:2, textAlign: 'right' }}>
-        <Typography variant="h5">Total Bank Amount: {totalAmount}</Typography>
-      </Box>
-      </Box>
-
-      {/* Edit Bank Modal */}
+      {/* Edit Bank/Cash Modal */}
       <EditBankModal
         open={isEditModalOpen}
         onClose={closeModals}
-        bank={selectedBank}
+        entry={selectedEntry}  // Can be either bank or cash
+        entryType={entryType}  // Pass the type to differentiate between bank and cash
         onSuccess={refreshBanks}
       />
 
@@ -118,7 +116,8 @@ const BankList = ({ banks, refreshBanks, cash }) => {
       <ConfirmDeleteModal
         open={isDeleteModalOpen}
         onClose={closeModals}
-        bank={selectedBank}
+        entry={selectedEntry}  
+        entryType={entryType}
         onSuccess={refreshBanks}
       />
     </Box>

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import SupplierList from "./SupplierList";
+import SupplierList from "./SupplierList";  // Assuming you have the SupplierList component here
 import { Box, Button, Grid, Modal, TextField, Typography } from "@mui/material";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -12,7 +12,7 @@ const Supplier = () => {
 
   const [openModal, setOpenModal] = useState(false);
   const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(""); 
   const [password, setPassword] = useState("");
   const [phone, setPhone] = useState("");
 
@@ -39,6 +39,7 @@ const Supplier = () => {
     }
   };
 
+  // Fetch suppliers when component is mounted
   useEffect(() => {
     dispatch(getSuppliers());
 
@@ -47,6 +48,7 @@ const Supplier = () => {
     };
   }, [dispatch]);
 
+  // Handle form submission to add a new supplier
   const handleSubmit = () => {
     const supplierData = {
       username,
@@ -62,10 +64,6 @@ const Supplier = () => {
     return <div>Loading...</div>;
   }
 
-  // if (isError) {
-  //   return <div>Error: {message}</div>;
-  // }
-
   return (
     <Box sx={{ m: 0, p: 3, width: "100%" }}>
       <Grid container justifyContent={"flex-end"}>
@@ -77,8 +75,11 @@ const Supplier = () => {
           Add Supplier
         </Button>
       </Grid>
-      {/* <SupplierList suppliers={suppliers} /> */}
-      
+
+      {/* Pass suppliers to SupplierList */}
+      <SupplierList suppliers={suppliers} />
+
+      {/* Add Supplier Modal */}
       <Modal
         open={openModal}
         onClose={handleCloseModal}
@@ -138,6 +139,7 @@ const Supplier = () => {
           </Button>
         </Box>
       </Modal>
+
       <ToastContainer />
     </Box>
   );
