@@ -6,6 +6,7 @@ import {
   Button,
   Typography,
   MenuItem,
+  Grid
 } from "@mui/material";
 import axios from 'axios';
 import { useSelector, useDispatch } from 'react-redux';
@@ -22,6 +23,9 @@ const MinusSupplierBalanceModal = ({ open, onClose, supplier, onSuccess }) => {
   const [chequeDate, setChequeDate] = useState("");
   const [description, setDescription] = useState("");
   const [selectedBank, setSelectedBank] = useState("");
+  const [image, setImage] = useState(null); // State for the image
+  const [imagePreview, setImagePreview] = useState(""); // State for image preview
+
   const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
   const dispatch = useDispatch();
@@ -35,16 +39,21 @@ const MinusSupplierBalanceModal = ({ open, onClose, supplier, onSuccess }) => {
 
   const handleSubmit = async () => {
     // Convert paymentMethod to capital case using capitalizeFirstLetter
-    const formData = {
-      amount: parseFloat(amount),
-      paymentMethod: capitalizeFirstLetter(paymentMethod),  // Capitalize the first letter
-      chequeDate: paymentMethod === "cheque" ? chequeDate : null,
-      description,
-      bankId: paymentMethod === "online" ? selectedBank : null,
-      type: "debit",  // Ensure type is set to "debit" for subtracting balance
-    };
+    const formData = new FormData();
+    formData.append("amount", parseFloat(amount));
+    formData.append("paymentMethod", capitalizeFirstLetter(paymentMethod));
+    formData.append("description", description);
 
-    console.log("Minus balance:", formData);
+    if (paymentMethod === "online") {
+      formData.append("bankId", selectedBank);
+      formData.append("image", image); // Add image if selected
+    }
+
+    if (paymentMethod === "cheque") {
+      formData.append("chequeDate", chequeDate);
+      formData.append("image", image); // Add image if selected
+    }
+
     try {
       const response = await axios.post(`${API_URL}/${supplier._id}/transaction`, formData);
       console.log(response.data);
@@ -53,6 +62,14 @@ const MinusSupplierBalanceModal = ({ open, onClose, supplier, onSuccess }) => {
       console.error('Error subtracting balance:', error);
     }
     onClose();
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImage(file);
+      setImagePreview(URL.createObjectURL(file)); // Set image preview for display
+    }
   };
 
   return (
@@ -93,6 +110,7 @@ const MinusSupplierBalanceModal = ({ open, onClose, supplier, onSuccess }) => {
           <MenuItem value="online">Online</MenuItem>
           <MenuItem value="cheque">Cheque</MenuItem>
         </TextField>
+
         {paymentMethod === "online" && (
           <TextField
             label="Select Bank"
@@ -109,6 +127,7 @@ const MinusSupplierBalanceModal = ({ open, onClose, supplier, onSuccess }) => {
             ))}
           </TextField>
         )}
+
         {paymentMethod === "cheque" && (
           <TextField
             label="Cheque Date"
@@ -122,6 +141,24 @@ const MinusSupplierBalanceModal = ({ open, onClose, supplier, onSuccess }) => {
             }}
           />
         )}
+
+        {(paymentMethod === "online" || paymentMethod === "cheque") && (
+          <Grid item xs={12}>
+            <TextField
+              type="file"
+              label="Upload Image"
+              name="image"
+              onChange={handleImageChange}
+              fullWidth
+              margin="normal"
+              InputLabelProps={{ shrink: true }}
+            />
+            {imagePreview && (
+              <img src={imagePreview} alt="Preview" style={{ width: '100%', maxHeight: '200px' }} />
+            )}
+          </Grid>
+        )}
+
         <TextField
           label="Description"
           value={description}
@@ -131,6 +168,7 @@ const MinusSupplierBalanceModal = ({ open, onClose, supplier, onSuccess }) => {
           multiline
           rows={2}
         />
+
         <Button
           variant="contained"
           color="primary"
