@@ -1,20 +1,9 @@
 import React, { useState, useEffect } from "react";
-import {
-  Modal,
-  Box,
-  TextField,
-  Button,
-  Typography,
-  MenuItem,
-} from "@mui/material";
+import { Modal, Box, TextField, Button, Typography, MenuItem, Grid } from "@mui/material";
 import axios from 'axios';
 import { useSelector, useDispatch } from 'react-redux';
 import { getBanks } from "../../redux/features/Bank/bankSlice";
-
-// Function to capitalize the first letter
-const capitalizeFirstLetter = (string) => {
-  return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
-};
+import { toast } from "react-toastify";
 
 const AddSupplierBalanceModal = ({ open, onClose, supplier, onSuccess }) => {
   const [amount, setAmount] = useState("");
@@ -22,8 +11,12 @@ const AddSupplierBalanceModal = ({ open, onClose, supplier, onSuccess }) => {
   const [chequeDate, setChequeDate] = useState("");
   const [description, setDescription] = useState("");
   const [selectedBank, setSelectedBank] = useState("");
-  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+  const [image, setImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState("");
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
 
+  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
   const dispatch = useDispatch();
   const banks = useSelector((state) => state.bank.banks);
 
@@ -31,33 +24,102 @@ const AddSupplierBalanceModal = ({ open, onClose, supplier, onSuccess }) => {
     dispatch(getBanks());
   }, [dispatch]);
 
-  const API_URL = `${BACKEND_URL}/api/suppliers`;  // Use suppliers endpoint
+  const API_URL = `${BACKEND_URL}/api/suppliers`;
 
-  const handleSubmit = async () => {
-    // Convert paymentMethod to capital case using capitalizeFirstLetter
-    const formData = {
-      amount: parseFloat(amount),
-      paymentMethod: capitalizeFirstLetter(paymentMethod),  // Capitalize the first letter
-      chequeDate: paymentMethod === "cheque" ? chequeDate : null,
-      description,
-      bankId: paymentMethod === "online" ? selectedBank : null,
-      type: "credit",  // Always "credit" for adding balance
-    };
-  
-    console.log("Add balance:", formData);
-    try {
-      const response = await axios.post(`${API_URL}/${supplier._id}/transaction`, formData);
-      console.log(response.data);
-      onSuccess();
-    } catch (error) {
-      console.error('Error adding balance:', error);
+  const validateForm = () => {
+    let formErrors = {};
+
+    if (!amount) {
+      formErrors.amount = "Amount is required";
     }
-    onClose();
+    if (!paymentMethod) {
+      formErrors.paymentMethod = "Payment method is required";
+    }
+    if (paymentMethod === "online" && !selectedBank) {
+      formErrors.selectedBank = "Bank selection is required for online payment";
+    }
+    if (paymentMethod === "cheque" && !chequeDate) {
+      formErrors.chequeDate = "Cheque date is required for cheque payment";
+    }
+    if ((paymentMethod === "online" || paymentMethod === "cheque") && !image) {
+      formErrors.image = "Image upload is required for online or cheque payment";
+    }
+
+    setErrors(formErrors);
+    return Object.keys(formErrors).length === 0;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (loading) return;
+    setLoading(true);
+
+    if (!validateForm()) {
+      setLoading(false);
+      return;
+    }
+
+    const validAmount = parseFloat(amount);
+    if (isNaN(validAmount)) {
+      setErrors({ ...errors, amount: "Invalid amount" });
+      setLoading(false);
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("amount", validAmount);
+    formData.append("paymentMethod", paymentMethod);
+    formData.append("description", description);
+
+    if (paymentMethod === "online") {
+      formData.append("bankId", selectedBank);
+      formData.append("image", image);
+    }
+
+    if (paymentMethod === "cheque") {
+      formData.append("chequeDate", chequeDate);
+      formData.append("image", image);
+    }
+
+    // Log the form data to ensure it's being added
+    console.log("Form Data being sent:");
+    for (let [key, value] of formData.entries()) {
+      console.log(`${key}: ${value}`);
+    }
+
+    try {
+      const response = await axios.post(`${API_URL}/${supplier._id}/transaction`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
+      if (response.status === 200 || response.status === 201) {
+        toast.success(response.data.message || 'Balance added successfully');
+        onSuccess();
+        onClose();
+      } else {
+        throw new Error("Unexpected response");
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to add balance.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImage(file);
+      setImagePreview(URL.createObjectURL(file));
+    }
   };
 
   return (
     <Modal open={open} onClose={onClose}>
       <Box
+        component="form"
+        onSubmit={handleSubmit}
         sx={{
           position: "absolute",
           top: "50%",
@@ -71,8 +133,9 @@ const AddSupplierBalanceModal = ({ open, onClose, supplier, onSuccess }) => {
         }}
       >
         <Typography variant="h6" gutterBottom>
-          Add Balance to {supplier?.username} {/* Changed customer to supplier */}
+          Add Balance to {supplier?.username}
         </Typography>
+
         <TextField
           label="Amount"
           type="number"
@@ -80,7 +143,10 @@ const AddSupplierBalanceModal = ({ open, onClose, supplier, onSuccess }) => {
           onChange={(e) => setAmount(e.target.value)}
           fullWidth
           margin="normal"
+          error={!!errors.amount}
+          helperText={errors.amount}
         />
+
         <TextField
           label="Payment Method"
           select
@@ -88,11 +154,14 @@ const AddSupplierBalanceModal = ({ open, onClose, supplier, onSuccess }) => {
           onChange={(e) => setPaymentMethod(e.target.value)}
           fullWidth
           margin="normal"
+          error={!!errors.paymentMethod}
+          helperText={errors.paymentMethod}
         >
           <MenuItem value="cash">Cash</MenuItem>
           <MenuItem value="online">Online</MenuItem>
           <MenuItem value="cheque">Cheque</MenuItem>
         </TextField>
+
         {paymentMethod === "online" && (
           <TextField
             label="Select Bank"
@@ -101,6 +170,8 @@ const AddSupplierBalanceModal = ({ open, onClose, supplier, onSuccess }) => {
             onChange={(e) => setSelectedBank(e.target.value)}
             fullWidth
             margin="normal"
+            error={!!errors.selectedBank}
+            helperText={errors.selectedBank}
           >
             {banks.map((bank) => (
               <MenuItem key={bank._id} value={bank._id}>
@@ -109,6 +180,7 @@ const AddSupplierBalanceModal = ({ open, onClose, supplier, onSuccess }) => {
             ))}
           </TextField>
         )}
+
         {paymentMethod === "cheque" && (
           <TextField
             label="Cheque Date"
@@ -120,8 +192,28 @@ const AddSupplierBalanceModal = ({ open, onClose, supplier, onSuccess }) => {
             InputLabelProps={{
               shrink: true,
             }}
+            error={!!errors.chequeDate}
+            helperText={errors.chequeDate}
           />
         )}
+
+        {(paymentMethod === "cheque" || paymentMethod === "online") && (
+          <Grid item xs={12}>
+            <TextField
+              type="file"
+              label="Upload Image"
+              name="image"
+              onChange={handleImageChange}
+              fullWidth
+              margin="normal"
+              InputLabelProps={{ shrink: true }}
+              error={!!errors.image}
+              helperText={errors.image}
+            />
+            {imagePreview && <img src={imagePreview} alt="Preview" style={{ width: '100%', maxHeight: '200px' }} />}
+          </Grid>
+        )}
+
         <TextField
           label="Description"
           value={description}
@@ -131,13 +223,15 @@ const AddSupplierBalanceModal = ({ open, onClose, supplier, onSuccess }) => {
           multiline
           rows={2}
         />
+
         <Button
           variant="contained"
           color="primary"
-          onClick={handleSubmit}
+          type="submit"
           fullWidth
+          disabled={loading}
         >
-          Add Balance
+          {loading ? 'Submitting...' : 'Add Balance'}
         </Button>
       </Box>
     </Modal>

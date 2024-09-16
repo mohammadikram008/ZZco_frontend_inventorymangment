@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import useRedirectLoggedOutUser from "../../../customHook/useRedirectLoggedOutUser";
 import { selectIsLoggedIn } from "../../../redux/features/auth/authSlice";
-import { getProduct, updateReceivedQuantity } from "../../../redux/features/product/productSlice"; 
+import { getProduct, updateReceivedQuantity } from "../../../redux/features/product/productSlice";
 import DOMPurify from "dompurify";
 import { 
   Card, CardContent, CardMedia, Typography, Grid, Chip, Box, 
@@ -51,7 +51,7 @@ const ProductDetail = () => {
   const dispatch = useDispatch();
   const { id } = useParams();
   const [tabValue, setTabValue] = useState(0);
-  const [receivedQuantity, setReceivedQuantity] = useState(0); // State to store received quantity
+  const [receivedQuantity, setReceivedQuantity] = useState(0); // For user input
 
   const isLoggedIn = useSelector(selectIsLoggedIn);
   const { product, isLoading, isError, message } = useSelector(
@@ -69,22 +69,26 @@ const ProductDetail = () => {
   const handleReceivedQuantityChange = (e) => {
     const inputValue = e.target.value;
 
-    // Check if input is empty or invalid (NaN)
     if (inputValue === "" || isNaN(inputValue)) {
       setReceivedQuantity(0); // Set to 0 or handle the default empty state as necessary
       return;
     }
 
-    // Set the received quantity without validating
     const newReceivedQuantity = parseInt(inputValue, 10);
-    setReceivedQuantity(newReceivedQuantity);
+
+    // Only set new quantity if it does not exceed the total quantity
+    if (newReceivedQuantity + product.receivedQuantity <= product.quantity) {
+      setReceivedQuantity(newReceivedQuantity); // Update state if valid
+    } else {
+      alert("Received quantity cannot exceed total quantity.");
+    }
   };
 
   // Calculate remaining quantity in shipping
-  const remainingInShipping = product?.quantity - receivedQuantity;
+  const remainingInShipping = product ? product.quantity - product.receivedQuantity : 0;
 
   useEffect(() => {
-    if (isLoggedIn === true) {
+    if (isLoggedIn) {
       dispatch(getProduct(id));
     }
 
@@ -93,13 +97,27 @@ const ProductDetail = () => {
     }
   }, [isLoggedIn, isError, message, dispatch, id]);
 
-  // Function to submit the received quantity to the backend
   const handleSubmitReceivedQuantity = () => {
-    dispatch(updateReceivedQuantity({ id, receivedQuantity })); // Dispatch the action to update received quantity
+    const newReceivedQuantity = receivedQuantity; // The value from the input
+
+    // Calculate total quantity received
+    const totalReceived = product.receivedQuantity + newReceivedQuantity;
+
+    if (totalReceived > product.quantity) {
+      alert("Received quantity cannot exceed total product quantity.");
+      return;
+    }
+
+    // Dispatch the action to update received quantity
+    dispatch(updateReceivedQuantity({ id: product._id, receivedQuantity: newReceivedQuantity }));
   };
 
   if (isLoading) {
     return <SpinnerImg />;
+  }
+
+  if (!product) {
+    return <Typography>Product not found or loading...</Typography>;
   }
 
   const handleTabChange = (event, newValue) => {
@@ -142,9 +160,9 @@ const ProductDetail = () => {
                       Price: {product.price}
                     </Typography>
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                      {stockStatus(receivedQuantity)} {/* Display the stock status */}
+                      {stockStatus(product?.receivedQuantity)} {/* Display the stock status */}
                       <Typography variant="body2" sx={{ ml: 1 }}>
-                        ({receivedQuantity} in stock)
+                        ({product?.receivedQuantity} in stock)
                       </Typography>
                     </Box>
                     <Typography variant="body1" paragraph>
@@ -171,13 +189,13 @@ const ProductDetail = () => {
                   <Box>
                     <Typography variant="h6">Shipping</Typography>
                     <Typography variant="body1" paragraph>
-                      Total quantity in shipping: {product.quantity} {/* Ensure the correct quantity is displayed */}
+                      Total quantity in shipping: {product.quantity} {/* Correct total quantity */}
                     </Typography>
                     <Typography variant="body1" paragraph>
-                      Products received: {receivedQuantity}
+                      Products received: {product.receivedQuantity} {/* Correct received quantity */}
                     </Typography>
                     <Typography variant="body1" paragraph>
-                      Remaining in shipping: {remainingInShipping > 0 ? remainingInShipping : 0}
+                      Remaining in shipping: {remainingInShipping > 0 ? remainingInShipping : 0} {/* Correct remaining quantity */}
                     </Typography>
                     
                     {/* Input for user to enter received products */}

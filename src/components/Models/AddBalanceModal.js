@@ -2,15 +2,15 @@ import React, { useState, useEffect } from "react";
 import {
   Modal,
   Box,
-  TextField,  
+  TextField,
   Button,
   MenuItem,
-  Typography, 
+  Typography,
   Grid,
 } from "@mui/material";
 import { useSelector, useDispatch } from 'react-redux';
 
-import axios from 'axios'
+import axios from 'axios';
 import { getBanks } from "../../redux/features/Bank/bankSlice";
 import { toast } from "react-toastify";
 
@@ -21,7 +21,9 @@ const AddBalanceModal = ({ open, onClose, customer, onSuccess }) => {
   const [description, setDescription] = useState("");
   const [selectedBank, setSelectedBank] = useState("");
   const [image, setImage] = useState(null);
-  const [ImagePreview, setImagePreview] = useState("");
+  const [imagePreview, setImagePreview] = useState(""); // Renamed this variable to avoid confusion
+  const [errors, setErrors] = useState({}); // State for form validation errors
+
   const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
   const API_URL = `${BACKEND_URL}/api/customers`;
   const dispatch = useDispatch();
@@ -30,30 +32,57 @@ const AddBalanceModal = ({ open, onClose, customer, onSuccess }) => {
   useEffect(() => {
     dispatch(getBanks());
   }, [dispatch]);
-  
-  
-  
+
+  // Validate form fields before submission
+  const validateForm = () => {
+    let formErrors = {};
+
+    if (!amount) {
+      formErrors.amount = "Amount is required";
+    }
+    if (!paymentMethod) {
+      formErrors.paymentMethod = "Payment method is required";
+    }
+    if (paymentMethod === "online" && !selectedBank) {
+      formErrors.selectedBank = "Bank selection is required for online payment";
+    }
+    if (paymentMethod === "cheque" && !chequeDate) {
+      formErrors.chequeDate = "Cheque date is required for cheque payment";
+    }
+    if ((paymentMethod === "online" || paymentMethod === "cheque") && !image) {
+      formErrors.image = "Image upload is required for online or cheque payment";
+    }
+
+    setErrors(formErrors);
+    return Object.keys(formErrors).length === 0; // Return true if no errors
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
+    if (!validateForm()) {
+      return; // Prevent form submission if there are validation errors
+    }
+
     const capitalizeFirstLetter = (string) => {
       return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
     };
-  
+
     const formData = new FormData();
     formData.append("amount", amount);
     formData.append("paymentMethod", capitalizeFirstLetter(paymentMethod));  // Capitalize the first letter
     formData.append("description", description);
-    
+
     if (paymentMethod === "online") {
       formData.append("bankId", selectedBank);
       formData.append("image", image);
     }
-    
+
     if (paymentMethod === "cheque") {
       formData.append("chequeDate", chequeDate);
+      formData.append("image", image);
     }
-  
+
     try {
       const response = await axios.post(
         `${API_URL}/add-customer-balance/${customer._id}`,
@@ -71,12 +100,7 @@ const AddBalanceModal = ({ open, onClose, customer, onSuccess }) => {
       toast.error('Failed to add balance. Please try again.');
     }
   };
-  
-  
-  
-  
-  
-  
+
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -84,11 +108,12 @@ const AddBalanceModal = ({ open, onClose, customer, onSuccess }) => {
       setImagePreview(URL.createObjectURL(file));
     }
   };
+
   return (
     <Modal open={open} onClose={onClose}>
       <Box
-      component="form"
-      onSubmit={handleSubmit}
+        component="form"
+        onSubmit={handleSubmit}
         sx={{
           position: "absolute",
           top: "50%",
@@ -104,6 +129,7 @@ const AddBalanceModal = ({ open, onClose, customer, onSuccess }) => {
         <Typography variant="h6" gutterBottom>
           Add Balance to {customer?.username}
         </Typography>
+
         <TextField
           label="Amount"
           type="number"
@@ -111,7 +137,10 @@ const AddBalanceModal = ({ open, onClose, customer, onSuccess }) => {
           onChange={(e) => setAmount(e.target.value)}
           fullWidth
           margin="normal"
+          error={!!errors.amount}
+          helperText={errors.amount}
         />
+
         <TextField
           label="Payment Method"
           select
@@ -119,11 +148,14 @@ const AddBalanceModal = ({ open, onClose, customer, onSuccess }) => {
           onChange={(e) => setPaymentMethod(e.target.value.toLowerCase())}
           fullWidth
           margin="normal"
+          error={!!errors.paymentMethod}
+          helperText={errors.paymentMethod}
         >
           <MenuItem value="cash">Cash</MenuItem>
           <MenuItem value="online">Online</MenuItem>
           <MenuItem value="cheque">Cheque</MenuItem>
         </TextField>
+
         {paymentMethod === "online" && (
           <TextField
             label="Select Bank"
@@ -132,6 +164,8 @@ const AddBalanceModal = ({ open, onClose, customer, onSuccess }) => {
             onChange={(e) => setSelectedBank(e.target.value)}
             fullWidth
             margin="normal"
+            error={!!errors.selectedBank}
+            helperText={errors.selectedBank}
           >
             {banks.map((bank) => (
               <MenuItem key={bank._id} value={bank._id}>
@@ -140,6 +174,7 @@ const AddBalanceModal = ({ open, onClose, customer, onSuccess }) => {
             ))}
           </TextField>
         )}
+
         {paymentMethod === "cheque" && (
           <TextField
             label="Cheque Date"
@@ -151,24 +186,28 @@ const AddBalanceModal = ({ open, onClose, customer, onSuccess }) => {
             InputLabelProps={{
               shrink: true,
             }}
+            error={!!errors.chequeDate}
+            helperText={errors.chequeDate}
           />
         )}
-        {(paymentMethod === "cheque" ||
-          // sale.paymentMethod === "credit" ||
-          paymentMethod === "online") && (
-            <Grid item xs={12}>
-              <TextField
-                type="file"
-                label="Upload Image"
-                name="image"
-                onChange={handleImageChange}
-                fullWidth
-                margin="normal"
-                InputLabelProps={{ shrink: true }}
-              />
-              {ImagePreview && <ImagePreview src={ImagePreview} alt="Preview" />}
-            </Grid>
-          )}
+
+        {(paymentMethod === "cheque" || paymentMethod === "online") && (
+          <Grid item xs={12}>
+            <TextField
+              type="file"
+              label="Upload Image"
+              name="image"
+              onChange={handleImageChange}
+              fullWidth
+              margin="normal"
+              InputLabelProps={{ shrink: true }}
+              error={!!errors.image}
+              helperText={errors.image}
+            />
+            {imagePreview && <img src={imagePreview} alt="Preview" style={{ width: '100%', maxHeight: '200px' }} />}
+          </Grid>
+        )}
+
         <TextField
           label="Description"
           value={description}
@@ -178,11 +217,11 @@ const AddBalanceModal = ({ open, onClose, customer, onSuccess }) => {
           multiline
           rows={2}
         />
+
         <Button
           variant="contained"
           color="primary"
-           type="submit"
-          // onClick={handleSubmit}
+          type="submit"
           fullWidth
         >
           Add Balance

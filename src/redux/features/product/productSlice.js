@@ -262,9 +262,11 @@ const productSlice = createSlice({
       .addCase(updateReceivedQuantity.fulfilled, (state, action) => {
         state.isLoading = false;
         state.isSuccess = true;
-        state.product = action.payload;
+        state.product = action.payload; // The updated product with accumulated received quantity
         toast.success("Received quantity updated successfully");
       })
+      
+      
       .addCase(updateReceivedQuantity.rejected, (state, action) => {
         state.isLoading = false;
         state.isError = true;

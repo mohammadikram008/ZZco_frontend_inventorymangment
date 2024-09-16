@@ -22,7 +22,7 @@ const filterSlice = createSlice({
 
       state.filteredProducts = tempProducts;
     },
-  },
+  }, 
 });
 
 export const { FILTER_PRODUCTS } = filterSlice.actions;

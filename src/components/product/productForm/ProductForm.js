@@ -35,9 +35,15 @@ const ProductForm = ({
   warehouses,
   selectedWarehouse,
   handleWarehouseChange,
-  shippingType, // Add shippingType prop
-  handleShippingTypeChange, // Add handleShippingTypeChange prop
+  shippingType,
+  handleShippingTypeChange,
+  suppliers, // Add suppliers prop
+  selectedSupplier, // Add selectedSupplier prop
+  handleSupplierChange, // Add handleSupplierChange prop
 }) => {
+  
+  // Add a console.log to check if suppliers are passed correctly
+  console.log("Suppliers in ProductForm:", suppliers);
 
   const handleFormSubmit = (event) => {
     event.preventDefault();
@@ -68,6 +74,30 @@ const ProductForm = ({
               fullWidth
               margin="normal"
             />
+
+            {/* Supplier Dropdown */}
+            <FormControl fullWidth margin="normal">
+              <InputLabel>Select Supplier</InputLabel>
+              <Select
+                value={selectedSupplier}
+                onChange={handleSupplierChange}
+              >
+                <MenuItem value="">
+                  <em>Select Supplier</em>
+                </MenuItem>
+                {suppliers && suppliers.length > 0 ? (
+                  suppliers.map((supplier) => (
+                    <MenuItem key={supplier._id} value={supplier._id}>
+                      {supplier.username}
+                    </MenuItem>
+                  ))
+                ) : (
+                  <MenuItem value="">
+                    <em>No suppliers available</em>
+                  </MenuItem>
+                )}
+              </Select>
+            </FormControl>
 
             {/* Shipping Type */}
             <FormControl fullWidth margin="normal">

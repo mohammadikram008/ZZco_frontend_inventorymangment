@@ -10,6 +10,7 @@ import {
 import { Grid } from "@mui/material";
 import { getWarehouses } from "../../redux/features/WareHouse/warehouseSlice"; // Add this import
 import { getBanks } from "../../redux/features/Bank/bankSlice"; // Add this import
+import { getSuppliers } from '../../redux/features/supplier/supplierSlice'; // Correct file casing
 import { toast, ToastContainer } from "react-toastify";
 
 const initialState = {
@@ -36,21 +37,26 @@ const AddProduct = () => {
   const [selectedWarehouse, setSelectedWarehouse] = useState(""); // Add this state
   const warehouses = useSelector((state) => state.warehouse.warehouses); // Add this selector
   const [shippingType, setShippingType] = useState("local"); // Default value
+  const suppliers = useSelector((state) => state.supplier.suppliers); // Add supplier selector
+  const [selectedSupplier, setSelectedSupplier] = useState(""); // State for selected supplier
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setProduct({ ...product, [name]: value });
   };
+
   useEffect(() => {
     dispatch(getBanks()); // Fetch banks when component mounts
     dispatch(getWarehouses()); // Fetch warehouses when component mounts
-
+    dispatch(getSuppliers()); // Fetch suppliers when component mounts
   }, [dispatch]);
 
   const handleWarehouseChange = (event) => {
     setSelectedWarehouse(event.target.value);
   };
+
   const handleBankChange = (event) => {
-    console.log("event",event.target.value);
+    console.log("event", event.target.value);
     setSelectedBank(event.target.value);
   };
 
@@ -67,72 +73,80 @@ const AddProduct = () => {
     setPaymentMethod(event.target.value);
   };
 
+  const handleSupplierChange = (event) => {
+    setSelectedSupplier(event.target.value);
+  };
 
   const saveProduct = async () => {
     const formData = new FormData();
-  
+
     if (!name) {
       toast.error("Please enter a product name");
       return;
     }
     formData.append("name", name);
-  
+
     if (!category) {
       toast.error("Please enter a product category");
       return;
     }
     formData.append("category", category);
-  
+
     if (!quantity) {
       toast.error("Please enter a product quantity");
       return;
     }
     formData.append("quantity", quantity);
-  
+
     if (!price) {
       toast.error("Please enter a product price");
       return;
     }
     formData.append("price", price);
-  
+
     // Add shippingType to form data
     formData.append("shippingType", shippingType);
-  
+
     if (shippingType === "local" && !selectedWarehouse) {
       toast.error("Please select a warehouse for local shipping");
       return;
     }
     formData.append("warehouse", selectedWarehouse || "Not Required");
-  
+
     if (!paymentMethod) {
       toast.error("Please select a payment method");
       return;
     }
     formData.append("paymentMethod", paymentMethod);
-  
+
     if (paymentMethod === "cheque" && !chequeDate) {
       toast.error("Please enter a cheque date");
       return;
     }
     formData.append("chequeDate", chequeDate);
-  
+
     if (paymentMethod === "online" && !selectedBank) {
       toast.error("Please select a bank");
       return;
     }
     formData.append("bank", selectedBank);
-  
+
+    if (!selectedSupplier) {
+      toast.error("Please select a supplier");
+      return;
+    }
+    formData.append("supplier", selectedSupplier);
+
     if (productImage) {
       formData.append("image", productImage);
     }
-  
+
     formData.append("status", false);
-  
+
     // Dispatching the createProduct action
     await dispatch(createProduct(formData));
     navigate("/dashboard");
   };
-  
 
   return (
     <Fragment>
@@ -161,6 +175,9 @@ const AddProduct = () => {
             handleWarehouseChange={handleWarehouseChange} // Add this prop
             shippingType={shippingType}
             handleShippingTypeChange={handleShippingTypeChange}
+            suppliers={suppliers} // Pass suppliers as prop
+            selectedSupplier={selectedSupplier} // Selected supplier state
+            handleSupplierChange={handleSupplierChange} // Handle supplier change
           />
         </Grid>
       </Grid>
