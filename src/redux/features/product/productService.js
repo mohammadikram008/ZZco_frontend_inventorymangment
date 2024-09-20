@@ -35,11 +35,14 @@ const updateProduct = async (id, formData) => {
   const response = await axios.patch(`${API_URL}${id}`, formData);
   return response.data;
 };
-const updateReceivedQuantity = async (id, receivedQuantity) => {
-  const response = await axios.patch(`${API_URL}receive/${id}`, { receivedQuantity });
+const updateReceivedQuantity = async (id, receivedQuantity,warehouse) => {
+  const response = await axios.patch(`${API_URL}receive/${id}`, { receivedQuantity,warehouse });
   return response.data;
 };
-
+const getProductStock = async (id) => {
+  const response = await axios.get(`${API_URL}${id}/stock`);
+  return response.data;
+};
 const productService = {
   createProduct,
   getProducts,
@@ -47,6 +50,7 @@ const productService = {
   deleteProduct,
   updateProduct,
   updateReceivedQuantity,
+  getProductStock
 };
 
 export default productService;

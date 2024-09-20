@@ -21,7 +21,7 @@ export const createProduct = createAsyncThunk(
     try {
       // Ensure formData is passed correctly as FormData
       const response = await productService.createProduct(formData);
-      toast.success("Product added successfully");
+      // toast.success("Product added successfully");
       return response;
     } catch (error) {
       // Handle error
@@ -35,7 +35,16 @@ export const createProduct = createAsyncThunk(
     }
   }
 );
-
+export const getProductStock = createAsyncThunk(
+  "products/getStock",
+  async (id, thunkAPI) => {
+    try {
+      return await productService.getProductStock(id);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response.data);
+    }
+  }
+);
 // Get all products
 export const getProducts = createAsyncThunk(
   "products/getAll",
@@ -113,9 +122,9 @@ export const updateProduct = createAsyncThunk(
 
 export const updateReceivedQuantity = createAsyncThunk(
   "products/updateReceivedQuantity",
-  async ({ id, receivedQuantity }, thunkAPI) => {
+  async ({ id, receivedQuantity,warehouse }, thunkAPI) => {
     try {
-      return await productService.updateReceivedQuantity(id, receivedQuantity);
+      return await productService.updateReceivedQuantity(id, receivedQuantity,warehouse);
     } catch (error) {
       const message =
         (error.response &&
@@ -265,7 +274,21 @@ const productSlice = createSlice({
         state.product = action.payload; // The updated product with accumulated received quantity
         toast.success("Received quantity updated successfully");
       })
-      
+      .addCase(getProductStock.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(getProductStock.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isSuccess = true;
+        state.isError = false;
+        state.stockInfo = action.payload;
+      })
+      .addCase(getProductStock.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isError = true;
+        state.message = action.payload;
+        toast.error(action.payload);
+      })
       
       .addCase(updateReceivedQuantity.rejected, (state, action) => {
         state.isLoading = false;

@@ -11,6 +11,7 @@ import {
   ListItem,
   ListItemText,
   Stack,
+  Button,
 } from '@mui/material';
 import { getPendingCheques, updateChequeStatus } from '../../redux/features/cheque/chequeSlice';
 import CustomTable from '../../components/CustomTable/CustomTable';
@@ -23,6 +24,8 @@ const ChequeDetails = () => {
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [todayCheques, setTodayCheques] = useState([]);
   const [upcomingCheques, setUpcomingCheques] = useState([]);
+  const [selectedCheques, setSelectedCheques] = useState([]);
+
 console.log("cheques",cheques)
   useEffect(() => {
     dispatch(getPendingCheques());
@@ -53,9 +56,24 @@ console.log("cheques",cheques)
       setUpcomingCheques(chequesUpcoming);
     }
   }, [cheques]);
-  const handleStatusChange = (chequeId, newStatus, type) => {
-    dispatch(updateChequeStatus({ id: chequeId, status: newStatus, type }));
+  const handleStatusChange = (chequeId, isChecked) => {
+    if (isChecked) {
+      setSelectedCheques(prev => [...prev, chequeId]);
+    } else {
+      setSelectedCheques(prev => prev.filter(id => id !== chequeId));
+    }
   };
+  
+  const handleSubmit = () => {
+    selectedCheques.forEach(chequeId => {
+      const cheque = cheques.find(c => c._id === chequeId);
+      dispatch(updateChequeStatus({ id: chequeId, status: true, type: cheque.type }));
+    });
+    setSelectedCheques([]);
+  };
+  // const handleStatusChange = (chequeId, newStatus, type) => {
+  //   dispatch(updateChequeStatus({ id: chequeId, status: newStatus, type }));
+  // };
 
   const columns = [
     { field: 'chequeDate', headerName: 'Date', renderCell: (row) => new Date(row.chequeDate).toLocaleDateString() },
@@ -64,11 +82,11 @@ console.log("cheques",cheques)
     // { field: 'status', headerName: 'Current Status' },
     { 
       field: 'statusChange', 
-      headerName: 'Status', 
+      headerName: 'Select', 
       renderCell: (row) => (
         <Checkbox
-          checked={row.status}
-          onChange={(e) => handleStatusChange(row._id, e.target.checked, row.type)}
+          checked={selectedCheques.includes(row._id)}
+          onChange={(e) => handleStatusChange(row._id, e.target.checked)}
         />
       )
     },
@@ -125,6 +143,15 @@ console.log("cheques",cheques)
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
         />
+        <Button
+        variant="contained" 
+        color="primary" 
+        onClick={handleSubmit} 
+        disabled={selectedCheques.length === 0}
+        sx={{ mt: 2 }}
+      >
+        Cash Out Selected Cheques ({selectedCheques.length})
+      </Button>
       </Paper>
     </div>
   );

@@ -1,19 +1,21 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom"; // Add useNavigate here
 import useRedirectLoggedOutUser from "../../../customHook/useRedirectLoggedOutUser";
 import { selectIsLoggedIn } from "../../../redux/features/auth/authSlice";
 import { getProduct, updateReceivedQuantity } from "../../../redux/features/product/productSlice";
 import DOMPurify from "dompurify";
-import { 
-  Card, CardContent, CardMedia, Typography, Grid, Chip, Box, 
-  Divider, Container, Tabs, Tab, Button, TextField
+import {
+  Card, CardContent, CardMedia, Typography, Grid, Chip, Box,
+  Divider, Container, Tabs, Tab, Button, TextField,
+  MenuItem
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { SpinnerImg } from "../../loader/Loader";
 import InfoIcon from '@mui/icons-material/Info';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import DescriptionIcon from '@mui/icons-material/Description';
+import { getWarehouses } from "../../../redux/features/WareHouse/warehouseSlice"; // Add this import
 
 const StyledCard = styled(Card)(({ theme }) => ({
   maxWidth: 1200,
@@ -49,6 +51,8 @@ const OverlayBox = styled(Box)(({ theme }) => ({
 const ProductDetail = () => {
   useRedirectLoggedOutUser("/login");
   const dispatch = useDispatch();
+  const navigate = useNavigate(); // Add this line
+
   const { id } = useParams();
   const [tabValue, setTabValue] = useState(0);
   const [receivedQuantity, setReceivedQuantity] = useState(0); // For user input
@@ -57,6 +61,9 @@ const ProductDetail = () => {
   const { product, isLoading, isError, message } = useSelector(
     (state) => state.product
   );
+  console.log("product",product);
+  const [selectedWarehouse, setSelectedWarehouse] = useState(""); // Add this state
+  const { warehouses } = useSelector((state) => state.warehouse); // Add this selector
 
   const stockStatus = (quantity) => {
     if (quantity > 0) {
@@ -76,11 +83,11 @@ const ProductDetail = () => {
 
     const newReceivedQuantity = parseInt(inputValue, 10);
 
-    // Only set new quantity if it does not exceed the total quantity
-    if (newReceivedQuantity + product.receivedQuantity <= product.quantity) {
+    // Only set new quantity if it does not exceed the remaining quantity in shipping
+    if (newReceivedQuantity <= product.totalShipped) {
       setReceivedQuantity(newReceivedQuantity); // Update state if valid
     } else {
-      alert("Received quantity cannot exceed total quantity.");
+      alert("Received quantity cannot exceed remaining quantity in shipping.");
     }
   };
 
@@ -90,26 +97,51 @@ const ProductDetail = () => {
   useEffect(() => {
     if (isLoggedIn) {
       dispatch(getProduct(id));
+      dispatch(getWarehouses());
     }
 
     if (isError) {
       console.log(message);
     }
   }, [isLoggedIn, isError, message, dispatch, id]);
-
+  const handleWarehouseChange = (event) => {
+    setSelectedWarehouse(event.target.value);
+  };
   const handleSubmitReceivedQuantity = () => {
     const newReceivedQuantity = receivedQuantity; // The value from the input
-
+    if (!selectedWarehouse) {
+      alert("Please select a warehouse.");
+      return;
+    }
     // Calculate total quantity received
     const totalReceived = product.receivedQuantity + newReceivedQuantity;
 
-    if (totalReceived > product.quantity) {
-      alert("Received quantity cannot exceed total product quantity.");
+    if (newReceivedQuantity > product.totalShipped) {
+      alert("Received quantity cannot exceed total shipped quantity.");
       return;
     }
 
+    // Calculate remaining quantity in shipping after this update
+    // const remainingAfterUpdate = product.totalShipped - totalReceived;
+    // if (remainingAfterUpdate < 0) {
+    //   alert("Received quantity would result in negative remaining quantity.");
+    //   return;
+    // }
+
     // Dispatch the action to update received quantity
-    dispatch(updateReceivedQuantity({ id: product._id, receivedQuantity: newReceivedQuantity }));
+    dispatch(updateReceivedQuantity({
+      id: product._id,
+      receivedQuantity: newReceivedQuantity,
+      warehouse: selectedWarehouse
+    })).unwrap();
+
+    // Reset the form
+    setReceivedQuantity(0);
+    setSelectedWarehouse("");
+    // Reset the form and navigate to dashboard
+    setReceivedQuantity(0);
+    setSelectedWarehouse("");
+    navigate("/dashboard");
   };
 
   if (isLoading) {
@@ -153,7 +185,7 @@ const ProductDetail = () => {
                     <Tab icon={<LocalShippingIcon />} label="Shipping" />
                   </Tabs>
                 </Box>
-                
+
                 {tabValue === 0 && (
                   <Box>
                     <Typography variant="h6" color="primary" gutterBottom>
@@ -176,28 +208,28 @@ const ProductDetail = () => {
                     </Typography>
                   </Box>
                 )}
-                
+
                 {tabValue === 1 && (
-                  <Typography variant="body2" 
+                  <Typography variant="body2"
                     dangerouslySetInnerHTML={{
                       __html: DOMPurify.sanitize(product.description),
                     }}
                   />
                 )}
-                
+
                 {tabValue === 2 && (
                   <Box>
                     <Typography variant="h6">Shipping</Typography>
                     <Typography variant="body1" paragraph>
-                      Total quantity in shipping: {product.quantity} {/* Correct total quantity */}
+                      Total quantity in shipping: {product.totalShipped} {/* Correct total quantity */}
                     </Typography>
                     <Typography variant="body1" paragraph>
                       Products received: {product.receivedQuantity} {/* Correct received quantity */}
                     </Typography>
                     <Typography variant="body1" paragraph>
-                      Remaining in shipping: {remainingInShipping > 0 ? remainingInShipping : 0} {/* Correct remaining quantity */}
+                      {/* Remaining in shipping: {remainingInShipping > 0 ? remainingInShipping : 0} Correct remaining quantity */}
                     </Typography>
-                    
+
                     {/* Input for user to enter received products */}
                     <TextField
                       label="Products Received"
@@ -208,6 +240,25 @@ const ProductDetail = () => {
                       fullWidth
                       sx={{ mt: 2 }}
                     />
+                    {receivedQuantity > 0 && (
+                      <TextField
+                        select
+                        label="Select Warehouse"
+                        value={selectedWarehouse}
+                        onChange={handleWarehouseChange}
+                        fullWidth
+                        sx={{ mt: 2 }}
+                      >
+                        {warehouses.map((warehouse) => (
+                          <MenuItem
+                            key={warehouse._id}
+                            value={warehouse._id}
+                          >
+                            {warehouse.name}
+                          </MenuItem>
+                        ))}
+                      </TextField>
+                    )}
                     <Button
                       variant="contained"
                       color="primary"

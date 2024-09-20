@@ -25,12 +25,19 @@ import { useDispatch, useSelector } from "react-redux";
 import { getProducts } from "../../redux/features/product/productSlice";
 import axios from "axios";
 import CustomTable from "../../components/CustomTable/CustomTable"; // Import the CustomTable component
-
+// import { getProducts } from "../../redux/features/product/productSlice";
+import { getCustomers } from "../../redux/features/cutomer/customerSlice";
+import { getSuppliers } from "../../redux/features/supplier/supplierSlice";
+// import { getWarehouses } from "../../redux/features/warehouse/warehouseSlice";
 const ITEMS_PER_PAGE = 10;
 
 const ViewExpenses = () => {
   const dispatch = useDispatch();
   const [ledgerEntries, setLedgerEntries] = useState([]);
+  const { customers } = useSelector((state) => state.customer);
+  const { suppliers } = useSelector((state) => state.supplier);
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+
   const [filteredEntries, setFilteredEntries] = useState([]);
   const [showExpenseModal, setShowExpenseModal] = useState(false);
   const [expense, setExpense] = useState({
@@ -51,7 +58,6 @@ const ViewExpenses = () => {
   };
 
   const [totalPages, setTotalPages] = useState(0);
-  const [selectedDate, setSelectedDate] = useState("");
   const [runningBalance, setRunningBalance] = useState(0);
 
   const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -60,14 +66,65 @@ const ViewExpenses = () => {
 
   useEffect(() => {
     dispatch(getProducts());
+    dispatch(getCustomers());
+    dispatch(getSuppliers());
     fetchSales();
     fetchExpenses();
+    fetchCustomerTransactions();
+    fetchSupplierTransactions();
+    fetchShippingEntries();
   }, [dispatch]);
 
   useEffect(() => {
     filterEntriesByDate();
   }, [selectedDate, ledgerEntries]);
+  const fetchCustomerTransactions = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/customers/transactions`, { withCredentials: true });
+      const customerTransactions = response.data.map(transaction => ({
+        ...transaction,
+        type: transaction.amount > 0 ? 'Customer Payment' : 'Customer Credit',
+        amount: transaction.amount,
+        date: new Date(transaction.date),
+        description: `${transaction.amount > 0 ? 'Payment from' : 'Credit to'} customer ${transaction.customerName}`,
+      }));
+      updateLedger(customerTransactions);
+    } catch (err) {
+      console.error("Error fetching customer transactions:", err);
+    }
+  };
 
+  const fetchSupplierTransactions = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/suppliers/transactions`, { withCredentials: true });
+      const supplierTransactions = response.data.map(transaction => ({
+        ...transaction,
+        type: transaction.amount > 0 ? 'Supplier Payment' : 'Supplier Credit',
+        amount: -transaction.amount, // Negative for payments, positive for credits
+        date: new Date(transaction.date),
+        description: `${transaction.amount > 0 ? 'Payment to' : 'Credit from'} supplier ${transaction.supplierName}`,
+      }));
+      updateLedger(supplierTransactions);
+    } catch (err) {
+      console.error("Error fetching supplier transactions:", err);
+    }
+  };
+
+  const fetchShippingEntries = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/shipping/entries`, { withCredentials: true });
+      const shippingEntries = response.data.map(entry => ({
+        ...entry,
+        type: 'Shipping',
+        amount: 0, // Shipping doesn't affect balance directly
+        date: new Date(entry.date),
+        description: `Added ${entry.quantity} ${entry.productName} to stock from shipping`,
+      }));
+      updateLedger(shippingEntries);
+    } catch (err) {
+      console.error("Error fetching shipping entries:", err);
+    }
+  };
   const fetchSales = async () => {
     try {
       const response = await axios.get(`${API_URL}/sales/allsales`, { withCredentials: true });
@@ -102,7 +159,7 @@ const ViewExpenses = () => {
 
   const updateLedger = (newEntries) => {
     setLedgerEntries(prevEntries => {
-      const updatedEntries = [...prevEntries, ...newEntries].sort((a, b) => new Date(b.date) - new Date(a.date));
+      const updatedEntries = [...newEntries, ...prevEntries].sort((a, b) => new Date(b.date) - new Date(a.date));
       return updatedEntries;
     });
   };
@@ -165,72 +222,84 @@ const ViewExpenses = () => {
   );
   const calculateRunningBalance = (entries) => {
     let balance = 0;
-    const entriesWithBalance = entries.map(entry => {
+    // Reverse the entries to calculate balance from oldest to newest
+    const reversedEntries = [...entries].reverse();
+    const entriesWithBalance = reversedEntries.map(entry => {
       balance += entry.amount;
       return { ...entry, balance };
     });
     setRunningBalance(balance);
-    return entriesWithBalance;
+    // Reverse back to newest first
+    return entriesWithBalance.reverse();
   };
 
+
+
+  useEffect(() => {
+    filterEntriesByDate();
+  }, [selectedDate, ledgerEntries]);
+
   const filterEntriesByDate = () => {
-    let filtered = ledgerEntries;
-    if (selectedDate) {
-      filtered = ledgerEntries.filter(entry =>
-        new Date(entry.date).toDateString() === new Date(selectedDate).toDateString()
-      );
-    }
+    const selectedDateObj = new Date(selectedDate);
+    selectedDateObj.setHours(0, 0, 0, 0);
+
+    let filtered = ledgerEntries.filter(entry => {
+      const entryDate = new Date(entry.date);
+      entryDate.setHours(0, 0, 0, 0);
+      return entryDate.getTime() === selectedDateObj.getTime();
+    });
+
+    // Sort filtered entries to show newest first
+    filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
     const entriesWithBalance = calculateRunningBalance(filtered);
     setFilteredEntries(entriesWithBalance);
     setTotalPages(Math.ceil(entriesWithBalance.length / ITEMS_PER_PAGE));
     setPage(1);
   };
 
-
-
   const columns = [
-    { 
-      field: 'date', 
-      headerName: 'Date', 
-      renderCell: (row) => new Date(row.date).toLocaleDateString() 
+    {
+      field: 'date',
+      headerName: 'Date',
+      renderCell: (row) => new Date(row.date).toLocaleDateString()
     },
-    { 
-      field: 'type', 
-      headerName: 'Type' 
+    {
+      field: 'type',
+      headerName: 'Type'
     },
-    { 
-      field: 'description', 
-      headerName: 'Description' 
+    {
+      field: 'description',
+      headerName: 'Description'
     },
-    { 
-      field: 'debit', 
-      headerName: 'Debit', 
+    {
+      field: 'debit',
+      headerName: 'Debit',
       renderCell: (row) => (
         <span style={{ color: row.amount > 0 ? 'red' : 'inherit' }}>
           {row.amount > 0 ? row.amount.toFixed(2) : ''}
         </span>
       )
     },
-    { 
-      field: 'credit', 
-      headerName: 'Credit', 
+    {
+      field: 'credit',
+      headerName: 'Credit',
       renderCell: (row) => (
         <span style={{ color: row.amount < 0 ? 'green' : 'inherit' }}>
           {row.amount < 0 ? Math.abs(row.amount).toFixed(2) : ''}
         </span>
       )
     },
-    { 
-      field: 'paymentMethod', 
-      headerName: 'Payment Method' 
+    {
+      field: 'paymentMethod',
+      headerName: 'Payment Method'
     },
-    { 
-      field: 'balance', 
-      headerName: 'Total Amount', 
-      renderCell: (row) => row.balance.toFixed(2) 
+    {
+      field: 'balance',
+      headerName: 'Total Amount',
+      renderCell: (row) => row.balance.toFixed(2)
     }
   ];
-  
+
 
   const rows = paginatedEntries.map(entry => ({
     ...entry,
@@ -261,18 +330,11 @@ const ViewExpenses = () => {
       <Card sx={{ mt: 3 }}>
         <CardContent>
           <Typography variant="h5" gutterBottom>
-            Ledger
+            Ledger for {new Date(selectedDate).toDateString()}
           </Typography>
-          {selectedDate && (
-            <Typography variant="h6" gutterBottom>
-              Balance for {new Date(selectedDate).toDateString()}: ${runningBalance.toFixed(2)}
-            </Typography>
-          )}
-          {!selectedDate && (
-            <Typography variant="h6" gutterBottom>
-              Overall Balance: ${runningBalance.toFixed(2)}
-            </Typography>
-          )}
+          <Typography variant="h6" gutterBottom>
+            Balance: {runningBalance.toFixed(2)}
+          </Typography>
 
           {filteredEntries.length === 0 ? (
             <Typography variant="body1">No entries found for the selected date.</Typography>

@@ -5,7 +5,7 @@ import { RiProductHuntLine } from "react-icons/ri";
 import menu from "../../data/sidebar";
 import SidebarItem from "./SidebarItem";
 import { useNavigate } from "react-router-dom";
-
+import logo from "../../assets/logo.png"; 
 const Sidebar = ({ children }) => {
   const [isOpen, setIsOpen] = useState(true);
   const toggle = () => setIsOpen(!isOpen);
@@ -19,10 +19,19 @@ const Sidebar = ({ children }) => {
     <div className="layout">
       <div className="sidebar" style={{ width: isOpen ? "230px" : "60px" }}>
         <div className="top_section">
-          <div className="logo" style={{ display: isOpen ? "block" : "none" }}>
-            <RiProductHuntLine
-              size={35}
-              style={{ cursor: "pointer" }}
+        <div className="logo" style={{ display: isOpen ? "block" : "none" }}>
+            <img 
+              src={logo} 
+              alt="Logo" 
+              style={{
+                cursor: "pointer",
+                width: "50px",
+                height: "50px",
+                borderRadius: "50%",
+                objectFit: "cover",
+                border: "2px solid #fff",
+                boxShadow: "0 0 10px rgba(0,0,0,0.1)"
+              }}
               onClick={goHome}
             />
           </div>

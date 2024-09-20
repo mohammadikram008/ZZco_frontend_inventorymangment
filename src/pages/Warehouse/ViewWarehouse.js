@@ -96,14 +96,20 @@ const WarehouseManager = () => {
     setPage(0);
   };
 
+
   const handleViewProducts = async (warehouseId) => {
     console.log("warehouseId", warehouseId);
     setLoadingProducts(true);
     try {
-      const response = await axios.get(`${API_URL}/allproducts/${warehouseId}`,{withCredentials:true});
-      console.log("responseRR", response.data);
-      setWarehouseProducts(response.data);
-      setProductsModalOpen(true);
+      const response = await axios.get(`${API_URL}/allproducts/${warehouseId}`, { withCredentials: true });
+      console.log("products", response.data);
+      if (response.data.message === "No products found for this warehouse") {
+        toast.info("No products found for this warehouse");
+        setWarehouseProducts([]);
+      } else {
+        setWarehouseProducts(response.data);
+        setProductsModalOpen(true);
+      }
     } catch (error) {
       toast.error("Failed to fetch warehouse products");
     }
@@ -148,7 +154,7 @@ const WarehouseManager = () => {
 
   return (
     <div>
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: '20px' }}>
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: '20px' ,marginBottom:'20px'}}>
         <Button variant="contained" color="primary" onClick={handleClickOpen}>
           Add Warehouse
         </Button>

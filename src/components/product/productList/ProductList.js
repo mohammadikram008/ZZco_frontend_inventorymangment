@@ -134,8 +134,12 @@ const ProductList = ({ products, isLoading }) => {
                 {currentItems.map((product, index) => {
                   const { _id, name, category, price, quantity, paymentMethod, shippingType, status, image } = product;  // Include shippingType
 
-                  
-                  const displayStatus = status ? "Completed" : "Pending";
+                  let displayStatus;
+                  if (paymentMethod === 'cheque') {
+                    displayStatus = status ? 'Cash Out' : 'Pending';
+                  } else {
+                    displayStatus = '---';
+                  }
 
                   return (
                     <tr key={_id}>
@@ -146,8 +150,8 @@ const ProductList = ({ products, isLoading }) => {
                       <td>{quantity}</td>
                       <td>{price * quantity}</td>
                       <td>{paymentMethod}</td>
-                      <td>{shippingType}</td>  
-                      <td>{displayStatus}</td>  
+                      <td>{shippingType}</td>
+                      <td>{displayStatus}</td>
                       <td className="icons">
                         <span>
                           <Link to={`/product-detail/${_id}`}>

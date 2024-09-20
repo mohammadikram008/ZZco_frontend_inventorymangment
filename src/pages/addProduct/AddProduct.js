@@ -7,11 +7,41 @@ import {
   createProduct,
   selectIsLoading,
 } from "../../redux/features/product/productSlice";
-import { Grid } from "@mui/material";
-import { getWarehouses } from "../../redux/features/WareHouse/warehouseSlice"; // Add this import
-import { getBanks } from "../../redux/features/Bank/bankSlice"; // Add this import
-import { getSuppliers } from '../../redux/features/supplier/supplierSlice'; // Correct file casing
+import { getWarehouses } from "../../redux/features/WareHouse/warehouseSlice";
+import { getBanks } from "../../redux/features/Bank/bankSlice";
+import { getSuppliers } from '../../redux/features/supplier/supplierSlice';
 import { toast, ToastContainer } from "react-toastify";
+import {
+  Grid,
+  Paper,
+  Typography,
+  Stepper,
+  Step,
+  StepLabel,
+  Button,
+  Box,
+  Container,
+  Card,
+  CardContent,
+  TextField,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Select,
+} from "@mui/material";
+import { styled } from "@mui/material/styles";
+
+const StyledPaper = styled(Paper)(({ theme }) => ({
+  padding: theme.spacing(3),
+  margin: theme.spacing(3, 0),
+  backgroundColor: theme.palette.background.default,
+}));
+
+const StyledCard = styled(Card)(({ theme }) => ({
+  marginBottom: theme.spacing(3),
+}));
+
+const steps = ['Product Details', 'Shipping & Payment', 'Review'];
 
 const initialState = {
   name: "",
@@ -29,39 +59,35 @@ const AddProduct = () => {
   const [imagePreview, setImagePreview] = useState(null);
   const [description, setDescription] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("");
-  const [chequeDate, setChequeDate] = useState(""); // Define chequeDate state
+  const [chequeDate, setChequeDate] = useState("");
+  const [selectedBank, setSelectedBank] = useState("");
+  const [selectedWarehouse, setSelectedWarehouse] = useState("");
+  const [shippingType, setShippingType] = useState("local");
+  const [selectedSupplier, setSelectedSupplier] = useState("");
+  const [supplier, setSupplier] = useState({ id: "", name: "" });
+
+  const [activeStep, setActiveStep] = useState(0);
+
   const isLoading = useSelector(selectIsLoading);
-  const [selectedBank, setSelectedBank] = useState(""); // Add this state
-  const banks = useSelector((state) => state.bank.banks); // Add this selector
-  const { name, category, price, quantity } = product;
-  const [selectedWarehouse, setSelectedWarehouse] = useState(""); // Add this state
-  const warehouses = useSelector((state) => state.warehouse.warehouses); // Add this selector
-  const [shippingType, setShippingType] = useState("local"); // Default value
-  const suppliers = useSelector((state) => state.supplier.suppliers); // Add supplier selector
-  const [selectedSupplier, setSelectedSupplier] = useState(""); // State for selected supplier
+  const banks = useSelector((state) => state.bank.banks);
+  const warehouses = useSelector((state) => state.warehouse.warehouses);
+  const suppliers = useSelector((state) => state.supplier.suppliers);
+  console.log("suppliers", suppliers);
+  useEffect(() => {
+    dispatch(getBanks());
+    dispatch(getWarehouses());
+    dispatch(getSuppliers());
+  }, [dispatch]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setProduct({ ...product, [name]: value });
   };
-
-  useEffect(() => {
-    dispatch(getBanks()); // Fetch banks when component mounts
-    dispatch(getWarehouses()); // Fetch warehouses when component mounts
-    dispatch(getSuppliers()); // Fetch suppliers when component mounts
-  }, [dispatch]);
-
-  const handleWarehouseChange = (event) => {
-    setSelectedWarehouse(event.target.value);
-  };
-
-  const handleBankChange = (event) => {
-    console.log("event", event.target.value);
-    setSelectedBank(event.target.value);
-  };
-
-  const handleShippingTypeChange = (event) => {
-    setShippingType(event.target.value);
+  const handleSupplierChange = (event) => {
+    const selectedSupplier = suppliers.find(s => s._id === event.target.value);
+    if (selectedSupplier) {
+      setSupplier({ id: selectedSupplier._id, name: selectedSupplier.name });
+    }
   };
 
   const handleImageChange = (e) => {
@@ -69,120 +95,284 @@ const AddProduct = () => {
     setImagePreview(URL.createObjectURL(e.target.files[0]));
   };
 
-  const handlePaymentMethodChange = (event) => {
-    setPaymentMethod(event.target.value);
+  const handleNext = () => {
+    setActiveStep((prevActiveStep) => prevActiveStep + 1);
   };
 
-  const handleSupplierChange = (event) => {
-    setSelectedSupplier(event.target.value);
+  const handleBack = () => {
+    setActiveStep((prevActiveStep) => prevActiveStep - 1);
   };
 
   const saveProduct = async () => {
     const formData = new FormData();
-
-    if (!name) {
-      toast.error("Please enter a product name");
-      return;
-    }
-    formData.append("name", name);
-
-    if (!category) {
-      toast.error("Please enter a product category");
-      return;
-    }
-    formData.append("category", category);
-
-    if (!quantity) {
-      toast.error("Please enter a product quantity");
-      return;
-    }
-    formData.append("quantity", quantity);
-
-    if (!price) {
-      toast.error("Please enter a product price");
-      return;
-    }
-    formData.append("price", price);
-
-    // Add shippingType to form data
+    Object.keys(product).forEach(key => formData.append(key, product[key]));
     formData.append("shippingType", shippingType);
-
-    if (shippingType === "local" && !selectedWarehouse) {
-      toast.error("Please select a warehouse for local shipping");
-      return;
-    }
     formData.append("warehouse", selectedWarehouse || "Not Required");
-
-    if (!paymentMethod) {
-      toast.error("Please select a payment method");
-      return;
-    }
     formData.append("paymentMethod", paymentMethod);
-
-    if (paymentMethod === "cheque" && !chequeDate) {
-      toast.error("Please enter a cheque date");
-      return;
-    }
     formData.append("chequeDate", chequeDate);
-
-    if (paymentMethod === "online" && !selectedBank) {
-      toast.error("Please select a bank");
-      return;
-    }
     formData.append("bank", selectedBank);
-
-    if (!selectedSupplier) {
-      toast.error("Please select a supplier");
-      return;
-    }
-    formData.append("supplier", selectedSupplier);
-
+    formData.append("supplier", supplier.id);  // Send supplier ID to the backend
     if (productImage) {
       formData.append("image", productImage);
     }
 
-    formData.append("status", false);
+    const res = await dispatch(createProduct(formData));
+    if (res.payload && !res.error) {
+      toast.success("Product added successfully");
+      navigate("/dashboard");
+    }
+  };
 
-    // Dispatching the createProduct action
-    await dispatch(createProduct(formData));
-    navigate("/dashboard");
+  const handleSubmit = async () => {
+    await saveProduct();
+    handleNext();
+  };
+
+  const getStepContent = (step) => {
+    switch (step) {
+      case 0:
+        return (
+          <StyledCard>
+            <CardContent>
+              <Grid container spacing={3}>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Product Name"
+                    name="name"
+                    value={product.name}
+                    onChange={handleInputChange}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Category"
+                    name="category"
+                    value={product.category}
+                    onChange={handleInputChange}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Quantity"
+                    name="quantity"
+                    type="number"
+                    value={product.quantity}
+                    onChange={handleInputChange}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Price"
+                    name="price"
+                    type="number"
+                    value={product.price}
+                    onChange={handleInputChange}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    multiline
+                    rows={4}
+                    label="Description"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                  />
+                </Grid>
+
+              </Grid>
+            </CardContent>
+          </StyledCard>
+        );
+      case 1:
+        return (
+          <StyledCard>
+            <CardContent>
+              <Grid container spacing={3}>
+                <Grid item xs={12} sm={6}>
+                  <FormControl fullWidth>
+                    <InputLabel>Shipping Type</InputLabel>
+                    <Select
+                      value={shippingType}
+                      onChange={(e) => setShippingType(e.target.value)}
+                    >
+                      <MenuItem value="local">Local</MenuItem>
+                      <MenuItem value="international">International</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+                {shippingType === "local" && (
+                  <Grid item xs={12} sm={6}>
+                    <FormControl fullWidth>
+                      <InputLabel>Warehouse</InputLabel>
+                      <Select
+                        value={selectedWarehouse}
+                        onChange={(e) => setSelectedWarehouse(e.target.value)}
+                      >
+                        {warehouses.map((warehouse) => (
+                          <MenuItem key={warehouse._id} value={warehouse._id}>
+                            {warehouse.name}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                )}
+                <Grid item xs={12} sm={6}>
+                  <FormControl fullWidth>
+                    <InputLabel>Payment Method</InputLabel>
+                    <Select
+                      value={paymentMethod}
+                      onChange={(e) => setPaymentMethod(e.target.value)}
+                    >
+                      <MenuItem value="cash">Cash</MenuItem>
+                      <MenuItem value="cheque">Cheque</MenuItem>
+                      <MenuItem value="online">Online</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+                {paymentMethod === "cheque" && (
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Cheque Date"
+                      type="date"
+                      value={chequeDate}
+                      onChange={(e) => setChequeDate(e.target.value)}
+                      InputLabelProps={{
+                        shrink: true,
+                      }}
+                    />
+                  </Grid>
+                )}
+                {paymentMethod === "cheque" && (
+                  <Grid item xs={12}>
+                    <input
+                      accept="image/*"
+                      style={{ display: 'none' }}
+                      id="raised-button-file"
+                      type="file"
+                      onChange={handleImageChange}
+                    />
+                    <label htmlFor="raised-button-file">
+                      <Button variant="contained" component="span">
+                        Upload Cheque Image
+                      </Button>
+                    </label>
+                    {imagePreview && (
+                      <img src={imagePreview} alt="Preview" style={{ marginTop: 10, maxWidth: '100%', maxHeight: 200 }} />
+                    )}
+                  </Grid>
+                )}
+                {paymentMethod === "online" && (
+                  <Grid item xs={12} sm={6}>
+                    <FormControl fullWidth>
+                      <InputLabel>Bank</InputLabel>
+                      <Select
+                        value={selectedBank}
+                        onChange={(e) => setSelectedBank(e.target.value)}
+                      >
+                        {banks.map((bank) => (
+                          <MenuItem key={bank._id} value={bank._id}>
+                            {bank.name}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                )}
+                <Grid item xs={12} sm={6}>
+                  <FormControl fullWidth>
+                    <InputLabel>Supplier</InputLabel>
+                    <Select
+                      value={supplier.id}
+                      onChange={handleSupplierChange}
+                      label="Supplier"
+                    >
+                      {suppliers.map((s) => (
+                        <MenuItem key={s._id} value={s._id}>
+                          {s.username}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+              </Grid>
+            </CardContent>
+          </StyledCard>
+        );
+      case 2:
+        return (
+          <StyledCard>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>Review your product details</Typography>
+              <Typography>Name: {product.name}</Typography>
+              <Typography>Category: {product.category}</Typography>
+              <Typography>Price: ${product.price}</Typography>
+              <Typography>Quantity: {product.quantity}</Typography>
+              <Typography>Shipping Type: {shippingType}</Typography>
+              <Typography>Payment Method: {paymentMethod}</Typography>
+              <Typography>Supplier: {supplier.name}</Typography>
+              {/* Add more details as needed */}
+            </CardContent>
+          </StyledCard>
+        );
+      default:
+        return 'Unknown step';
+    }
   };
 
   return (
-    <Fragment>
-      <Grid container flexDirection={"column"}>
-        {isLoading && <Loader />}
-        <h3 className="--mt">Add New Product</h3>
-        <Grid item display={"flex"} justifyContent={"center"} alignItems={"center"}>
-          <ProductForm
-            banks={banks}
-            selectedBank={selectedBank}
-            product={product}
-            productImage={productImage}
-            imagePreview={imagePreview}
-            description={description}
-            paymentMethod={paymentMethod}
-            setDescription={setDescription}
-            handleInputChange={handleInputChange}
-            handleImageChange={handleImageChange}
-            handleBankChange={handleBankChange}
-            handlePaymentMethodChange={handlePaymentMethodChange}
-            chequeDate={chequeDate}
-            setChequeDate={setChequeDate}
-            saveProduct={saveProduct}
-            warehouses={warehouses} // Add this prop
-            selectedWarehouse={selectedWarehouse} // Add this prop
-            handleWarehouseChange={handleWarehouseChange} // Add this prop
-            shippingType={shippingType}
-            handleShippingTypeChange={handleShippingTypeChange}
-            suppliers={suppliers} // Pass suppliers as prop
-            selectedSupplier={selectedSupplier} // Selected supplier state
-            handleSupplierChange={handleSupplierChange} // Handle supplier change
-          />
-        </Grid>
-      </Grid>
+    <Container maxWidth="md">
+      <StyledPaper elevation={3}>
+        <Typography variant="h4" gutterBottom align="center">
+          Add New Product
+        </Typography>
+        <Stepper activeStep={activeStep} alternativeLabel>
+          {steps.map((label) => (
+            <Step key={label}>
+              <StepLabel>{label}</StepLabel>
+            </Step>
+          ))}
+        </Stepper>
+        <Box mt={4}>
+          {activeStep === steps.length ? (
+            <Box>
+              <Typography>All steps completed - you're finished</Typography>
+              <Button onClick={() => navigate("/dashboard")} sx={{ mt: 2 }}>
+                Go to Dashboard
+              </Button>
+            </Box>
+          ) : (
+            <Box>
+              {getStepContent(activeStep)}
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+                <Button
+                  disabled={activeStep === 0}
+                  onClick={handleBack}
+                  sx={{ mr: 1 }}
+                >
+                  Back
+                </Button>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={activeStep === steps.length - 1 ? handleSubmit : handleNext}
+                >
+                  {activeStep === steps.length - 1 ? 'Submit' : 'Next'}
+                </Button>
+              </Box>
+            </Box>
+          )}
+        </Box>
+      </StyledPaper>
+      {isLoading && <Loader />}
       <ToastContainer />
-    </Fragment>
+    </Container>
   );
 };
 
