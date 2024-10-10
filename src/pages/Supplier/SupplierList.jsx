@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { Avatar, Box, Grid, IconButton } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { Add, Delete, History, Remove } from "@mui/icons-material";
+import { useSelector } from "react-redux";
+import { selectCanDelete } from "../../redux/features/auth/authSlice"; // Import the privilege selector
 import AddSupplierBalanceModal from "../../components/Models/AddSupplierBalanceModal";
 import MinusSupplierBalanceModal from "../../components/Models/MinusSupplierBalanceModal";
 import ConfirmDeleteModal from "../../components/Models/ConfirmDeleteModal";
@@ -13,7 +15,10 @@ const SupplierList = ({ suppliers, refreshSuppliers }) => {
   const [isMinusModalOpen, setMinusModalOpen] = useState(false);
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
   const [isHistoryModalOpen, setHistoryModalOpen] = useState(false);
-  const [supplierList, setSupplierList] = useState(suppliers); // Use state for the supplier list
+  const [supplierList, setSupplierList] = useState(suppliers);
+
+  // Get delete permission for suppliers
+  const canDeleteSupplier = useSelector((state) => selectCanDelete(state, "deleteSupplier"));
 
   // Open respective modals
   const openAddModal = (supplier) => {
@@ -27,6 +32,10 @@ const SupplierList = ({ suppliers, refreshSuppliers }) => {
   };
 
   const openDeleteModal = (supplier) => {
+    if (!canDeleteSupplier) {
+      alert("You do not have permission to delete this supplier.");
+      return;
+    }
     setSelectedSupplier(supplier);
     setDeleteModalOpen(true);
   };
@@ -82,7 +91,11 @@ const SupplierList = ({ suppliers, refreshSuppliers }) => {
             </IconButton>
           </Grid>
           <Grid item>
-            <IconButton color="error" onClick={() => openDeleteModal(params.row)}>
+            <IconButton
+              color="error"
+              onClick={() => openDeleteModal(params.row)}
+              disabled={!canDeleteSupplier} // Disable delete button if no permission
+            >
               <Delete />
             </IconButton>
           </Grid>

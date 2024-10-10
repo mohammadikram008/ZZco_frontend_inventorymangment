@@ -18,28 +18,23 @@ import {
   DialogContent,
   DialogActions,
   TextField,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
+  Modal,
+  Typography,
   CircularProgress,
   Box,
-  TablePagination,
-  IconButton,
-  Modal,
-  Typography
+  IconButton
 } from '@mui/material';
 import CustomTable from '../../components/CustomTable/CustomTable';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import { selectCanDelete } from '../../redux/features/auth/authSlice';
 
 const WarehouseManager = () => {
   const dispatch = useDispatch();
   const warehouses = useSelector(selectWarehouses);
   const isLoading = useSelector(selectIsLoading);
+  const canDeleteWarehouse = useSelector(selectCanDelete); // Only checking delete permissions
+
   const [editingWarehouse, setEditingWarehouse] = useState(null);
   const [open, setOpen] = useState(false);
   const [newWarehouse, setNewWarehouse] = useState({ name: '', location: '' });
@@ -49,7 +44,6 @@ const WarehouseManager = () => {
   const [warehouseProducts, setWarehouseProducts] = useState([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
   const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-
   const API_URL = `${BACKEND_URL}/api/warehouses`;
 
   useEffect(() => {
@@ -69,13 +63,16 @@ const WarehouseManager = () => {
   };
 
   const handleEdit = (warehouse) => {
-    console.log("warehouseEDIT", warehouse);
     setEditingWarehouse(warehouse);
     setNewWarehouse({ name: warehouse.name, location: warehouse.location });
     setOpen(true);
   };
 
   const handleDelete = (id) => {
+    if (!canDeleteWarehouse) {
+      toast.error("You do not have permission to delete this warehouse.");
+      return;
+    }
     if (window.confirm('Are you sure you want to delete this warehouse?')) {
       dispatch(deleteWarehouse(id));
     }
@@ -96,13 +93,10 @@ const WarehouseManager = () => {
     setPage(0);
   };
 
-
   const handleViewProducts = async (warehouseId) => {
-    console.log("warehouseId", warehouseId);
     setLoadingProducts(true);
     try {
       const response = await axios.get(`${API_URL}/allproducts/${warehouseId}`, { withCredentials: true });
-      console.log("products", response.data);
       if (response.data.message === "No products found for this warehouse") {
         toast.info("No products found for this warehouse");
         setWarehouseProducts([]);
@@ -132,20 +126,14 @@ const WarehouseManager = () => {
           <IconButton onClick={() => handleEdit(params)}>
             <EditIcon />
           </IconButton>
-          <IconButton onClick={() => handleDelete(params._id)}>
-            <DeleteIcon />
-          </IconButton>
+          {canDeleteWarehouse && (
+            <IconButton onClick={() => handleDelete(params._id)}>
+              <DeleteIcon />
+            </IconButton>
+          )}
         </>
       ),
     },
-  ];
-
-  const productColumns = [
-    { field: 'name', headerName: 'Product Name' },
-    { field: 'category', headerName: 'Category' },
-    { field: 'quantity', headerName: 'Quantity', align: 'right' },
-    { field: 'price', headerName: 'Price', align: 'right' },
-    // { field: 'status', headerName: 'Status' },
   ];
 
   if (isLoading) {
@@ -154,7 +142,7 @@ const WarehouseManager = () => {
 
   return (
     <div>
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: '20px' ,marginBottom:'20px'}}>
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: '20px', marginBottom: '20px' }}>
         <Button variant="contained" color="primary" onClick={handleClickOpen}>
           Add Warehouse
         </Button>
@@ -240,15 +228,10 @@ const WarehouseManager = () => {
           <Box sx={{ mt: 2 }}>
             {warehouseProducts ? (
               <CustomTable
-                columns={productColumns}
+                columns={columns}
                 data={warehouseProducts}
                 page={0}
                 rowsPerPage={5}
-                onPageChange={(event, newPage) => setPage(newPage)}
-                onRowsPerPageChange={(event) => {
-                  setRowsPerPage(parseInt(event.target.value, 10));
-                  setPage(0);
-                }}
               />
             ) : (
               <CircularProgress />

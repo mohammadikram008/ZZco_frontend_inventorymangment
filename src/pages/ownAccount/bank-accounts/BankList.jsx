@@ -3,12 +3,16 @@ import { Box, Typography } from "@mui/material";
 import ConfirmDeleteModal from "../../../components/Models/ConfirmDeleteModal";
 import EditBankModal from "../../../components/Models/EditBankModal";
 import CustomTable from "../../../components/CustomTable/OwnAccount";
+import { useSelector } from "react-redux";
+import { selectCanDelete } from "../../../redux/features/auth/authSlice"; // Import the delete permission selector
 
 const BankList = ({ banks, refreshBanks, cash }) => {
   const [selectedEntry, setSelectedEntry] = useState(null); // For both bank and cash
   const [entryType, setEntryType] = useState("bank"); // Track if editing bank or cash
   const [isEditModalOpen, setEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
+
+  const canDelete = useSelector(selectCanDelete); // Get delete permission
 
   useEffect(() => {
     console.log("Banks data:", banks);
@@ -21,6 +25,10 @@ const BankList = ({ banks, refreshBanks, cash }) => {
   };
 
   const openDeleteModal = (entry, type) => {
+    if (!canDelete) {
+      alert("You do not have permission to delete this entry.");
+      return;
+    }
     setSelectedEntry(entry);
     setEntryType(type);
     setDeleteModalOpen(true);

@@ -17,6 +17,7 @@ import {
   deleteProduct,
   getProducts,
 } from "../../../redux/features/product/productSlice";
+import { selectCanDelete } from "../../../redux/features/auth/authSlice"; // Import canDelete selector
 import { Link } from "react-router-dom";
 
 Modal.setAppElement("#root");
@@ -26,6 +27,7 @@ const ProductList = ({ products, isLoading }) => {
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [currentImage, setCurrentImage] = useState(null);
   const filteredProducts = useSelector(selectFilteredPoducts);
+  const canDelete = useSelector(selectCanDelete); // Get delete permission
 
   const dispatch = useDispatch();
 
@@ -43,6 +45,11 @@ const ProductList = ({ products, isLoading }) => {
   };
 
   const confirmDelete = (id) => {
+    if (!canDelete) { // Check delete permission
+      alert("You do not have permission to delete this product.");
+      return;
+    }
+  
     confirmAlert({
       title: "Delete Product",
       message: "Are you sure you want to delete this product?",
@@ -57,6 +64,7 @@ const ProductList = ({ products, isLoading }) => {
       ],
     });
   };
+  
 
   const openModal = (imagePath) => {
     setCurrentImage(imagePath);
@@ -74,10 +82,9 @@ const ProductList = ({ products, isLoading }) => {
   const [itemOffset, setItemOffset] = useState(0);
   const itemsPerPage = 5;
 
-  // Log product data after fetching it
   useEffect(() => {
     dispatch(getProducts()).then((response) => {
-      console.log("Products fetched:", response.payload); // Log the entire API response
+      console.log("Products fetched:", response.payload);
     });
   }, [dispatch]);
 
@@ -125,14 +132,14 @@ const ProductList = ({ products, isLoading }) => {
                   <th>Quantity</th>
                   <th>Value</th>
                   <th>Payment Method</th>
-                  <th>Shipping Type</th> {/* Add Shipping Type Header */}
+                  <th>Shipping Type</th>
                   <th>Cheque Status</th>
                   <th>Action</th>
                 </tr>
               </thead>
               <tbody>
                 {currentItems.map((product, index) => {
-                  const { _id, name, category, price, quantity, paymentMethod, shippingType, status, image } = product;  // Include shippingType
+                  const { _id, name, category, price, quantity, paymentMethod, shippingType, status, image } = product;
 
                   let displayStatus;
                   if (paymentMethod === 'cheque') {
@@ -164,11 +171,13 @@ const ProductList = ({ products, isLoading }) => {
                           </Link>
                         </span>
                         <span>
-                          <FaTrashAlt
-                            size={20}
-                            color={"red"}
-                            onClick={() => confirmDelete(_id)}
-                          />
+                          {canDelete && (
+                            <FaTrashAlt
+                              size={20}
+                              color={"red"}
+                              onClick={() => confirmDelete(_id)}
+                            />
+                          )}
                         </span>
                       </td>
                     </tr>

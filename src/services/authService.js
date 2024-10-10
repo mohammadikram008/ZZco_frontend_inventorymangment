@@ -31,13 +31,19 @@ export const registerUser = async (userData) => {
 };
 
 // Login User
+// Login User
 export const loginUser = async (userData) => {
   try {
-    const response = await axios.post(
-      `${BACKEND_URL}/api/users/login`,
-      userData
-    );
+    const response = await axios.post(`${BACKEND_URL}/api/users/login`, userData);
     if (response.statusText === "OK") {
+      const { role, name } = response.data;
+      console.log("Role:", role, "Name:", name); // Check values
+      if (role) {
+        localStorage.setItem("userRole", role);
+      }
+      if (name) {
+        localStorage.setItem("name", name);
+      }
       toast.success("Login Successful...");
     }
     return response.data;
@@ -50,14 +56,16 @@ export const loginUser = async (userData) => {
   }
 };
 
-// loginCustomer
+
+// Login Customer
 export const loginCustomer = async (userData) => {
   try {
-    const response = await axios.post(
-      `${BACKEND_URL}/api/users/Customerlogin`,
-      userData
-    );
+    const response = await axios.post(`${BACKEND_URL}/api/users/Customerlogin`, userData);
     if (response.statusText === "OK") {
+      const { role } = response.data; // Assuming role is part of response data
+      if (role) {
+        localStorage.setItem("userRole", role); // Save role to localStorage
+      }
       toast.success("Login Successful...");
     }
     return response.data;
@@ -69,14 +77,16 @@ export const loginCustomer = async (userData) => {
     toast.error(message);
   }
 };
-// loginManager
+
+// Login Manager
 export const loginManager = async (userData) => {
   try {
-    const response = await axios.post(
-      `${BACKEND_URL}/api/users/managerlogin`,
-      userData
-    );
+    const response = await axios.post(`${BACKEND_URL}/api/users/managerlogin`, userData);
     if (response.statusText === "OK") {
+      const { role } = response.data; // Assuming role is part of response data
+      if (role) {
+        localStorage.setItem("userRole", role); // Save role to localStorage
+      }
       toast.success("Login Successful...");
     }
     return response.data;
@@ -88,6 +98,7 @@ export const loginManager = async (userData) => {
     toast.error(message);
   }
 };
+
 // Logout User
 export const logoutUser = async () => {
   try {
