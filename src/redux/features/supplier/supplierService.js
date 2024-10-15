@@ -15,7 +15,9 @@ const createSupplier = async (supplierData) => {
 
 const addTransaction = async (supplierId, transactionData) => {
     const response = await axios.post(`${API_URL}${supplierId}/transaction`, transactionData, { withCredentials: true });
-  return response.data;
+  
+  console.log("response ========", response.data);
+    return response.data;
 };
 
 const supplierService = {
