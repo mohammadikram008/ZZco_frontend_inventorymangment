@@ -13,16 +13,12 @@ import {
 } from '../../redux/features/WareHouse/warehouseSlice';
 import {
   Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
   Modal,
   Typography,
   CircularProgress,
   Box,
-  IconButton
+  IconButton,
+  TextField
 } from '@mui/material';
 import CustomTable from '../../components/CustomTable/CustomTable';
 import axios from 'axios';
@@ -33,7 +29,10 @@ const WarehouseManager = () => {
   const dispatch = useDispatch();
   const warehouses = useSelector(selectWarehouses);
   const isLoading = useSelector(selectIsLoading);
-  const canDeleteWarehouse = useSelector(selectCanDelete); // Only checking delete permissions
+  const canDeleteWarehouse = useSelector(selectCanDelete);
+
+  // Check if the user has an admin role
+  const isAdmin = localStorage.getItem("userRole") === "Admin";
 
   const [editingWarehouse, setEditingWarehouse] = useState(null);
   const [open, setOpen] = useState(false);
@@ -42,6 +41,7 @@ const WarehouseManager = () => {
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [productsModalOpen, setProductsModalOpen] = useState(false);
   const [warehouseProducts, setWarehouseProducts] = useState([]);
+  const [warehouseList, setWarehouseList] = useState([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
   const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
   const API_URL = `${BACKEND_URL}/api/warehouses`;
@@ -49,6 +49,10 @@ const WarehouseManager = () => {
   useEffect(() => {
     dispatch(getWarehouses());
   }, [dispatch]);
+
+  useEffect(() => {
+    setWarehouseList(warehouses);
+  }, [warehouses]);
 
   const handleClickOpen = () => setOpen(true);
   const handleClose = () => {
@@ -69,12 +73,13 @@ const WarehouseManager = () => {
   };
 
   const handleDelete = (id) => {
-    if (!canDeleteWarehouse) {
+    if (!isAdmin && !canDeleteWarehouse) {
       toast.error("You do not have permission to delete this warehouse.");
       return;
     }
     if (window.confirm('Are you sure you want to delete this warehouse?')) {
       dispatch(deleteWarehouse(id));
+      setWarehouseList(prevList => prevList.filter(warehouse => warehouse._id !== id));
     }
   };
 
@@ -113,21 +118,29 @@ const WarehouseManager = () => {
   const columns = [
     { field: 'name', headerName: 'Name' },
     { field: 'location', headerName: 'Location' },
-    { field: 'createdAt', headerName: 'Created At', renderCell: (params) => new Date(params.value).toLocaleString() },
-    { field: 'updatedAt', headerName: 'Updated At', renderCell: (params) => new Date(params.value).toLocaleString() },
+    {
+      field: 'createdAt',
+      headerName: 'Created At',
+      renderCell: (params) => params?.row?.createdAt ? new Date(params.row.createdAt).toLocaleString() : "N/A"
+    },
+    {
+      field: 'updatedAt',
+      headerName: 'Updated At',
+      renderCell: (params) => params?.row?.updatedAt ? new Date(params.row.updatedAt).toLocaleString() : "N/A"
+    },
     {
       field: 'actions',
       headerName: 'Actions',
       renderCell: (params) => (
         <>
-          <IconButton onClick={() => handleViewProducts(params._id)}>
+          <IconButton onClick={() => handleViewProducts(params.row._id)}>
             <VisibilityIcon />
           </IconButton>
-          <IconButton onClick={() => handleEdit(params)}>
+          <IconButton onClick={() => handleEdit(params.row)}>
             <EditIcon />
           </IconButton>
-          {canDeleteWarehouse && (
-            <IconButton onClick={() => handleDelete(params._id)}>
+          {(isAdmin || canDeleteWarehouse) && (
+            <IconButton onClick={() => handleDelete(params.row._id)}>
               <DeleteIcon />
             </IconButton>
           )}
@@ -135,6 +148,8 @@ const WarehouseManager = () => {
       ),
     },
   ];
+  
+  
 
   if (isLoading) {
     return <CircularProgress />;
@@ -199,7 +214,7 @@ const WarehouseManager = () => {
 
       <CustomTable
         columns={columns}
-        data={warehouses}
+        data={warehouseList}
         page={page}
         rowsPerPage={rowsPerPage}
         onPageChange={handleChangePage}

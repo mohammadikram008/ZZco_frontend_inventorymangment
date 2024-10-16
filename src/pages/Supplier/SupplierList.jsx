@@ -17,7 +17,8 @@ const SupplierList = ({ suppliers, refreshSuppliers }) => {
   const [isHistoryModalOpen, setHistoryModalOpen] = useState(false);
   const [supplierList, setSupplierList] = useState(suppliers);
 
-  // Get delete permission for suppliers
+  // Check if the user is admin from local storage
+  const isAdmin = localStorage.getItem("userRole") === "Admin";
   const canDeleteSupplier = useSelector((state) => selectCanDelete(state, "deleteSupplier"));
 
   // Open respective modals
@@ -32,7 +33,7 @@ const SupplierList = ({ suppliers, refreshSuppliers }) => {
   };
 
   const openDeleteModal = (supplier) => {
-    if (!canDeleteSupplier) {
+    if (!isAdmin && !canDeleteSupplier) {
       alert("You do not have permission to delete this supplier.");
       return;
     }
@@ -55,7 +56,6 @@ const SupplierList = ({ suppliers, refreshSuppliers }) => {
 
   // Handle successful deletion
   const handleDeleteSuccess = (deletedSupplierId) => {
-    // Remove the deleted supplier from the supplier list
     setSupplierList(supplierList.filter(supplier => supplier._id !== deletedSupplierId));
     closeModals();
   };
@@ -94,7 +94,7 @@ const SupplierList = ({ suppliers, refreshSuppliers }) => {
             <IconButton
               color="error"
               onClick={() => openDeleteModal(params.row)}
-              disabled={!canDeleteSupplier} // Disable delete button if no permission
+              disabled={!isAdmin && !canDeleteSupplier} // Enable delete button if isAdmin is true
             >
               <Delete />
             </IconButton>
@@ -109,7 +109,6 @@ const SupplierList = ({ suppliers, refreshSuppliers }) => {
     },
   ];
 
-  // Render a simple message if suppliers is not available
   if (!supplierList || supplierList.length === 0) {
     return <div>No suppliers available</div>;
   }
@@ -157,7 +156,7 @@ const SupplierList = ({ suppliers, refreshSuppliers }) => {
           onClose={closeModals}
           entry={selectedSupplier}
           entryType="supplier"
-          onSuccess={() => handleDeleteSuccess(selectedSupplier._id)} // Pass the ID of the deleted supplier
+          onSuccess={() => handleDeleteSuccess(selectedSupplier._id)}
         />
       )}
 

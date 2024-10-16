@@ -4,15 +4,15 @@ import ConfirmDeleteModal from "../../../components/Models/ConfirmDeleteModal";
 import EditBankModal from "../../../components/Models/EditBankModal";
 import CustomTable from "../../../components/CustomTable/OwnAccount";
 import { useSelector } from "react-redux";
-import { selectCanDelete } from "../../../redux/features/auth/authSlice"; // Import the delete permission selector
+import { selectCanDelete } from "../../../redux/features/auth/authSlice";
 
 const BankList = ({ banks, refreshBanks, cash }) => {
-  const [selectedEntry, setSelectedEntry] = useState(null); // For both bank and cash
-  const [entryType, setEntryType] = useState("bank"); // Track if editing bank or cash
+  const [selectedEntry, setSelectedEntry] = useState(null);
+  const [entryType, setEntryType] = useState("bank");
   const [isEditModalOpen, setEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
 
-  const canDelete = useSelector(selectCanDelete); // Get delete permission
+  const canDelete = useSelector((state) => selectCanDelete(state));
 
   useEffect(() => {
     console.log("Banks data:", banks);
@@ -45,10 +45,11 @@ const BankList = ({ banks, refreshBanks, cash }) => {
   }, [banks]);
 
   const totalCashAmount = useMemo(() => {
-    return cash?.totalBalance || 0;
+    return cash?.allEntries?.reduce((total, entry) => {
+      const balance = entry.type === "deduct" ? -Math.abs(entry.balance || 0) : Math.abs(entry.balance || 0);
+      return total + balance;
+    }, 0) || 0;
   }, [cash]);
-
-  const totalAmount = totalBankAmount;
 
   const bankColumns = [
     { field: "bankName", headerName: "Bank Name" },
@@ -66,7 +67,6 @@ const BankList = ({ banks, refreshBanks, cash }) => {
     },
     { field: "balance", headerName: "Balance", align: "right" },
     { field: "type", headerName: "Type" },
-    { field: "totalBalance", headerName: "Total Balance", align: "right" },
   ];
 
   return (
@@ -84,7 +84,7 @@ const BankList = ({ banks, refreshBanks, cash }) => {
       </Box>
       <CustomTable
         columns={bankColumns}
-        data={banks || []} 
+        data={banks || []}
         onEdit={(bank) => openEditModal(bank, "bank")}
         onDelete={(bank) => openDeleteModal(bank, "bank")}
       />
@@ -95,19 +95,23 @@ const BankList = ({ banks, refreshBanks, cash }) => {
 
       <CustomTable
         columns={cashColumns}
-        data={cash?.allEntries || []} 
+        data={cash?.allEntries || []}
         onEdit={(cashEntry) => openEditModal(cashEntry, "cash")}
         onDelete={(cashEntry) => openDeleteModal(cashEntry, "cash")}
         sx={{ marginTop: 3 }}
       />
 
-      {/* Display total amount */}
-      <Box display={"flex"} justifyContent={"space-between"} alignItems={"center"}>
-        <Box sx={{ mt: 2, textAlign: "left" }}>
-          <Typography variant="h5">Total Cash Amount: {cash?.totalBalance || 0}</Typography>
+      {/* Display total amounts with color styling */}
+      <Box display={"flex"} justifyContent={"space-between"} alignItems={"center"} sx={{ mt: 2 }}>
+        <Box sx={{ textAlign: "left" }}>
+          <Typography variant="h5" sx={{ color: "#388E3C", fontWeight: "bold" }}>
+            Total Cash Amount: {totalCashAmount}
+          </Typography>
         </Box>
-        <Box sx={{ mt: 2, textAlign: "right" }}>
-          <Typography variant="h5">Total Bank Amount: {totalAmount}</Typography>
+        <Box sx={{ textAlign: "right" }}>
+          <Typography variant="h5" sx={{ color: "#1976D2", fontWeight: "bold" }}>
+            Total Bank Amount: {totalBankAmount}
+          </Typography>
         </Box>
       </Box>
 
@@ -115,16 +119,17 @@ const BankList = ({ banks, refreshBanks, cash }) => {
       <EditBankModal
         open={isEditModalOpen}
         onClose={closeModals}
-        entry={selectedEntry}  // Can be either bank or cash
-        entryType={entryType}  // Pass the type to differentiate between bank and cash
+        entry={selectedEntry}
+        entryType={entryType}
         onSuccess={refreshBanks}
+        totalCashAmount={totalCashAmount}
       />
 
       {/* Confirm Delete Modal */}
       <ConfirmDeleteModal
         open={isDeleteModalOpen}
         onClose={closeModals}
-        entry={selectedEntry}  
+        entry={selectedEntry}
         entryType={entryType}
         onSuccess={refreshBanks}
       />

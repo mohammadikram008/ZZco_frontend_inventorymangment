@@ -1,5 +1,3 @@
-// src/components/pages/customer/CustomerList.js
-
 import React, { useState } from "react";
 import { Avatar, Box, Grid, IconButton } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
@@ -18,7 +16,14 @@ const CustomerList = ({ customers, refreshCustomers }) => {
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
   const [isHistoryModalOpen, setHistoryModalOpen] = useState(false);
 
-  const canDeleteCustomer = useSelector((state) => selectCanDelete(state, "deleteCustomer")); // Check deleteCustomer privilege
+  // Retrieve the user role from localStorage
+  const userRole = localStorage.getItem("userRole");
+
+  // Unconditionally retrieve delete permission
+  const hasDeletePermission = useSelector((state) => selectCanDelete(state, "deleteCustomer"));
+
+  // Determine if the delete action should be enabled
+  const canDeleteCustomer = userRole === "Admin" || hasDeletePermission;
 
   const openAddModal = (customer) => {
     setSelectedCustomer(customer);

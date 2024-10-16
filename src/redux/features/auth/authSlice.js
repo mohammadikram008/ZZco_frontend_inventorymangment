@@ -1,5 +1,3 @@
-// src/redux/features/auth/authSlice.js
-
 import { createSlice } from "@reduxjs/toolkit";
 
 // Retrieve role from localStorage under "name"
@@ -17,7 +15,7 @@ if (storedRole && storedRole !== "undefined") {
 
 const initialState = {
   isLoggedIn: false,
-  name: userRole, // Set role directly from the local storage "name"
+  name: userRole, // Keep name as the field representing role
   user: {
     name: "",
     email: "",
@@ -36,9 +34,9 @@ const authSlice = createSlice({
     SET_LOGIN(state, action) {
       state.isLoggedIn = action.payload;
     },
-    SET_NAME(state, action) {
+    SET_NAME(state, action) { // Keep SET_NAME
       localStorage.setItem("name", JSON.stringify(action.payload));
-      state.name = action.payload; // Update name in state
+      state.name = action.payload; // Update name in state as role
     },
     SET_USER(state, action) {
       const profile = action.payload;
@@ -57,14 +55,13 @@ export const { SET_LOGIN, SET_NAME, SET_USER } = authSlice.actions;
 
 // Selectors
 export const selectIsLoggedIn = (state) => state.auth.isLoggedIn;
-export const selectName = (state) => state.auth.name;
-export const selectUser = (state) => state.auth.user;
-export const selectUserRole = (state) => state.auth.name || "User"; // Get role from Redux "name" field
+export const selectName = (state) => state.auth.name || "User"; // Continue to use selectName as role
+export const selectUser = (state) => state.auth.user; // Added to select user object
 
 // Selector to check if the user has deletion privileges
 export const selectCanDelete = (state, permissionType) => {
   const { privileges } = state.auth.user;
-  const isAdmin = state.auth.name === "Admin"; // Check if the role is Admin
+  const isAdmin = state.auth.name === "Admin"; // Check if the name (used as role) is Admin
   return isAdmin || privileges?.[permissionType] === true; // Admins have all privileges
 };
 

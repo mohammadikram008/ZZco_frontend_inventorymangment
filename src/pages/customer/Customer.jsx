@@ -61,15 +61,18 @@ const Customer = () => {
         password,
         phone,
       }, { withCredentials: true });
-
+  
       if (res) {
-        toast.success("Customer Add Successfully!")
+        toast.success("Customer Added Successfully!");
+        refreshCustomers(); // Refresh the customer list after adding a new customer
       }
       handleCloseModal();
     } catch (error) {
       console.error("There was an error creating the customer!", error);
+      toast.error("Failed to add customer!");
     }
   };
+  
 
   return (
     <Box sx={{ m: 0, p: 3, width: "100%" }}>

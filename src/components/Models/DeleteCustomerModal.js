@@ -8,8 +8,12 @@ import { selectCanDelete } from "../../redux/features/auth/authSlice"; // Import
 const DeleteCustomerModal = ({ open, onClose, customer, onSuccess }) => {
   const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
-  // Get the delete privilege status from Redux store
-  const canDeleteCustomer = useSelector((state) => selectCanDelete(state, "deleteCustomer"));
+  // Retrieve the user role from localStorage and check delete privilege
+  const userRole = localStorage.getItem("userRole");
+  const hasDeletePermission = useSelector((state) => selectCanDelete(state, "deleteCustomer"));
+
+  // Allow delete if the user is an Admin or has the specific delete permission
+  const canDeleteCustomer = userRole === "Admin" || hasDeletePermission;
 
   const handleDelete = async () => {
     if (!customer || !customer._id) return; // Ensure a valid customer is selected
