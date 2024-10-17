@@ -4,7 +4,7 @@ import {
   Box,
   TextField,
   Button,
-  Typography,
+  Typography, 
   MenuItem,
   Grid
 } from "@mui/material";
@@ -68,31 +68,43 @@ const MinusBalanceModal = ({ open, onClose, customer, onSuccess }) => {
     if (!validateForm()) {
       return; // Do not proceed if form is invalid
     }
-
+  
     const formData = new FormData();
     formData.append("amount", parseFloat(amount));
     formData.append("paymentMethod", capitalizeFirstLetter(paymentMethod));  // Capitalize the first letter
     formData.append("description", description);
-
+    formData.append("type", "deduct"); // Explicitly add type as "deduct"
+  
     if (paymentMethod === "online") {
       formData.append("bankId", selectedBank);
       formData.append("image", image); // Add image if selected
     }
-
+  
     if (paymentMethod === "cheque") {
       formData.append("chequeDate", chequeDate);
       formData.append("image", image); // Add image if selected
     }
-
+  
     try {
       const response = await axios.post(`${API_URL}/minus-customer-balance/${customer._id}`, formData);
+      toast.success(response.data.message || "Balance subtracted successfully");
+  
+      // Update cash API
+      await axios.post(`${BACKEND_URL}/api/cash/add`, {
+        balance: -Math.abs(parseFloat(amount)), // Deducting amount from cash
+        type: "deduct", // Explicitly set the type as deduct here as well
+        description: `Subtracted balance for customer ${customer.username}`,
+      });
+  
       onSuccess();
       onClose();
-      toast.success(response.data.message || "Balance subtracted successfully");
     } catch (error) {
       toast.error("Failed to subtract balance. Please try again.");
     }
   };
+  
+  
+  
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];

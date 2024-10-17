@@ -7,8 +7,9 @@ const TransactionHistoryModal = ({ open, onClose, customer }) => {
   const [transactions, setTransactions] = useState([]); 
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5); 
+  const [totalBalance, setTotalBalance] = useState(0);
 
-  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL; 
   const API_URL = `${BACKEND_URL}/api/customers`;
 
   useEffect(() => {
@@ -18,7 +19,7 @@ const TransactionHistoryModal = ({ open, onClose, customer }) => {
           const response = await axios.get(`${API_URL}/transactionHistory/${customer._id}`);
           const transactionHistory = response.data.transactionHistory || [];
           
-          // Calculate running balance
+          // Calculate running balance and total balance
           let balance = 0;
           const ledger = transactionHistory.map(transaction => {
             const debit = transaction.type.toLowerCase() === 'debit' ? transaction.amount : 0;
@@ -28,11 +29,11 @@ const TransactionHistoryModal = ({ open, onClose, customer }) => {
               ...transaction,
               debit,
               credit,
-              balance
             };
           });
           
           setTransactions(ledger);
+          setTotalBalance(balance); // Set total balance to be displayed below
         } catch (error) {
           console.error("Error fetching transaction history:", error);
         }
@@ -42,7 +43,7 @@ const TransactionHistoryModal = ({ open, onClose, customer }) => {
     }
   }, [open, customer, API_URL]);
 
-  // Column definitions with color styling
+  // Column definitions without the balance column
   const columns = [
     { 
       field: 'date', 
@@ -70,11 +71,6 @@ const TransactionHistoryModal = ({ open, onClose, customer }) => {
           {row.credit.toFixed(2)}
         </span>
       ) 
-    },
-    { 
-      field: 'balance', 
-      headerName: 'Balance', 
-      renderCell: (row) => row.balance.toFixed(2) 
     },
     { 
       field: 'chequeDate', 
@@ -115,6 +111,12 @@ const TransactionHistoryModal = ({ open, onClose, customer }) => {
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
         />
+        <Box display="flex" justifyContent="space-between" mt={2}>
+          <Typography variant="h6">Total Balance:</Typography>
+          <Typography variant="h6" color={totalBalance >= 0 ? "green" : "red"}>
+            {totalBalance.toFixed(2)}
+          </Typography>
+        </Box>
         <Button variant="contained" color="primary" onClick={onClose} sx={{ mt: 2 }}>
           Close
         </Button>

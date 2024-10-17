@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import "./ProductSummary.scss";
 import { AiFillDollarCircle } from "react-icons/ai";
-import { BsCart4, BsCartX,BsBank2 } from "react-icons/bs";
+import { BsCart4, BsCartX, BsBank2 } from "react-icons/bs";
 import { BiCategory } from "react-icons/bi";
 import { FaMoneyBillWave } from "react-icons/fa";
 
@@ -22,26 +22,28 @@ const earningIcon = <AiFillDollarCircle size={40} color="#fff" />;
 const productIcon = <BsCart4 size={40} color="#fff" />;
 const categoryIcon = <BiCategory size={40} color="#fff" />;
 const outOfStockIcon = <BsCartX size={40} color="#fff" />;
-const bankIcon = <BsBank2 size={40} color="#fff" />; // New bank icon
-const cashIcon = <FaMoneyBillWave size={40} color="#fff" />; // New cash icon
-
+const bankIcon = <BsBank2 size={40} color="#fff" />;
+const cashIcon = <FaMoneyBillWave size={40} color="#fff" />;
 
 // Format Amount
 export const formatNumbers = (x) => {
   return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 };
 
-const ProductSummary = ({ products,bank }) => {
+const ProductSummary = ({ products, bank }) => {
   const dispatch = useDispatch();
   const totalStoreValue = useSelector(selectTotalStoreValue);
   const outOfStock = useSelector(selectOutOfStock);
   const category = useSelector(selectCategory);
+
+  const isManager = useMemo(() => localStorage.getItem("userRole") === "Manager", []);
 
   useEffect(() => {
     dispatch(CALC_STORE_VALUE(products));
     dispatch(CALC_OUTOFSTOCK(products));
     dispatch(CALC_CATEGORY(products));
   }, [dispatch, products]);
+
   const [banks, setBanks] = useState([]);
   const [cash, setCash] = useState([]);
   const totalCashAmount = useMemo(() => {
@@ -50,6 +52,7 @@ const ProductSummary = ({ products,bank }) => {
   const totalBankAmount = useMemo(() => {
     return bank.reduce((total, bank) => total + (bank.balance || 0), 0);
   }, [banks]);
+
   const fetchCash = async () => {
     try {
       const response = await axios.get("http://localhost:5000/api/cash/all");
@@ -61,10 +64,8 @@ const ProductSummary = ({ products,bank }) => {
   };
 
   useEffect(() => {
-   
     fetchCash();
   }, []);
-
 
   return (
     <div className="product-summary">
@@ -73,14 +74,8 @@ const ProductSummary = ({ products,bank }) => {
         <InfoBox
           icon={productIcon}
           title={"Total Products"}
-          count={products.length}
+          count={products.length} 
           bgColor="card1"
-        />
-        <InfoBox
-          icon={earningIcon}
-          title={"Store Value"}
-          count={`${formatNumbers(totalStoreValue.toFixed(2))}`}
-          bgColor="card2"
         />
         <InfoBox
           icon={outOfStockIcon}
@@ -94,19 +89,28 @@ const ProductSummary = ({ products,bank }) => {
           count={category.length}
           bgColor="card4"
         />
-        <InfoBox
-          icon={bankIcon}
-          title={"Bank Amount"}
-          count={totalBankAmount}
-          bgColor="card1"
-        />
-
-        <InfoBox
-          icon={cashIcon}
-          title={"Cash"}
-          count={totalCashAmount}
-          bgColor="card4"
-        />
+        {!isManager && (
+          <>
+            <InfoBox
+              icon={earningIcon}
+              title={"Store Value"}
+              count={`${formatNumbers(totalStoreValue.toFixed(2))}`}
+              bgColor="card2"
+            />
+            <InfoBox
+              icon={bankIcon}
+              title={"Bank Amount"}
+              count={totalBankAmount}
+              bgColor="card1"
+            />
+            <InfoBox
+              icon={cashIcon}
+              title={"Cash"}
+              count={totalCashAmount}
+              bgColor="card4"
+            />
+          </>
+        )}
       </div>
     </div>
   );

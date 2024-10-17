@@ -1,29 +1,26 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-// Retrieve role from localStorage under "name"
+// Retrieve userRole from localStorage as a simple string
 let userRole = "";
-const storedRole = localStorage.getItem("name");
-
-if (storedRole && storedRole !== "undefined") {
-  try {
-    userRole = JSON.parse(storedRole);
-  } catch (error) {
-    console.warn("Failed to parse stored role:", error);
-    userRole = ""; // Default to empty string if parsing fails
+try {
+  const storedRole = localStorage.getItem("userRole");
+  if (storedRole) {
+    userRole = storedRole;
   }
+} catch (error) {
+  console.warn("Error accessing localStorage:", error);
 }
 
 const initialState = {
   isLoggedIn: false,
-  name: userRole, // Keep name as the field representing role
+  userRole,
   user: {
     name: "",
     email: "",
     phone: "",
     bio: "",
     photo: "",
-    UserRole: userRole,
-    privileges: {}, // Add privileges to the initial state
+    privileges: {},
   },
 };
 
@@ -34,35 +31,34 @@ const authSlice = createSlice({
     SET_LOGIN(state, action) {
       state.isLoggedIn = action.payload;
     },
-    SET_NAME(state, action) { // Keep SET_NAME
-      localStorage.setItem("name", JSON.stringify(action.payload));
-      state.name = action.payload; // Update name in state as role
+    SET_ROLE(state, action) {
+      const role = action.payload;
+      try {
+        localStorage.setItem("userRole", role);
+      } catch (error) {
+        console.warn("Failed to store userRole in localStorage:", error);
+      }
+      state.userRole = role;
+      state.user.userRole = role;
     },
     SET_USER(state, action) {
       const profile = action.payload;
-      state.user.name = profile.name;
-      state.user.email = profile.email;
-      state.user.phone = profile.phone;
-      state.user.bio = profile.bio;
-      state.user.photo = profile.photo;
-      state.user.UserRole = profile.UserRole;
-      state.user.privileges = profile.privileges || {}; // Populate privileges from profile data
+      state.user = { ...state.user, ...profile };
     },
   },
 });
 
-export const { SET_LOGIN, SET_NAME, SET_USER } = authSlice.actions;
+export const { SET_LOGIN, SET_ROLE, SET_USER } = authSlice.actions;
 
 // Selectors
 export const selectIsLoggedIn = (state) => state.auth.isLoggedIn;
-export const selectName = (state) => state.auth.name || "User"; // Continue to use selectName as role
-export const selectUser = (state) => state.auth.user; // Added to select user object
+export const selectUserRole = (state) => state.auth.userRole || "User";
+export const selectUser = (state) => state.auth.user;
 
 // Selector to check if the user has deletion privileges
-export const selectCanDelete = (state, permissionType) => {
-  const { privileges } = state.auth.user;
-  const isAdmin = state.auth.name === "Admin"; // Check if the name (used as role) is Admin
-  return isAdmin || privileges?.[permissionType] === true; // Admins have all privileges
+export const selectCanDelete = (state) => {
+  const isAdmin = state.auth.userRole === "Admin"; // Check if userRole is Admin
+  return isAdmin || state.auth.user.privileges?.canDelete === true; // Admins or users with canDelete privilege can delete
 };
 
 export default authSlice.reducer;

@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import Card from "../../components/card/Card";
 import { SpinnerImg } from "../../components/loader/Loader";
 import useRedirectLoggedOutUser from "../../customHook/useRedirectLoggedOutUser";
-import { SET_NAME, SET_USER } from "../../redux/features/auth/authSlice";
+import { SET_ROLE, SET_USER } from "../../redux/features/auth/authSlice"; // Replaced SET_NAME with SET_ROLE
 import { getUser } from "../../services/authService";
 import "./Profile.scss";
 
@@ -16,16 +16,13 @@ const Profile = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    console.log("Getting use");
     setIsLoading(true);
     async function getUserData() {
       const data = await getUser();
-      console.log(data);
-
       setProfile(data);
       setIsLoading(false);
       await dispatch(SET_USER(data));
-      await dispatch(SET_NAME(data.name));
+      await dispatch(SET_ROLE(data.role)); // Replaced SET_NAME with SET_ROLE
     }
     getUserData();
   }, [dispatch]);

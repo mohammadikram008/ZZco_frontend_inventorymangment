@@ -11,7 +11,7 @@ import {
 import axios from 'axios';
 import { useSelector, useDispatch } from 'react-redux';
 import { getBanks } from "../../redux/features/Bank/bankSlice";
-
+import { toast } from "react-toastify";
 // Function to capitalize the first letter
 const capitalizeFirstLetter = (string) => {
   return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
@@ -38,31 +38,48 @@ const MinusSupplierBalanceModal = ({ open, onClose, supplier, onSuccess }) => {
   const API_URL = `${BACKEND_URL}/api/suppliers`;  // Use suppliers endpoint
 
   const handleSubmit = async () => {
-    // Convert paymentMethod to capital case using capitalizeFirstLetter
     const formData = new FormData();
     formData.append("amount", parseFloat(amount));
     formData.append("paymentMethod", capitalizeFirstLetter(paymentMethod));
     formData.append("description", description);
-
+    formData.append("type", "deduct"); // Set the type as "deduct" for subtraction
+  
     if (paymentMethod === "online") {
       formData.append("bankId", selectedBank);
       formData.append("image", image); // Add image if selected
     }
-
+  
     if (paymentMethod === "cheque") {
       formData.append("chequeDate", chequeDate);
       formData.append("image", image); // Add image if selected
     }
-
+  
     try {
-      const response = await axios.post(`${API_URL}/${supplier._id}/transaction`, formData);
-      console.log(response.data);
+      // Step 1: Update the supplier balance
+      const supplierResponse = await axios.post(`${API_URL}/minus-supplier-balance/${supplier._id}`, formData);
+      toast.success(supplierResponse.data.message || "Balance subtracted successfully from supplier");
+  
+      // Step 2: Update the cash balance in the cash API
+      const cashResponse = await axios.post(`${BACKEND_URL}/api/cash/add`, {
+        balance: -Math.abs(parseFloat(amount)), // Deducting the amount from cash
+        type: "deduct",
+        description: `Subtracted balance for supplier ${supplier.username}`,
+      });
+      toast.success(cashResponse.data.message || "Cash balance updated successfully");
+  
+      // Refresh data and close modal
       onSuccess();
+      onClose();
     } catch (error) {
-      console.error('Error subtracting balance:', error);
+      console.error("Error subtracting balance:", error);
+      toast.error("Failed to subtract balance. Please try again.");
     }
-    onClose();
   };
+  
+  
+  
+  
+  
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];

@@ -59,30 +59,30 @@ const AddBalanceModal = ({ open, onClose, customer, onSuccess }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     if (!validateForm()) {
       return; // Prevent form submission if there are validation errors
     }
-
+  
     const capitalizeFirstLetter = (string) => {
       return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
     };
-
+  
     const formData = new FormData();
     formData.append("amount", amount);
     formData.append("paymentMethod", capitalizeFirstLetter(paymentMethod));  // Capitalize the first letter
     formData.append("description", description);
-
+  
     if (paymentMethod === "online") {
       formData.append("bankId", selectedBank);
       formData.append("image", image);
     }
-
+  
     if (paymentMethod === "cheque") {
       formData.append("chequeDate", chequeDate);
       formData.append("image", image);
     }
-
+  
     try {
       const response = await axios.post(
         `${API_URL}/add-customer-balance/${customer._id}`,
@@ -95,11 +95,21 @@ const AddBalanceModal = ({ open, onClose, customer, onSuccess }) => {
         }
       );
       toast.success(response.data.message || 'Balance added successfully');
+  
+      // Update cash API
+      await axios.post(`${BACKEND_URL}/api/cash/add`, {
+        balance: parseFloat(amount),
+        type: "credit", // Assuming the cash API requires a "type" to indicate credit
+        description: `Added balance for customer ${customer.username}`,
+      });
+  
       onClose();
+      onSuccess();
     } catch (error) {
       toast.error('Failed to add balance. Please try again.');
     }
   };
+  
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];

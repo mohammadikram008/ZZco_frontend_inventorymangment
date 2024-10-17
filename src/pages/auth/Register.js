@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 import { registerUser, validateEmail } from "../../services/authService";
 import { useDispatch } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
-import { SET_LOGIN, SET_NAME } from "../../redux/features/auth/authSlice";
+import { SET_LOGIN, SET_ROLE } from "../../redux/features/auth/authSlice"; // Replaced SET_NAME with SET_ROLE
 import Loader from "../../components/loader/Loader";
 
 const initialState = {
@@ -35,7 +35,7 @@ const Register = () => {
       return toast.error("All fields are required");
     }
     if (password.length < 6) {
-      return toast.error("Passwords must be up to 6 characters");
+      return toast.error("Passwords must be at least 6 characters");
     }
     if (!validateEmail(email)) {
       return toast.error("Please enter a valid email");
@@ -52,9 +52,8 @@ const Register = () => {
     setIsLoading(true);
     try {
       const data = await registerUser(userData);
-      // console.log(data);
       await dispatch(SET_LOGIN(true));
-      await dispatch(SET_NAME(data.name));
+      await dispatch(SET_ROLE(data.name)); // Replaced SET_NAME with SET_ROLE
       navigate("/dashboard");
       setIsLoading(false);
     } catch (error) {

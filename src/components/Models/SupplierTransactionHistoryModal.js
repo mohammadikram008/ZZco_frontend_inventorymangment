@@ -5,6 +5,7 @@ import CustomTable from "../CustomTable/CustomTable";
 
 const SupplierTransactionHistoryModal = ({ open, onClose, supplier }) => {
   const [transactions, setTransactions] = useState([]); 
+  const [totalBalance, setTotalBalance] = useState(0); // State to store total balance
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5); 
 
@@ -18,21 +19,22 @@ const SupplierTransactionHistoryModal = ({ open, onClose, supplier }) => {
           const response = await axios.get(`${API_URL}/${supplier._id}/transaction-history`);
           const transactionHistory = response.data.transactionHistory || [];
           
-          // Calculate running balance
           let balance = 0;
           const ledger = transactionHistory.map(transaction => {
-            const debit = transaction.type.toLowerCase() === 'debit' ? transaction.amount : 0;
-            const credit = transaction.type.toLowerCase() === 'credit' ? transaction.amount : 0;
+            const isDebit = transaction.type.toLowerCase() === 'debit';
+            const debit = isDebit ? transaction.amount : 0;
+            const credit = isDebit ? 0 : transaction.amount;
             balance += credit - debit;
+
             return {
               ...transaction,
               debit,
               credit,
-              balance
             };
           });
-          
+
           setTransactions(ledger);
+          setTotalBalance(balance); // Set the total balance after all calculations
         } catch (error) {
           console.error("Error fetching transaction history:", error);
         }
@@ -72,11 +74,6 @@ const SupplierTransactionHistoryModal = ({ open, onClose, supplier }) => {
       ) 
     },
     { 
-      field: 'balance', 
-      headerName: 'Balance', 
-      renderCell: (row) => row.balance.toFixed(2) 
-    },
-    { 
       field: 'chequeDate', 
       headerName: 'Cheque Date', 
       renderCell: (row) => row.chequeDate ? new Date(row.chequeDate).toLocaleDateString() : '-'
@@ -107,6 +104,7 @@ const SupplierTransactionHistoryModal = ({ open, onClose, supplier }) => {
         }}
       >
         <Typography variant="h6">Ledger for {supplier?.username}</Typography>
+        
         <CustomTable
           columns={columns}
           data={transactions}
@@ -115,9 +113,17 @@ const SupplierTransactionHistoryModal = ({ open, onClose, supplier }) => {
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
         />
-        <Button variant="contained" color="primary" onClick={onClose} sx={{ mt: 2 }}>
-          Close
-        </Button>
+
+        {/* Footer section with total balance and pagination controls */}
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+            Total Balance: {totalBalance.toFixed(2)}
+          </Typography>
+          
+          <Button variant="contained" color="primary" onClick={onClose}>
+            Close
+          </Button>
+        </Box>
       </Box>
     </Modal>
   );

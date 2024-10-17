@@ -24,7 +24,8 @@ const AddSupplierBalanceModal = ({ open, onClose, supplier, onSuccess }) => {
     dispatch(getBanks());
   }, [dispatch]);
 
-  const API_URL = `${BACKEND_URL}/api/suppliers`;
+  const SUPPLIER_API_URL = `${BACKEND_URL}/api/suppliers`;
+  const CASH_API_URL = `${BACKEND_URL}/api/cash`; // API URL for cash
 
   const validateForm = () => {
     let formErrors = {};
@@ -51,15 +52,15 @@ const AddSupplierBalanceModal = ({ open, onClose, supplier, onSuccess }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     if (loading) return;
     setLoading(true);
-
+  
     if (!validateForm()) {
       setLoading(false);
       return;
     }
-
+  
     const validAmount = parseFloat(amount);
     if (isNaN(validAmount)) {
       setErrors({ ...errors, amount: "Invalid amount" });
@@ -82,26 +83,35 @@ const AddSupplierBalanceModal = ({ open, onClose, supplier, onSuccess }) => {
       formData.append("image", image);
     }
 
-    // Log the form data to ensure it's being added
-    console.log("Form Data being sent:");
-    for (let [key, value] of formData.entries()) {
-      console.log(`${key}: ${value}`);
-    }
-
     try {
-      const response = await axios.post(`${API_URL}/${supplier._id}/transaction`, formData, {
+      // Add transaction to supplier
+      const supplierRes = await axios.post(`${SUPPLIER_API_URL}/${supplier._id}/transaction`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
-      if (response.status === 200 || response.status === 201) {
-        toast.success(response.data.message || 'Balance added successfully');
+      if (supplierRes.status === 200 || supplierRes.status === 201) {
+        toast.success(supplierRes.data.message || 'Balance added successfully');
+        
+        // Now add the same amount to cash API
+        const cashRes = await axios.post(`${CASH_API_URL}/add`, {
+          balance: validAmount,
+          type: "add", // Assuming you have a "type" field to indicate an addition
+          description: `Added cash for supplier ${supplier.username}`,
+        }, { withCredentials: true });
+
+        if (cashRes.status === 200 || cashRes.status === 201) {
+          toast.success("Cash added successfully to Cash API");
+        } else {
+          throw new Error("Failed to add cash");
+        }
+
         onSuccess();
         onClose();
       } else {
-        throw new Error("Unexpected response");
+        throw new Error("Failed to add transaction to supplier");
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to add balance.');
+      toast.error(error.response?.data?.message || 'Failed to add balance or cash');
     } finally {
       setLoading(false);
     }
