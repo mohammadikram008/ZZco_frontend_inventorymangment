@@ -30,8 +30,8 @@ const AddSupplierBalanceModal = ({ open, onClose, supplier, onSuccess }) => {
   const validateForm = () => {
     let formErrors = {};
 
-    if (!amount) {
-      formErrors.amount = "Amount is required";
+    if (!amount || parseFloat(amount) <= 0) {
+      formErrors.amount = "Amount must be a positive number";
     }
     if (!paymentMethod) {
       formErrors.paymentMethod = "Payment method is required";
@@ -67,59 +67,80 @@ const AddSupplierBalanceModal = ({ open, onClose, supplier, onSuccess }) => {
       setLoading(false);
       return;
     }
-
+  
     const formData = new FormData();
     formData.append("amount", validAmount);
     formData.append("paymentMethod", paymentMethod);
     formData.append("description", description);
-
+  
     if (paymentMethod === "online") {
       formData.append("bankId", selectedBank);
       formData.append("image", image);
     }
-
+  
     if (paymentMethod === "cheque") {
       formData.append("chequeDate", chequeDate);
       formData.append("image", image);
     }
-
+  
     try {
-      // Add transaction to supplier
-      const supplierRes = await axios.post(`${SUPPLIER_API_URL}/${supplier._id}/transaction`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-
+      // Step 1: Add transaction to supplier and get updated balance
+      const supplierRes = await axios.post(
+        `${SUPPLIER_API_URL}/${supplier._id}/transaction`,
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
+  
       if (supplierRes.status === 200 || supplierRes.status === 201) {
-        toast.success(supplierRes.data.message || 'Balance added successfully');
-        
-        // Now add the same amount to cash API
-        const cashRes = await axios.post(`${CASH_API_URL}/add`, {
-          balance: validAmount,
-          type: "add", // Assuming you have a "type" field to indicate an addition
-          description: `Added cash for supplier ${supplier.username}`,
-        }, { withCredentials: true });
-
+        toast.success(supplierRes.data.message || "Transaction added successfully");
+  
+        // Step 2: Add cash to cash API
+        const cashRes = await axios.post(
+          `${CASH_API_URL}/add`,
+          {
+            balance: validAmount,
+            type: "add",
+            description: `Added cash for supplier ${supplier.username}`,
+          },
+          { withCredentials: true }
+        );
+  
         if (cashRes.status === 200 || cashRes.status === 201) {
           toast.success("Cash added successfully to Cash API");
+  
+          // Ensure the updated balance is extracted correctly from supplierRes.data
+          const updatedSupplier = { ...supplier, balance: supplierRes.data.supplier.balance };  // Update supplier balance
+          
+          onSuccess(updatedSupplier);  // Pass the updated supplier data to onSuccess callback
+  
+          // Close the modal after success
+          onClose();
         } else {
           throw new Error("Failed to add cash");
         }
-
-        onSuccess();
-        onClose();
       } else {
         throw new Error("Failed to add transaction to supplier");
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to add balance or cash');
+      toast.error(error.response?.data?.message || "Failed to add balance or cash");
     } finally {
       setLoading(false);
     }
   };
-
+  
+  
+  
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        toast.error("File size should be less than 5MB");
+        return;
+      }
+      if (!["image/jpeg", "image/png"].includes(file.type)) { // Only JPEG and PNG allowed
+        toast.error("Only JPEG and PNG files are allowed");
+        return;
+      }
       setImage(file);
       setImagePreview(URL.createObjectURL(file));
     }

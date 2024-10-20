@@ -70,7 +70,7 @@ const Customer = () => {
     } catch (error) {
       console.error("There was an error creating the customer!", error);
       toast.error("Failed to add customer!");
-    }
+    } 
   };
   
 

@@ -3,12 +3,12 @@ import { Avatar, Box, Grid, IconButton } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { Add, Delete, History, Remove } from "@mui/icons-material";
 import { useSelector } from "react-redux";
-import { selectCanDelete } from "../../redux/features/auth/authSlice"; // Import the privilege selector
+import { selectCanDelete } from "../../redux/features/auth/authSlice"; 
 import AddSupplierBalanceModal from "../../components/Models/AddSupplierBalanceModal";
 import MinusSupplierBalanceModal from "../../components/Models/MinusSupplierBalanceModal";
 import ConfirmDeleteModal from "../../components/Models/ConfirmDeleteModal";
 import SupplierTransactionHistoryModal from "../../components/Models/SupplierTransactionHistoryModal";
- 
+
 const SupplierList = ({ suppliers, refreshSuppliers }) => {
   const [selectedSupplier, setSelectedSupplier] = useState(null);
   const [isAddModalOpen, setAddModalOpen] = useState(false);
@@ -47,7 +47,7 @@ const SupplierList = ({ suppliers, refreshSuppliers }) => {
   };
 
   const closeModals = () => {
-    console.log("Closing all modals");
+    // Close all open modals and reset selected supplier
     setAddModalOpen(false);
     setMinusModalOpen(false);
     setDeleteModalOpen(false);
@@ -57,10 +57,26 @@ const SupplierList = ({ suppliers, refreshSuppliers }) => {
 
   // Handle successful deletion
   const handleDeleteSuccess = (deletedSupplierId) => {
+    // Update the supplier list by removing the deleted supplier
     setSupplierList(supplierList.filter(supplier => supplier._id !== deletedSupplierId));
     closeModals();
   };
 
+  const handleBalanceUpdate = (updatedSupplier) => {
+    if (!updatedSupplier || !updatedSupplier._id) return;
+  
+    // Ensure updatedBalance is properly set in the supplier data.
+    const updatedSupplierList = supplierList.map((supplier) =>
+      supplier._id === updatedSupplier._id
+        ? { ...supplier, balance: updatedSupplier.balance || supplier.balance } // Fallback to previous balance if undefined
+        : supplier
+    );
+    setSupplierList(updatedSupplierList); // Update state with the modified supplier list
+  };
+  
+
+
+  // Define columns for the DataGrid
   const columns = [
     {
       field: "avatar",
@@ -74,7 +90,12 @@ const SupplierList = ({ suppliers, refreshSuppliers }) => {
     { field: "username", headerName: "Username", width: 150 },
     { field: "email", headerName: "Email", width: 200 },
     { field: "phone", headerName: "Phone", width: 120 },
-    { field: "balance", headerName: "Balance", width: 120 },
+    {
+      field: "balance",
+      headerName: "Balance",
+      width: 120,
+      renderCell: (params) => <div>{params.value !== undefined ? params.value : "0"}</div>, // Fallback to "0" if balance is undefined
+    },
     {
       field: "action",
       headerName: "Action",
@@ -95,7 +116,7 @@ const SupplierList = ({ suppliers, refreshSuppliers }) => {
             <IconButton
               color="error"
               onClick={() => openDeleteModal(params.row)}
-              disabled={!isAdmin && !canDeleteSupplier} // Enable delete button if isAdmin is true
+              disabled={!isAdmin && !canDeleteSupplier}
             >
               <Delete />
             </IconButton>
@@ -110,6 +131,7 @@ const SupplierList = ({ suppliers, refreshSuppliers }) => {
     },
   ];
 
+  // Handle no suppliers case
   if (!supplierList || supplierList.length === 0) {
     return <div>No suppliers available</div>;
   }
@@ -118,9 +140,9 @@ const SupplierList = ({ suppliers, refreshSuppliers }) => {
     <Box sx={{ margin: 3, bgcolor: "white", borderRadius: 2, padding: 3, width: "auto" }}>
       <DataGrid
         sx={{ borderLeft: 0, borderRight: 0, borderRadius: 0 }}
-        rows={supplierList}
+        rows={supplierList || []}  // Ensure supplierList is at least an empty array
         columns={columns}
-        getRowId={(row) => row._id}
+        getRowId={(row) => row._id || Math.random()}  // Fallback for row._id
         initialState={{
           pagination: {
             paginationModel: { page: 0, pageSize: 10 },
@@ -136,7 +158,7 @@ const SupplierList = ({ suppliers, refreshSuppliers }) => {
           open={isAddModalOpen}
           onClose={closeModals}
           supplier={selectedSupplier}
-          onSuccess={refreshSuppliers}
+          onSuccess={handleBalanceUpdate}  // Update supplier list after adding balance
         />
       )}
 
@@ -146,7 +168,7 @@ const SupplierList = ({ suppliers, refreshSuppliers }) => {
           open={isMinusModalOpen}
           onClose={closeModals}
           supplier={selectedSupplier}
-          onSuccess={refreshSuppliers}
+          onSuccess={handleBalanceUpdate}  // Update supplier list after subtracting balance
         />
       )}
 
@@ -157,7 +179,7 @@ const SupplierList = ({ suppliers, refreshSuppliers }) => {
           onClose={closeModals}
           entry={selectedSupplier}
           entryType="supplier"
-          onSuccess={() => handleDeleteSuccess(selectedSupplier._id)}
+          onSuccess={() => handleDeleteSuccess(selectedSupplier._id)}  // Update UI after deletion
         />
       )}
 

@@ -30,7 +30,7 @@ export const formatNumbers = (x) => {
   return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 };
 
-const ProductSummary = ({ products, bank }) => {
+const ProductSummary = ({ products }) => {
   const dispatch = useDispatch();
   const totalStoreValue = useSelector(selectTotalStoreValue);
   const outOfStock = useSelector(selectOutOfStock);
@@ -46,25 +46,33 @@ const ProductSummary = ({ products, bank }) => {
 
   const [banks, setBanks] = useState([]);
   const [cash, setCash] = useState([]);
+
   const totalCashAmount = useMemo(() => {
-    return cash.totalBalance;
+    return cash.totalBalance || 0;
   }, [cash]);
+
   const totalBankAmount = useMemo(() => {
-    return bank.reduce((total, bank) => total + (bank.balance || 0), 0);
+    return banks.reduce((total, bank) => total + (bank.balance || 0), 0);
   }, [banks]);
 
-  const fetchCash = async () => {
+  const fetchCashAndBanks = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/api/cash/all");
-      setCash(response.data);
-      console.log("Fetched cash:", response.data);
+      const [cashResponse, bankResponse] = await Promise.all([
+        axios.get("http://localhost:5000/api/cash/all"),
+        axios.get("http://localhost:5000/api/banks/all"),
+      ]);
+
+      setCash(cashResponse.data);
+      setBanks(bankResponse.data);
+      console.log("Fetched cash:", cashResponse.data);
+      console.log("Fetched banks:", bankResponse.data);
     } catch (error) {
-      console.error("There was an error fetching the Cash data!", error);
+      console.error("There was an error fetching the cash or bank data!", error);
     }
   };
 
   useEffect(() => {
-    fetchCash();
+    fetchCashAndBanks();
   }, []);
 
   return (
@@ -100,13 +108,13 @@ const ProductSummary = ({ products, bank }) => {
             <InfoBox
               icon={bankIcon}
               title={"Bank Amount"}
-              count={totalBankAmount}
+              count={`${formatNumbers(totalBankAmount.toFixed(2))}`}
               bgColor="card1"
             />
             <InfoBox
               icon={cashIcon}
               title={"Cash"}
-              count={totalCashAmount}
+              count={`${formatNumbers(totalCashAmount.toFixed(2))}`}
               bgColor="card4"
             />
           </>

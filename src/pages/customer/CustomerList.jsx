@@ -8,7 +8,7 @@ import AddBalanceModal from "../../components/Models/AddBalanceModal";
 import MinusBalanceModal from "../../components/Models/MinusBalanceModal";
 import DeleteCustomerModal from "../../components/Models/DeleteCustomerModal"; 
 import TransactionHistoryModal from "../../components/Models/TransactionHistoryModal";
-
+ 
 const CustomerList = ({ customers, refreshCustomers }) => {
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [isAddModalOpen, setAddModalOpen] = useState(false);

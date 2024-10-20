@@ -5,7 +5,7 @@ import EditBankModal from "../../../components/Models/EditBankModal";
 import CustomTable from "../../../components/CustomTable/OwnAccount";
 import { useSelector } from "react-redux";
 import { selectCanDelete } from "../../../redux/features/auth/authSlice";
-
+ 
 const BankList = ({ banks, refreshBanks, cash }) => {
   const [selectedEntry, setSelectedEntry] = useState(null);
   const [entryType, setEntryType] = useState("bank");

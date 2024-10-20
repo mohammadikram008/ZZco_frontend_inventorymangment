@@ -116,7 +116,10 @@ const SupplierTransactionHistoryModal = ({ open, onClose, supplier }) => {
 
         {/* Footer section with total balance and pagination controls */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
-          <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+          <Typography 
+            variant="subtitle1" 
+            sx={{ fontWeight: 'bold', color: totalBalance >= 0 ? 'green' : 'red' }}
+          >
             Total Balance: {totalBalance.toFixed(2)}
           </Typography>
           
