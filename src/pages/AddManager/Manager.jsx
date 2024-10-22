@@ -30,7 +30,7 @@ const Customer = () => {
   // Fetch list of managers
   const fetchCustomers = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/api/manager/allmanager");
+      const response = await axios.get("https://zzcoinventorymanagmentbackend.up.railway.app/api/manager/allmanager");
       setCustomers(response.data);
     } catch (error) {
       console.error("Error fetching manager data:", error);
@@ -75,7 +75,7 @@ const Customer = () => {
 
     try {
       const res = await axios.post(
-        "http://localhost:5000/api/manager/managerRegister",
+        "https://zzcoinventorymanagmentbackend.up.railway.app/api/manager/managerRegister",
         {
           username,
           email,

@@ -9,7 +9,7 @@ const TransactionHistoryModal = ({ open, onClose, customer }) => {
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [totalBalance, setTotalBalance] = useState(0);
 
-  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+  const BACKEND_URL = "https://zzcoinventorymanagmentbackend.up.railway.app";
   const API_URL = `${BACKEND_URL}/api/customers`;
 
   useEffect(() => {

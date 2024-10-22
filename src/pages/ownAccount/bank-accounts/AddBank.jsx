@@ -8,7 +8,7 @@ import "react-toastify/dist/ReactToastify.css";
 
 const Customer = () => {
   
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const BACKEND_URL = "https://zzcoinventorymanagmentbackend.up.railway.app";
 const API_URL = `${BACKEND_URL}/api/cash`;
   const [openModal, setOpenModal] = useState(false);
   const [openCashModal, setOpenCashModal] = useState(false);
@@ -39,7 +39,7 @@ const API_URL = `${BACKEND_URL}/api/cash`;
 
   const fetchBanks = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/api/banks/all");
+      const response = await axios.get("https://zzcoinventorymanagmentbackend.up.railway.app/api/banks/all");
       setBanks(response.data);
       console.log("Fetched banks:", response.data);
     } catch (error) {
@@ -69,7 +69,7 @@ const API_URL = `${BACKEND_URL}/api/cash`;
 
   const handleSubmit = async () => {
     try {
-      const res = await axios.post("http://localhost:5000/api/banks/add", {
+      const res = await axios.post("https://zzcoinventorymanagmentbackend.up.railway.app/api/banks/add", {
         bankName,
         amount,
       }, { withCredentials: true });

@@ -9,7 +9,7 @@ const SupplierTransactionHistoryModal = ({ open, onClose, supplier }) => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5); 
 
-  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+  const BACKEND_URL = "https://zzcoinventorymanagmentbackend.up.railway.app";
   const API_URL = `${BACKEND_URL}/api/suppliers`;
 
   useEffect(() => {

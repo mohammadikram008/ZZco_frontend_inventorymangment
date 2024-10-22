@@ -52,24 +52,26 @@ const ProductSummary = ({ products }) => {
   }, [cash]);
 
   const totalBankAmount = useMemo(() => {
-    return banks.reduce((total, bank) => total + (bank.balance || 0), 0);
+    return Array.isArray(banks) ? banks.reduce((total, bank) => total + (bank.balance || 0), 0) : 0;
   }, [banks]);
+  
 
   const fetchCashAndBanks = async () => {
     try {
       const [cashResponse, bankResponse] = await Promise.all([
-        axios.get("http://localhost:5000/api/cash/all"),
-        axios.get("http://localhost:5000/api/banks/all"),
+        axios.get("https://zzcoinventorymanagmentbackend.up.railway.app"),
+        axios.get("https://zzcoinventorymanagmentbackend.up.railway.app"),
       ]);
-
-      setCash(cashResponse.data);
-      setBanks(bankResponse.data);
+  
+      setCash(Array.isArray(cashResponse.data) ? cashResponse.data : []);
+      setBanks(Array.isArray(bankResponse.data) ? bankResponse.data : []);
       console.log("Fetched cash:", cashResponse.data);
       console.log("Fetched banks:", bankResponse.data);
     } catch (error) {
       console.error("There was an error fetching the cash or bank data!", error);
     }
   };
+  
 
   useEffect(() => {
     fetchCashAndBanks();

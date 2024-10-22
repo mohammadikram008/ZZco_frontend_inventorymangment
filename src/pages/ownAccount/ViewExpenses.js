@@ -60,7 +60,7 @@ const ViewExpenses = () => {
   const [totalPages, setTotalPages] = useState(0);
   const [runningBalance, setRunningBalance] = useState(0);
 
-  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+  const BACKEND_URL = "https://zzcoinventorymanagmentbackend.up.railway.app";
   const API_URL = `${BACKEND_URL}/api`;
   const { products } = useSelector((state) => state.product);
 
