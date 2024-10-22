@@ -1,18 +1,26 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-const name = JSON.parse(localStorage.getItem("name"));
-console.log(name);
+// Retrieve userRole from localStorage as a simple string
+let userRole = "";
+try {
+  const storedRole = localStorage.getItem("userRole");
+  if (storedRole) {
+    userRole = storedRole;
+  }
+} catch (error) {
+  console.warn("Error accessing localStorage:", error);
+}
 
 const initialState = {
   isLoggedIn: false,
-  name: name ? name : "",
+  userRole,
   user: {
     name: "",
     email: "",
     phone: "",
     bio: "",
     photo: "",
-    UserRole:""
+    privileges: {},
   },
 };
 
@@ -23,30 +31,34 @@ const authSlice = createSlice({
     SET_LOGIN(state, action) {
       state.isLoggedIn = action.payload;
     },
-    SET_NAME(state, action) {
-      console.log("action.payload",action.payload);
-      
-      localStorage.setItem("name", JSON.stringify(action.payload));
-      state.UserRole = action.payload;
+    SET_ROLE(state, action) {
+      const role = action.payload;
+      try {
+        localStorage.setItem("userRole", role);
+      } catch (error) {
+        console.warn("Failed to store userRole in localStorage:", error);
+      }
+      state.userRole = role;
+      state.user.userRole = role;
     },
     SET_USER(state, action) {
       const profile = action.payload;
-      state.user.name = profile.name;
-      state.user.email = profile.email;
-      state.user.phone = profile.phone;
-      state.user.bio = profile.bio;
-      state.user.photo = profile.photo;
-      state.user.photo = profile.UserRole;
+      state.user = { ...state.user, ...profile };
     },
   },
 });
 
-export const { SET_LOGIN, SET_NAME, SET_USER } = authSlice.actions;
+export const { SET_LOGIN, SET_ROLE, SET_USER } = authSlice.actions;
 
-
+// Selectors
 export const selectIsLoggedIn = (state) => state.auth.isLoggedIn;
-export const selectName = (state) => state.auth.name;
+export const selectUserRole = (state) => state.auth.userRole || "User";
 export const selectUser = (state) => state.auth.user;
-export const UserRole = (state) => state.auth;
+
+// Selector to check if the user has deletion privileges
+export const selectCanDelete = (state) => {
+  const isAdmin = state.auth.userRole === "Admin"; // Check if userRole is Admin
+  return isAdmin || state.auth.user.privileges?.canDelete === true; // Admins or users with canDelete privilege can delete
+};
 
 export default authSlice.reducer;

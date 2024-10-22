@@ -2,17 +2,28 @@ import React, { useState } from "react";
 import { Avatar, Box, Grid, IconButton } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { Add, Remove, Delete, History } from "@mui/icons-material";
+import { useSelector } from "react-redux";
+import { selectCanDelete } from "../../redux/features/auth/authSlice"; // Import the privilege selector
 import AddBalanceModal from "../../components/Models/AddBalanceModal";
 import MinusBalanceModal from "../../components/Models/MinusBalanceModal";
-import DeleteCustomerModal from "../../components/Models/DeleteCustomerModal"; // Use the new delete modal
+import DeleteCustomerModal from "../../components/Models/DeleteCustomerModal"; 
 import TransactionHistoryModal from "../../components/Models/TransactionHistoryModal";
-
+ 
 const CustomerList = ({ customers, refreshCustomers }) => {
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [isAddModalOpen, setAddModalOpen] = useState(false);
   const [isMinusModalOpen, setMinusModalOpen] = useState(false);
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
   const [isHistoryModalOpen, setHistoryModalOpen] = useState(false);
+
+  // Retrieve the user role from localStorage
+  const userRole = localStorage.getItem("userRole");
+
+  // Unconditionally retrieve delete permission
+  const hasDeletePermission = useSelector((state) => selectCanDelete(state, "deleteCustomer"));
+
+  // Determine if the delete action should be enabled
+  const canDeleteCustomer = userRole === "Admin" || hasDeletePermission;
 
   const openAddModal = (customer) => {
     setSelectedCustomer(customer);
@@ -25,6 +36,10 @@ const CustomerList = ({ customers, refreshCustomers }) => {
   };
 
   const openDeleteModal = (customer) => {
+    if (!canDeleteCustomer) {
+      alert("You do not have permission to delete this customer.");
+      return;
+    }
     setSelectedCustomer(customer);
     setDeleteModalOpen(true);
   };
@@ -82,6 +97,7 @@ const CustomerList = ({ customers, refreshCustomers }) => {
             <IconButton
               color="error"
               onClick={() => openDeleteModal(params.row)}
+              disabled={!canDeleteCustomer} // Disable button if no privilege
             >
               <Delete />
             </IconButton>

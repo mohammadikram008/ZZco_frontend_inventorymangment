@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { Avatar, Box, Grid, IconButton } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { Add, Delete, History, Remove } from "@mui/icons-material";
+import { useSelector } from "react-redux";
+import { selectCanDelete } from "../../redux/features/auth/authSlice"; 
 import AddSupplierBalanceModal from "../../components/Models/AddSupplierBalanceModal";
 import MinusSupplierBalanceModal from "../../components/Models/MinusSupplierBalanceModal";
 import ConfirmDeleteModal from "../../components/Models/ConfirmDeleteModal";
@@ -13,7 +15,11 @@ const SupplierList = ({ suppliers, refreshSuppliers }) => {
   const [isMinusModalOpen, setMinusModalOpen] = useState(false);
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
   const [isHistoryModalOpen, setHistoryModalOpen] = useState(false);
-  const [supplierList, setSupplierList] = useState(suppliers); // Use state for the supplier list
+  const [supplierList, setSupplierList] = useState(suppliers);
+
+  // Check if the user is admin from local storage
+  const isAdmin = localStorage.getItem("userRole") === "Admin";
+  const canDeleteSupplier = useSelector((state) => selectCanDelete(state, "deleteSupplier"));
 
   // Open respective modals
   const openAddModal = (supplier) => {
@@ -27,6 +33,10 @@ const SupplierList = ({ suppliers, refreshSuppliers }) => {
   };
 
   const openDeleteModal = (supplier) => {
+    if (!isAdmin && !canDeleteSupplier) {
+      alert("You do not have permission to delete this supplier.");
+      return;
+    }
     setSelectedSupplier(supplier);
     setDeleteModalOpen(true);
   };
@@ -37,6 +47,7 @@ const SupplierList = ({ suppliers, refreshSuppliers }) => {
   };
 
   const closeModals = () => {
+    // Close all open modals and reset selected supplier
     setAddModalOpen(false);
     setMinusModalOpen(false);
     setDeleteModalOpen(false);
@@ -46,11 +57,26 @@ const SupplierList = ({ suppliers, refreshSuppliers }) => {
 
   // Handle successful deletion
   const handleDeleteSuccess = (deletedSupplierId) => {
-    // Remove the deleted supplier from the supplier list
+    // Update the supplier list by removing the deleted supplier
     setSupplierList(supplierList.filter(supplier => supplier._id !== deletedSupplierId));
     closeModals();
   };
 
+  const handleBalanceUpdate = (updatedSupplier) => {
+    if (!updatedSupplier || !updatedSupplier._id) return;
+  
+    // Ensure updatedBalance is properly set in the supplier data.
+    const updatedSupplierList = supplierList.map((supplier) =>
+      supplier._id === updatedSupplier._id
+        ? { ...supplier, balance: updatedSupplier.balance || supplier.balance } // Fallback to previous balance if undefined
+        : supplier
+    );
+    setSupplierList(updatedSupplierList); // Update state with the modified supplier list
+  };
+  
+
+
+  // Define columns for the DataGrid
   const columns = [
     {
       field: "avatar",
@@ -64,7 +90,12 @@ const SupplierList = ({ suppliers, refreshSuppliers }) => {
     { field: "username", headerName: "Username", width: 150 },
     { field: "email", headerName: "Email", width: 200 },
     { field: "phone", headerName: "Phone", width: 120 },
-    { field: "balance", headerName: "Balance", width: 120 },
+    {
+      field: "balance",
+      headerName: "Balance",
+      width: 120,
+      renderCell: (params) => <div>{params.value !== undefined ? params.value : "0"}</div>, // Fallback to "0" if balance is undefined
+    },
     {
       field: "action",
       headerName: "Action",
@@ -82,7 +113,11 @@ const SupplierList = ({ suppliers, refreshSuppliers }) => {
             </IconButton>
           </Grid>
           <Grid item>
-            <IconButton color="error" onClick={() => openDeleteModal(params.row)}>
+            <IconButton
+              color="error"
+              onClick={() => openDeleteModal(params.row)}
+              disabled={!isAdmin && !canDeleteSupplier}
+            >
               <Delete />
             </IconButton>
           </Grid>
@@ -96,7 +131,7 @@ const SupplierList = ({ suppliers, refreshSuppliers }) => {
     },
   ];
 
-  // Render a simple message if suppliers is not available
+  // Handle no suppliers case
   if (!supplierList || supplierList.length === 0) {
     return <div>No suppliers available</div>;
   }
@@ -105,9 +140,9 @@ const SupplierList = ({ suppliers, refreshSuppliers }) => {
     <Box sx={{ margin: 3, bgcolor: "white", borderRadius: 2, padding: 3, width: "auto" }}>
       <DataGrid
         sx={{ borderLeft: 0, borderRight: 0, borderRadius: 0 }}
-        rows={supplierList}
+        rows={supplierList || []}  // Ensure supplierList is at least an empty array
         columns={columns}
-        getRowId={(row) => row._id}
+        getRowId={(row) => row._id || Math.random()}  // Fallback for row._id
         initialState={{
           pagination: {
             paginationModel: { page: 0, pageSize: 10 },
@@ -123,7 +158,7 @@ const SupplierList = ({ suppliers, refreshSuppliers }) => {
           open={isAddModalOpen}
           onClose={closeModals}
           supplier={selectedSupplier}
-          onSuccess={refreshSuppliers}
+          onSuccess={handleBalanceUpdate}  // Update supplier list after adding balance
         />
       )}
 
@@ -133,7 +168,7 @@ const SupplierList = ({ suppliers, refreshSuppliers }) => {
           open={isMinusModalOpen}
           onClose={closeModals}
           supplier={selectedSupplier}
-          onSuccess={refreshSuppliers}
+          onSuccess={handleBalanceUpdate}  // Update supplier list after subtracting balance
         />
       )}
 
@@ -144,7 +179,7 @@ const SupplierList = ({ suppliers, refreshSuppliers }) => {
           onClose={closeModals}
           entry={selectedSupplier}
           entryType="supplier"
-          onSuccess={() => handleDeleteSuccess(selectedSupplier._id)} // Pass the ID of the deleted supplier
+          onSuccess={() => handleDeleteSuccess(selectedSupplier._id)}  // Update UI after deletion
         />
       )}
 

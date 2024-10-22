@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import "./ProductSummary.scss";
 import { AiFillDollarCircle } from "react-icons/ai";
-import { BsCart4, BsCartX,BsBank2 } from "react-icons/bs";
+import { BsCart4, BsCartX, BsBank2 } from "react-icons/bs";
 import { BiCategory } from "react-icons/bi";
 import { FaMoneyBillWave } from "react-icons/fa";
 
@@ -22,49 +22,60 @@ const earningIcon = <AiFillDollarCircle size={40} color="#fff" />;
 const productIcon = <BsCart4 size={40} color="#fff" />;
 const categoryIcon = <BiCategory size={40} color="#fff" />;
 const outOfStockIcon = <BsCartX size={40} color="#fff" />;
-const bankIcon = <BsBank2 size={40} color="#fff" />; // New bank icon
-const cashIcon = <FaMoneyBillWave size={40} color="#fff" />; // New cash icon
-
+const bankIcon = <BsBank2 size={40} color="#fff" />;
+const cashIcon = <FaMoneyBillWave size={40} color="#fff" />;
 
 // Format Amount
 export const formatNumbers = (x) => {
   return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 };
 
-const ProductSummary = ({ products,bank }) => {
+const ProductSummary = ({ products }) => {
   const dispatch = useDispatch();
   const totalStoreValue = useSelector(selectTotalStoreValue);
   const outOfStock = useSelector(selectOutOfStock);
   const category = useSelector(selectCategory);
+
+  const isManager = useMemo(() => localStorage.getItem("userRole") === "Manager", []);
 
   useEffect(() => {
     dispatch(CALC_STORE_VALUE(products));
     dispatch(CALC_OUTOFSTOCK(products));
     dispatch(CALC_CATEGORY(products));
   }, [dispatch, products]);
+
   const [banks, setBanks] = useState([]);
   const [cash, setCash] = useState([]);
+
   const totalCashAmount = useMemo(() => {
-    return cash.totalBalance;
+    return cash.totalBalance || 0;
   }, [cash]);
+
   const totalBankAmount = useMemo(() => {
-    return bank.reduce((total, bank) => total + (bank.balance || 0), 0);
+    return Array.isArray(banks) ? banks.reduce((total, bank) => total + (bank.balance || 0), 0) : 0;
   }, [banks]);
-  const fetchCash = async () => {
+  
+
+  const fetchCashAndBanks = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/api/cash/all");
-      setCash(response.data);
-      console.log("Fetched cash:", response.data);
+      const [cashResponse, bankResponse] = await Promise.all([
+        axios.get("https://zzcoinventorymanagmentbackend.up.railway.app"),
+        axios.get("https://zzcoinventorymanagmentbackend.up.railway.app"),
+      ]);
+  
+      setCash(Array.isArray(cashResponse.data) ? cashResponse.data : []);
+      setBanks(Array.isArray(bankResponse.data) ? bankResponse.data : []);
+      console.log("Fetched cash:", cashResponse.data);
+      console.log("Fetched banks:", bankResponse.data);
     } catch (error) {
-      console.error("There was an error fetching the Cash data!", error);
+      console.error("There was an error fetching the cash or bank data!", error);
     }
   };
+  
 
   useEffect(() => {
-   
-    fetchCash();
+    fetchCashAndBanks();
   }, []);
-
 
   return (
     <div className="product-summary">
@@ -73,14 +84,8 @@ const ProductSummary = ({ products,bank }) => {
         <InfoBox
           icon={productIcon}
           title={"Total Products"}
-          count={products.length}
+          count={products.length} 
           bgColor="card1"
-        />
-        <InfoBox
-          icon={earningIcon}
-          title={"Store Value"}
-          count={`${formatNumbers(totalStoreValue.toFixed(2))}`}
-          bgColor="card2"
         />
         <InfoBox
           icon={outOfStockIcon}
@@ -94,19 +99,28 @@ const ProductSummary = ({ products,bank }) => {
           count={category.length}
           bgColor="card4"
         />
-        <InfoBox
-          icon={bankIcon}
-          title={"Bank Amount"}
-          count={totalBankAmount}
-          bgColor="card1"
-        />
-
-        <InfoBox
-          icon={cashIcon}
-          title={"Cash"}
-          count={totalCashAmount}
-          bgColor="card4"
-        />
+        {!isManager && (
+          <>
+            <InfoBox
+              icon={earningIcon}
+              title={"Store Value"}
+              count={`${formatNumbers(totalStoreValue.toFixed(2))}`}
+              bgColor="card2"
+            />
+            <InfoBox
+              icon={bankIcon}
+              title={"Bank Amount"}
+              count={`${formatNumbers(totalBankAmount.toFixed(2))}`}
+              bgColor="card1"
+            />
+            <InfoBox
+              icon={cashIcon}
+              title={"Cash"}
+              count={`${formatNumbers(totalCashAmount.toFixed(2))}`}
+              bgColor="card4"
+            />
+          </>
+        )}
       </div>
     </div>
   );

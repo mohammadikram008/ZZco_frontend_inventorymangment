@@ -38,7 +38,7 @@ const Customer = () => {
   const [customers, setCustomers] = useState([]);
   const fetchCustomers = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/api/customers/allcustomer");
+      const response = await axios.get("https://zzcoinventorymanagmentbackend.up.railway.app/api/customers/allcustomer");
       setCustomers(response.data);
       console.log("response", response);
     } catch (error) {
@@ -55,21 +55,24 @@ const Customer = () => {
   };
   const handleSubmit = async () => {
     try {
-      const res = await axios.post("http://localhost:5000/api/customers/customerResgister", {
+      const res = await axios.post("https://zzcoinventorymanagmentbackend.up.railway.app/api/customers/customerRegister", {
         username,
         email,
         password,
         phone,
       }, { withCredentials: true });
-
+  
       if (res) {
-        toast.success("Customer Add Successfully!")
+        toast.success("Customer Added Successfully!");
+        refreshCustomers(); // Refresh the customer list after adding a new customer
       }
       handleCloseModal();
     } catch (error) {
       console.error("There was an error creating the customer!", error);
-    }
+      toast.error("Failed to add customer!");
+    } 
   };
+  
 
   return (
     <Box sx={{ m: 0, p: 3, width: "100%" }}>

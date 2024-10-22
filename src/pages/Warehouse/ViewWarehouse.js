@@ -13,33 +13,27 @@ import {
 } from '../../redux/features/WareHouse/warehouseSlice';
 import {
   Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
+  Modal,
+  Typography,
   CircularProgress,
   Box,
-  TablePagination,
   IconButton,
-  Modal,
-  Typography
+  TextField
 } from '@mui/material';
 import CustomTable from '../../components/CustomTable/CustomTable';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import { selectCanDelete } from '../../redux/features/auth/authSlice';
 
 const WarehouseManager = () => {
   const dispatch = useDispatch();
   const warehouses = useSelector(selectWarehouses);
   const isLoading = useSelector(selectIsLoading);
+  const canDeleteWarehouse = useSelector(selectCanDelete);
+
+  // Check if the user has an admin role
+  const isAdmin = localStorage.getItem("userRole") === "Admin";
+
   const [editingWarehouse, setEditingWarehouse] = useState(null);
   const [open, setOpen] = useState(false);
   const [newWarehouse, setNewWarehouse] = useState({ name: '', location: '' });
@@ -47,14 +41,18 @@ const WarehouseManager = () => {
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [productsModalOpen, setProductsModalOpen] = useState(false);
   const [warehouseProducts, setWarehouseProducts] = useState([]);
+  const [warehouseList, setWarehouseList] = useState([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
-  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-
+  const BACKEND_URL = "https://zzcoinventorymanagmentbackend.up.railway.app";
   const API_URL = `${BACKEND_URL}/api/warehouses`;
 
   useEffect(() => {
     dispatch(getWarehouses());
   }, [dispatch]);
+
+  useEffect(() => {
+    setWarehouseList(warehouses);
+  }, [warehouses]);
 
   const handleClickOpen = () => setOpen(true);
   const handleClose = () => {
@@ -69,15 +67,19 @@ const WarehouseManager = () => {
   };
 
   const handleEdit = (warehouse) => {
-    console.log("warehouseEDIT", warehouse);
     setEditingWarehouse(warehouse);
     setNewWarehouse({ name: warehouse.name, location: warehouse.location });
     setOpen(true);
   };
 
   const handleDelete = (id) => {
+    if (!isAdmin && !canDeleteWarehouse) {
+      toast.error("You do not have permission to delete this warehouse.");
+      return;
+    }
     if (window.confirm('Are you sure you want to delete this warehouse?')) {
       dispatch(deleteWarehouse(id));
+      setWarehouseList(prevList => prevList.filter(warehouse => warehouse._id !== id));
     }
   };
 
@@ -96,13 +98,10 @@ const WarehouseManager = () => {
     setPage(0);
   };
 
-
   const handleViewProducts = async (warehouseId) => {
-    console.log("warehouseId", warehouseId);
     setLoadingProducts(true);
     try {
       const response = await axios.get(`${API_URL}/allproducts/${warehouseId}`, { withCredentials: true });
-      console.log("products", response.data);
       if (response.data.message === "No products found for this warehouse") {
         toast.info("No products found for this warehouse");
         setWarehouseProducts([]);
@@ -119,34 +118,38 @@ const WarehouseManager = () => {
   const columns = [
     { field: 'name', headerName: 'Name' },
     { field: 'location', headerName: 'Location' },
-    { field: 'createdAt', headerName: 'Created At', renderCell: (params) => new Date(params.value).toLocaleString() },
-    { field: 'updatedAt', headerName: 'Updated At', renderCell: (params) => new Date(params.value).toLocaleString() },
+    {
+      field: 'createdAt',
+      headerName: 'Created At',
+      renderCell: (params) => params?.row?.createdAt ? new Date(params.row.createdAt).toLocaleString() : "N/A"
+    },
+    {
+      field: 'updatedAt',
+      headerName: 'Updated At',
+      renderCell: (params) => params?.row?.updatedAt ? new Date(params.row.updatedAt).toLocaleString() : "N/A"
+    },
     {
       field: 'actions',
       headerName: 'Actions',
       renderCell: (params) => (
         <>
-          <IconButton onClick={() => handleViewProducts(params._id)}>
+          <IconButton onClick={() => handleViewProducts(params.row._id)}>
             <VisibilityIcon />
           </IconButton>
-          <IconButton onClick={() => handleEdit(params)}>
+          <IconButton onClick={() => handleEdit(params.row)}>
             <EditIcon />
           </IconButton>
-          <IconButton onClick={() => handleDelete(params._id)}>
-            <DeleteIcon />
-          </IconButton>
+          {(isAdmin || canDeleteWarehouse) && (
+            <IconButton onClick={() => handleDelete(params.row._id)}>
+              <DeleteIcon />
+            </IconButton>
+          )}
         </>
       ),
     },
   ];
-
-  const productColumns = [
-    { field: 'name', headerName: 'Product Name' },
-    { field: 'category', headerName: 'Category' },
-    { field: 'quantity', headerName: 'Quantity', align: 'right' },
-    { field: 'price', headerName: 'Price', align: 'right' },
-    // { field: 'status', headerName: 'Status' },
-  ];
+  
+  
 
   if (isLoading) {
     return <CircularProgress />;
@@ -154,7 +157,7 @@ const WarehouseManager = () => {
 
   return (
     <div>
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: '20px' ,marginBottom:'20px'}}>
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: '20px', marginBottom: '20px' }}>
         <Button variant="contained" color="primary" onClick={handleClickOpen}>
           Add Warehouse
         </Button>
@@ -211,7 +214,7 @@ const WarehouseManager = () => {
 
       <CustomTable
         columns={columns}
-        data={warehouses}
+        data={warehouseList}
         page={page}
         rowsPerPage={rowsPerPage}
         onPageChange={handleChangePage}
@@ -240,15 +243,10 @@ const WarehouseManager = () => {
           <Box sx={{ mt: 2 }}>
             {warehouseProducts ? (
               <CustomTable
-                columns={productColumns}
+                columns={columns}
                 data={warehouseProducts}
                 page={0}
                 rowsPerPage={5}
-                onPageChange={(event, newPage) => setPage(newPage)}
-                onRowsPerPageChange={(event) => {
-                  setRowsPerPage(parseInt(event.target.value, 10));
-                  setPage(0);
-                }}
               />
             ) : (
               <CircularProgress />

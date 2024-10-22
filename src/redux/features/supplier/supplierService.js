@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const BACKEND_URL = "https://zzcoinventorymanagmentbackend.up.railway.app";
 const API_URL = `${BACKEND_URL}/api/suppliers/`;
 
 const getSuppliers = async () => {
@@ -15,7 +15,9 @@ const createSupplier = async (supplierData) => {
 
 const addTransaction = async (supplierId, transactionData) => {
     const response = await axios.post(`${API_URL}${supplierId}/transaction`, transactionData, { withCredentials: true });
-  return response.data;
+  
+  console.log("response ========", response.data);
+    return response.data;
 };
 
 const supplierService = {

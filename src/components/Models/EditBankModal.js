@@ -9,62 +9,64 @@ import {
   MenuItem,
 } from "@mui/material";
 import axios from 'axios';
+import { toast } from "react-toastify";
 
-const EditBankModal = ({ open, onClose, entry, entryType, onSuccess }) => {
-  const [bankName, setBankName] = useState(""); // Only used for banks
-  const [amount, setAmount] = useState(""); // Used for banks
-  const [balance, setBalance] = useState(""); // Used for cash entries
-  const [type, setType] = useState("add"); // Only used for cash
+const EditBankModal = ({ open, onClose, entry, entryType, onSuccess, totalCashAmount }) => {
+  const [bankName, setBankName] = useState("");
+  const [amount, setAmount] = useState("");
+  const [balance, setBalance] = useState("");
+  const [type, setType] = useState("add");
 
-  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-
-  // Set the API URL based on whether editing a bank or cash
+  const BACKEND_URL = "https://zzcoinventorymanagmentbackend.up.railway.app";
   const API_URL = entryType === "bank"
     ? `${BACKEND_URL}/api/banks`
     : `${BACKEND_URL}/api/cash`;
 
-  // Update the form fields when the `entry` changes
   useEffect(() => {
     if (entry) {
       if (entryType === "bank") {
-        setBankName(entry.bankName || "");  // Initialize with the bank name if it's a bank
-        setAmount(entry.balance || "");     // Set the balance as amount for bank
+        setBankName(entry.bankName || "");
+        setAmount(entry.balance || "");
       } else if (entryType === "cash") {
-        setBalance(entry.balance || "");    // Set balance for cash
-        setType(entry.type || "add");       // Initialize cash type (add or deduct)
+        setBalance(entry.balance || "");
+        setType(entry.type || "add");
       }
     }
   }, [entry, entryType]);
 
   const handleSubmit = async () => {
+    if (entryType === "cash" && type === "deduct" && parseFloat(balance) > totalCashAmount) {
+      toast.error("Insufficient balance for this deduction.");
+      return;
+    }
+
     let formData = {};
 
-    // Include bankName and amount if editing a bank
     if (entryType === "bank") {
       formData = {
         bankName,
-        amount: parseFloat(amount), // Use 'amount' for banks
+        amount: parseFloat(amount),
       };
     }
 
-    // Include balance and type if editing cash
     if (entryType === "cash") {
+      const adjustedBalance = type === "deduct" ? -Math.abs(parseFloat(balance)) : Math.abs(parseFloat(balance));
       formData = {
-        balance: parseFloat(balance), // Use 'balance' for cash
+        balance: adjustedBalance,
         type,
       };
     }
 
-    console.log("Form Data Submitted to API:", formData);  // Log the form data to debug
-
     try {
       const response = await axios.put(`${API_URL}/update/${entry._id}`, formData);
-      console.log("Response from API:", response.data);
-      onSuccess();  // Callback to refresh the list after success
+      toast.success(response.data.message || "Entry updated successfully!");
+      onSuccess();
+      onClose();
     } catch (error) {
-      console.error(`Error updating ${entryType} details:`, error.response?.data || error);
+      const errorMessage = error.response?.data?.message || "Failed to update entry. Please try again.";
+      toast.error(errorMessage);
+      console.error(`Error updating ${entryType} details:`, errorMessage);
     }
-    onClose();  // Close the modal after submission
   };
 
   return (
@@ -118,8 +120,8 @@ const EditBankModal = ({ open, onClose, entry, entryType, onSuccess }) => {
           <Box mt={2}>
             <Typography variant="subtitle1">Transaction Type</Typography>
             <Select
-              value={type} // This must be the value passed for "add" or "deduct"
-              onChange={(e) => setType(e.target.value)} // Ensure this sets the correct type
+              value={type}
+              onChange={(e) => setType(e.target.value)}
               fullWidth
             >
               <MenuItem value="add">Add</MenuItem>

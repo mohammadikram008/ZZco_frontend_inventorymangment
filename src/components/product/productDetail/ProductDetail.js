@@ -168,7 +168,7 @@ const ProductDetail = () => {
               <ImageWrapper>
                 <StyledCardMedia
                   component="img"
-                  image={product?.image ? `${process.env.REACT_APP_BACKEND_URL}/${product.image.filePath}` : 'path/to/fallback/image.jpg'}
+                  image={product?.image ? `${"https://zzcoinventorymanagmentbackend.up.railway.app"}/${product.image.filePath}` : 'path/to/fallback/image.jpg'}
                   alt={product.name}
                 />
                 <OverlayBox>

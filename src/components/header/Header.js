@@ -1,17 +1,31 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { selectName, SET_LOGIN } from "../../redux/features/auth/authSlice";
+import { selectUserRole, SET_LOGIN, SET_ROLE } from "../../redux/features/auth/authSlice";
 import { logoutUser } from "../../services/authService";
 
 const Header = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const name = useSelector(selectName);
+
+  // Fetch userRole from Redux state
+  const userRole = useSelector(selectUserRole);
+
+  // Fetch userRole from localStorage if Redux state doesn't have it
+  useEffect(() => {
+    const storedRole = localStorage.getItem("userRole");
+    console.log("Stored role from localStorage:", storedRole); // Debugging line
+
+    if (storedRole && userRole !== storedRole) {
+      dispatch(SET_ROLE(storedRole)); // Update Redux state with stored role
+    }
+  }, [dispatch, userRole]);
 
   const logout = async () => {
     await logoutUser();
-    await dispatch(SET_LOGIN(false));
+    localStorage.removeItem("userRole"); // Clear role from localStorage on logout
+    dispatch(SET_LOGIN(false));
+    dispatch(SET_ROLE("")); // Clear role from Redux state
     navigate("/login");
   };
 
@@ -20,7 +34,7 @@ const Header = () => {
       <div className="--flex-between">
         <h3>
           <span className="--fw-thin">Welcome, </span>
-          <span className="--color-danger">{name}</span>
+          <span className="--color-danger">{userRole || "User"}</span> {/* Default to "User" if role is missing */}
         </h3>
         <button onClick={logout} className="--btn --btn-danger">
           Logout
