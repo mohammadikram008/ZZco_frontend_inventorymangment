@@ -92,7 +92,7 @@ function Sales() {
   };
 
   const fetchBankData = () => {
-    fetch(`${API_URL}/banks/allbanks`, {
+    fetch(`${API_URL}/banks/all`, {
       credentials: "include", // Include credentials to send cookies
     })
       .then((response) => response.json())
