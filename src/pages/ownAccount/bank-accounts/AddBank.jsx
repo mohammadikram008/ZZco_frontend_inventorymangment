@@ -88,7 +88,7 @@ const API_URL = `${BACKEND_URL}/api/Cash`;
   const handleCashSubmit = async () => {
     try {
       console.log(amount);
-      const res = await axios.post(`${API_URL}/add`, {
+      const res = await axios.post(`https://zzcoinventorymanagmentbackend.up.railway.app/api/cash/add`, {
         balance: amount,
         type:"add",
       }, { withCredentials: true });
