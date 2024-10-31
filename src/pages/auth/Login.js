@@ -3,6 +3,7 @@ import { useDispatch } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Button, TextField, Typography, Grid, Paper, MenuItem } from "@mui/material";
+import heroImg from "../../assets/logom.png";
 
 import { loginUser, loginManager, validateEmail } from "../../services/authService";
 import { SET_LOGIN, SET_ROLE, SET_USER } from "../../redux/features/auth/authSlice";
@@ -70,7 +71,7 @@ const Login = () => {
     <Grid container component={Paper} sx={{ height: "100vh" }}>
       {isLoading && <Loader />}
       <Grid item xs={false} sm={4} md={6} display={"flex"} justifyContent={"center"} alignItems={"center"}>
-        <img src={SignupImage} style={{ width: "60rem" }} alt="Signup" />
+        <img src={heroImg} style={{ width: "60rem", borderRadius: "50%" }} alt="Signup" />
       </Grid>
       <Grid item xs={12} sm={8} md={6} display={"flex"} justifyContent={"center"} alignItems={"center"}>
         <div style={{ display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "column" }}>

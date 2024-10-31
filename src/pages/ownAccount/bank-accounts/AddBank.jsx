@@ -9,7 +9,7 @@ import "react-toastify/dist/ReactToastify.css";
 const Customer = () => {
   
 const BACKEND_URL = "https://zzcoinventorymanagmentbackend.up.railway.app";
-const API_URL = `${BACKEND_URL}/api/cash`;
+const API_URL = `${BACKEND_URL}/api/Cash`;
   const [openModal, setOpenModal] = useState(false);
   const [openCashModal, setOpenCashModal] = useState(false);
   const [bankName, setBankName] = useState(""); // State for bank name
@@ -87,10 +87,13 @@ const API_URL = `${BACKEND_URL}/api/cash`;
 // handle submit cash
   const handleCashSubmit = async () => {
     try {
+      console.log(amount);
       const res = await axios.post(`${API_URL}/add`, {
-        balance:amount,
+        balance: amount,
+        type:"add",
       }, { withCredentials: true });
-
+      
+      console.log(amount);
       if (res) {
         toast.success(res.data.message);
       }

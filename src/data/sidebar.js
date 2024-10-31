@@ -17,12 +17,12 @@ const menu = [
     path: "/dashboard",
   },
   {
-    title: "Add Customer",
+    title: "Customer Detail",
     icon: <IoPersonAdd />,
     path: "/add-customer",
   },
   {
-    title: "Add Supplier",
+    title: "Supplier Detail",
     icon: <IoPersonAdd />,
     path: "/add-supplier",
   },

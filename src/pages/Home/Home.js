@@ -2,7 +2,7 @@ import React from "react";
 import { RiProductHuntLine } from "react-icons/ri";
 import { Link } from "react-router-dom";
 import "./Home.scss";
-import heroImg from "../../assets/inv-img.png";
+import heroImg from "../../assets/logom.png";
 import { ShowOnLogin, ShowOnLogout } from "../../components/protect/HiddenLink";
 
 const Home = () => {
@@ -57,8 +57,8 @@ const Home = () => {
           </div>
         </div>
 
-        <div className="hero-image">
-          <img src={heroImg} alt="Inventory" />
+        <div className="hero-image" style={{ borderRadius: '50%' }}>
+          <img src={heroImg} alt="Inventory" style={{ borderRadius: '50%' }} />
         </div>
       </section>
     </div>

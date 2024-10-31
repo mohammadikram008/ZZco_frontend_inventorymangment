@@ -72,7 +72,7 @@ const AddProduct = () => {
   const banks = useSelector((state) => state.bank.banks);
   const warehouses = useSelector((state) => state.warehouse.warehouses);
   const suppliers = useSelector((state) => state.supplier.suppliers);
-  console.log("suppliers", suppliers);
+  console.log("bankssss", banks);
   useEffect(() => {
     dispatch(getBanks());
     dispatch(getWarehouses());
@@ -268,7 +268,7 @@ const AddProduct = () => {
                     )}
                   </Grid>
                 )}
-                {paymentMethod === "online" && (
+                {paymentMethod === "online" || paymentMethod === "cheque" ? (
                   <Grid item xs={12} sm={6}>
                     <FormControl fullWidth>
                       <InputLabel>Bank</InputLabel>
@@ -278,13 +278,13 @@ const AddProduct = () => {
                       >
                         {banks.map((bank) => (
                           <MenuItem key={bank._id} value={bank._id}>
-                            {bank.name}
+                            {bank.bankName}
                           </MenuItem>
                         ))}
                       </Select>
                     </FormControl>
                   </Grid>
-                )}
+                ) : null}
                 <Grid item xs={12} sm={6}>
                   <FormControl fullWidth>
                     <InputLabel>Supplier</InputLabel>
@@ -316,7 +316,7 @@ const AddProduct = () => {
               <Typography>Quantity: {product.quantity}</Typography>
               <Typography>Shipping Type: {shippingType}</Typography>
               <Typography>Payment Method: {paymentMethod}</Typography>
-              <Typography>Supplier: {supplier.name}</Typography>
+              {/* <Typography>Supplier: {supplier.name}</Typography> */}
               {/* Add more details as needed */}
             </CardContent>
           </StyledCard>

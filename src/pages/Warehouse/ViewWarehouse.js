@@ -53,7 +53,7 @@ const WarehouseManager = () => {
   useEffect(() => {
     setWarehouseList(warehouses);
   }, [warehouses]);
-
+console.log("warehouses",warehouses);
   const handleClickOpen = () => setOpen(true);
   const handleClose = () => {
     setOpen(false);
@@ -101,7 +101,9 @@ const WarehouseManager = () => {
   const handleViewProducts = async (warehouseId) => {
     setLoadingProducts(true);
     try {
+      console.log("warehouseId",warehouseId);
       const response = await axios.get(`${API_URL}/allproducts/${warehouseId}`, { withCredentials: true });
+      console.log("res",response);
       if (response.data.message === "No products found for this warehouse") {
         toast.info("No products found for this warehouse");
         setWarehouseProducts([]);
@@ -117,30 +119,32 @@ const WarehouseManager = () => {
 
   const columns = [
     { field: 'name', headerName: 'Name' },
-    { field: 'location', headerName: 'Location' },
+    { field: 'location', headerName: 'Location' ,
+      renderCell: (params) => params?.location ? params.location : "N/A"
+    },
     {
       field: 'createdAt',
       headerName: 'Created At',
-      renderCell: (params) => params?.row?.createdAt ? new Date(params.row.createdAt).toLocaleString() : "N/A"
+      renderCell: (params) => params?.createdAt ? new Date(params.createdAt).toLocaleString() : "N/A"
     },
     {
       field: 'updatedAt',
       headerName: 'Updated At',
-      renderCell: (params) => params?.row?.updatedAt ? new Date(params.row.updatedAt).toLocaleString() : "N/A"
+      renderCell: (params) => params?.updatedAt ? new Date(params.updatedAt).toLocaleString() : "N/A"
     },
     {
       field: 'actions',
       headerName: 'Actions',
       renderCell: (params) => (
         <>
-          <IconButton onClick={() => handleViewProducts(params.row._id)}>
+          <IconButton onClick={() => handleViewProducts(params._id)}>
             <VisibilityIcon />
           </IconButton>
-          <IconButton onClick={() => handleEdit(params.row)}>
+          <IconButton onClick={() => handleEdit(params)}>
             <EditIcon />
           </IconButton>
           {(isAdmin || canDeleteWarehouse) && (
-            <IconButton onClick={() => handleDelete(params.row._id)}>
+            <IconButton onClick={() => handleDelete(params._id)}>
               <DeleteIcon />
             </IconButton>
           )}

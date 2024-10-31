@@ -1,7 +1,9 @@
 import axios from "axios";
 import { toast } from "react-toastify";
 
+// export const BACKEND_URL =  "https://zzcoinventorymanagmentbackend.up.railway.app";
 export const BACKEND_URL =  "https://zzcoinventorymanagmentbackend.up.railway.app";
+
 
 export const validateEmail = (email) => {
   return email.match(

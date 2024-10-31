@@ -70,6 +70,7 @@ console.log("cheques",cheques)
       dispatch(updateChequeStatus({ id: chequeId, status: true, type: cheque.type }));
     });
     setSelectedCheques([]);
+    dispatch(getPendingCheques()); // Fetch updated cheques after submission
   };
   // const handleStatusChange = (chequeId, newStatus, type) => {
   //   dispatch(updateChequeStatus({ id: chequeId, status: newStatus, type }));

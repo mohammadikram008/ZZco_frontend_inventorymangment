@@ -4,6 +4,7 @@ import { AiFillDollarCircle } from "react-icons/ai";
 import { BsCart4, BsCartX, BsBank2 } from "react-icons/bs";
 import { BiCategory } from "react-icons/bi";
 import { FaMoneyBillWave } from "react-icons/fa";
+import { useNavigate } from "react-router-dom"; // Add this import
 
 import InfoBox from "../../infoBox/InfoBox";
 import { useDispatch, useSelector } from "react-redux";
@@ -30,11 +31,13 @@ export const formatNumbers = (x) => {
   return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 };
 
-const ProductSummary = ({ products }) => {
+const ProductSummary = ({ products,bank ,cashs}) => {
+  console.log("BACMKS",cashs);
   const dispatch = useDispatch();
   const totalStoreValue = useSelector(selectTotalStoreValue);
   const outOfStock = useSelector(selectOutOfStock);
   const category = useSelector(selectCategory);
+  const navigate = useNavigate(); // Initialize useHistory
 
   const isManager = useMemo(() => localStorage.getItem("userRole") === "Manager", []);
 
@@ -48,12 +51,12 @@ const ProductSummary = ({ products }) => {
   const [cash, setCash] = useState([]);
 
   const totalCashAmount = useMemo(() => {
-    return cash.totalBalance || 0;
-  }, [cash]);
+    return cashs.totalBalance || 0;
+  }, [cashs]);
 
   const totalBankAmount = useMemo(() => {
-    return Array.isArray(banks) ? banks.reduce((total, bank) => total + (bank.balance || 0), 0) : 0;
-  }, [banks]);
+    return Array.isArray(bank) ? bank.reduce((total, bank) => total + (bank.balance || 0), 0) : 0;
+}, [bank]);
   
 
   const fetchCashAndBanks = async () => {
@@ -107,18 +110,22 @@ const ProductSummary = ({ products }) => {
               count={`${formatNumbers(totalStoreValue.toFixed(2))}`}
               bgColor="card2"
             />
-            <InfoBox
-              icon={bankIcon}
-              title={"Bank Amount"}
-              count={`${formatNumbers(totalBankAmount.toFixed(2))}`}
-              bgColor="card1"
-            />
-            <InfoBox
-              icon={cashIcon}
-              title={"Cash"}
-              count={`${formatNumbers(totalCashAmount.toFixed(2))}`}
-              bgColor="card4"
-            />
+            <div onClick={() => navigate("/bank-accounts")} className="info-summary">
+              <InfoBox
+                icon={bankIcon}
+                title={"Bank Amount"}
+                count={`${formatNumbers(totalBankAmount.toFixed(2))}`}
+                bgColor="card1"
+              />
+            </div>
+            <div onClick={() => navigate("/bank-accounts")} className="info-summary">
+              <InfoBox
+                icon={cashIcon}
+                title={"Cash"}
+                count={`${formatNumbers(totalCashAmount.toFixed(2))}`}
+                bgColor="card4"
+              />
+            </div>
           </>
         )}
       </div>

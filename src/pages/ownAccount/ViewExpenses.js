@@ -128,12 +128,14 @@ const ViewExpenses = () => {
   const fetchSales = async () => {
     try {
       const response = await axios.get(`${API_URL}/sales/allsales`, { withCredentials: true });
+
+      console.log("Sale",response.data);
       const salesData = response.data.map(sale => ({
         ...sale,
         type: 'Sale',
         amount: sale.totalSaleAmount, // Positive amount for sales (debit)
         date: new Date(sale.saleDate),
-        description: `Sale of ${sale.stockSold} units of product ${sale.productID}`,
+        description: `Sale of ${sale.stockSold} units of product ${sale.productID.name} to customer ${sale.customerID.username}`,
       }));
       updateLedger(salesData);
     } catch (err) {
@@ -166,11 +168,12 @@ const ViewExpenses = () => {
 
   useEffect(() => {
     if (products.length > 0) {
+      console.log("productsssssss",products);
       const purchaseEntries = products.map(product => ({
         type: 'Purchase',
         amount: -product.price * product.quantity, // Negative amount for purchases (credit)
         date: new Date(product.createdAt),
-        description: `Purchase of ${product.quantity} ${product.name} at ${product.price} each`,
+        description: `Purchase of ${product.quantity} ${product.name} from supplier ${product.supplier ? product.supplier.username : 'Unknown'} at ${product.price} each`,
         paymentMethod: product.paymentMethod,
         category: product.category,
       }));
