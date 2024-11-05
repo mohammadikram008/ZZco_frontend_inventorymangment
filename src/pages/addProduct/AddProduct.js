@@ -1,6 +1,7 @@
 import React, { Fragment, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import axios from 'axios';
 import Loader from "../../components/loader/Loader";
 import ProductForm from "../../components/product/productForm/ProductForm";
 import {
@@ -30,6 +31,9 @@ import {
   Select,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
+
+const BACKEND_URL = "https://zzcoinventorymanagmentbackend.up.railway.app";
+const API_URL = `${BACKEND_URL}/api/suppliers`;
 
 const StyledPaper = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(3),
@@ -63,16 +67,14 @@ const AddProduct = () => {
   const [selectedBank, setSelectedBank] = useState("");
   const [selectedWarehouse, setSelectedWarehouse] = useState("");
   const [shippingType, setShippingType] = useState("local");
-  const [selectedSupplier, setSelectedSupplier] = useState("");
   const [supplier, setSupplier] = useState({ id: "", name: "" });
-
   const [activeStep, setActiveStep] = useState(0);
 
   const isLoading = useSelector(selectIsLoading);
   const banks = useSelector((state) => state.bank.banks);
   const warehouses = useSelector((state) => state.warehouse.warehouses);
   const suppliers = useSelector((state) => state.supplier.suppliers);
-  console.log("bankssss", banks);
+
   useEffect(() => {
     dispatch(getBanks());
     dispatch(getWarehouses());
@@ -83,6 +85,7 @@ const AddProduct = () => {
     const { name, value } = e.target;
     setProduct({ ...product, [name]: value });
   };
+
   const handleSupplierChange = (event) => {
     const selectedSupplier = suppliers.find(s => s._id === event.target.value);
     if (selectedSupplier) {
@@ -103,6 +106,25 @@ const AddProduct = () => {
     setActiveStep((prevActiveStep) => prevActiveStep - 1);
   };
 
+  const recordSupplierTransaction = async () => {
+    if (!supplier.id || !product.price) return;
+
+    const transactionData = {
+      amount: product.price,
+      paymentMethod: paymentMethod,
+      chequeDate: paymentMethod === "cheque" ? chequeDate : null,
+      type: "debit",
+    };
+
+    try {
+      await axios.post(`${API_URL}/${supplier.id}/transaction`, transactionData);
+      toast.success("Transaction recorded in supplier history.");
+    } catch (error) {
+      console.error("Failed to record transaction:", error);
+      toast.error("Failed to record transaction in supplier history.");
+    }
+  };
+
   const saveProduct = async () => {
     const formData = new FormData();
     Object.keys(product).forEach(key => formData.append(key, product[key]));
@@ -111,7 +133,8 @@ const AddProduct = () => {
     formData.append("paymentMethod", paymentMethod);
     formData.append("chequeDate", chequeDate);
     formData.append("bank", selectedBank);
-    formData.append("supplier", supplier.id);  // Send supplier ID to the backend
+    formData.append("supplier", supplier.id);
+
     if (productImage) {
       formData.append("image", productImage);
     }
@@ -125,6 +148,7 @@ const AddProduct = () => {
 
   const handleSubmit = async () => {
     await saveProduct();
+    await recordSupplierTransaction();
     handleNext();
   };
 
@@ -183,7 +207,6 @@ const AddProduct = () => {
                     onChange={(e) => setDescription(e.target.value)}
                   />
                 </Grid>
-
               </Grid>
             </CardContent>
           </StyledCard>
@@ -268,7 +291,7 @@ const AddProduct = () => {
                     )}
                   </Grid>
                 )}
-                {paymentMethod === "online" || paymentMethod === "cheque" ? (
+                {(paymentMethod === "online" || paymentMethod === "cheque") && (
                   <Grid item xs={12} sm={6}>
                     <FormControl fullWidth>
                       <InputLabel>Bank</InputLabel>
@@ -284,7 +307,7 @@ const AddProduct = () => {
                       </Select>
                     </FormControl>
                   </Grid>
-                ) : null}
+                )}
                 <Grid item xs={12} sm={6}>
                   <FormControl fullWidth>
                     <InputLabel>Supplier</InputLabel>
@@ -316,8 +339,6 @@ const AddProduct = () => {
               <Typography>Quantity: {product.quantity}</Typography>
               <Typography>Shipping Type: {shippingType}</Typography>
               <Typography>Payment Method: {paymentMethod}</Typography>
-              {/* <Typography>Supplier: {supplier.name}</Typography> */}
-              {/* Add more details as needed */}
             </CardContent>
           </StyledCard>
         );

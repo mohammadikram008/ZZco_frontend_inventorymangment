@@ -17,26 +17,21 @@ import {
   TableRow,
   Paper,
   Container,
-  TablePagination
-
+  TablePagination,
+  CircularProgress,
 } from "@mui/material";
+import axios from "axios";
 
 function Sales() {
   const [showSaleModal, setShowSaleModal] = useState(false);
   const [sales, setAllSalesData] = useState([]);
   const [customer, setAllCustomer] = useState([]);
-  const [banks, setBanks] = useState([]); // State to store bank data
+  const [banks, setBanks] = useState([]); 
   const [updatePage, setUpdatePage] = useState(true);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
+  const [loading, setLoading] = useState(true); 
 
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
   const BACKEND_URL = "https://zzcoinventorymanagmentbackend.up.railway.app";
   const API_URL = `${BACKEND_URL}/api`;
 
@@ -44,17 +39,14 @@ function Sales() {
   const dispatch = useDispatch();
 
   const isLoggedIn = useSelector(selectIsLoggedIn);
-  const { products, isLoading, isError, message } = useSelector(
+  const { products, isLoading: isProductsLoading, isError, message } = useSelector(
     (state) => state.product
   );
-
-  console.log("products:", products);
 
   useEffect(() => {
     if (isLoggedIn) {
       dispatch(getProducts());
     }
-
     if (isError) {
       console.log(message);
     }
@@ -62,16 +54,16 @@ function Sales() {
 
   useEffect(() => {
     if (isLoggedIn) {
-      fetchSalesData();
-      fetchCustomerData();
-      fetchBankData(); // Fetch bank data on page load
+      setLoading(true); 
+      Promise.all([fetchSalesData(), fetchCustomerData(), fetchBankData()])
+        .then(() => setLoading(false)) 
+        .catch(() => setLoading(false)); 
     }
   }, [isLoggedIn, updatePage]);
 
-  // Fetching Data of All Sales
   const fetchCustomerData = () => {
-    fetch(`${API_URL}/customers/allcustomer`, {
-      credentials: "include", // Include credentials to send cookies
+    return fetch(`${API_URL}/customers/allcustomer`, {
+      credentials: "include",
     })
       .then((response) => response.json())
       .then((data) => {
@@ -81,8 +73,8 @@ function Sales() {
   };
 
   const fetchSalesData = () => {
-    fetch(`${API_URL}/sales/allsales`, {
-      credentials: "include", // Include credentials to send cookies
+    return fetch(`${API_URL}/sales/allsales`, {
+      credentials: "include",
     })
       .then((response) => response.json())
       .then((data) => {
@@ -92,8 +84,8 @@ function Sales() {
   };
 
   const fetchBankData = () => {
-    fetch(`${API_URL}/banks/all`, {
-      credentials: "include", // Include credentials to send cookies
+    return fetch(`${API_URL}/banks/all`, {
+      credentials: "include",
     })
       .then((response) => response.json())
       .then((data) => {
@@ -110,18 +102,40 @@ function Sales() {
     setUpdatePage(!updatePage);
   };
 
-  console.log("sales:", sales);
-
-  // Helper function to get product name by ID
-  const getProductName = (id) => {
-    const product = products.find((product) => product._id === id);
-    return product ? product.name : "Unknown Product";
+  // New function to record the sale transaction in the customer's ledger
+  const recordSaleTransaction = async (saleData) => {
+    try {
+      await axios.post(`${API_URL}/customers/sale-transaction`, saleData, { withCredentials: true });
+      console.log("Sale transaction recorded in customer's ledger");
+    } catch (error) {
+      console.error("Error recording sale transaction:", error);
+    }
   };
 
-  // Helper function to get customer name by ID
-  const getCustomerName = (id) => {
-    const cust = customer.find((cust) => cust._id === id);
-    return cust ? cust.username : "Unknown Customer";
+  const handleSaleSubmit = (saleData) => {
+    const saleTransactionData = {
+      customerId: saleData.customerID, // Pass customer ID
+      amount: saleData.totalSaleAmount, // Pass the sale amount as credit
+      paymentMethod: saleData.paymentMethod || 'cash', // Optional
+      saleDate: saleData.saleDate || new Date(), // Optional
+    };
+  
+    // Record the sale as a credit in the customer's ledger
+    recordSaleTransaction(saleTransactionData);
+  
+    handlePageUpdate(); // Refresh data after the sale
+  };
+  
+  
+
+  // Define missing handleChangePage and handleChangeRowsPerPage functions
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0); // Reset to the first page
   };
 
   return (
@@ -145,37 +159,43 @@ function Sales() {
               addSaleModalSetting={addSaleModalSetting}
               products={products}
               stores={customer}
-              banks={banks} // Pass bank data to AddSale component
+              banks={banks}
               handlePageUpdate={handlePageUpdate}
+              onSaleSubmit={handleSaleSubmit}
             />
           )}
 
-          <TableContainer component={Paper}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Product Name</TableCell>
-                  <TableCell>Customer Name</TableCell>
-                  <TableCell>Product Sold</TableCell>
-                  <TableCell>Sales Date</TableCell>
-                  <TableCell>Total Sale Amount (Rs)</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {sales
-                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                  .map((element) => (
-                  <TableRow key={element._id}>
-                    <TableCell>{getProductName(element.productID)}</TableCell>
-                    <TableCell>{getCustomerName(element.customerID)}</TableCell>
-                    <TableCell>{element.stockSold}</TableCell>
-                    <TableCell>{new Date(element.saleDate).toLocaleDateString()}</TableCell>
-                    <TableCell>{element.totalSaleAmount}</TableCell>
+          {loading ? (
+            <CircularProgress />
+          ) : (
+            <TableContainer component={Paper}>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Product Name</TableCell>
+                    <TableCell>Customer Name</TableCell>
+                    <TableCell>Product Sold</TableCell>
+                    <TableCell>Sales Date</TableCell>
+                    <TableCell>Total Sale Amount (Rs)</TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                </TableHead>
+                <TableBody>
+                  {sales
+                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                    .map((element) => (
+                      <TableRow key={element._id}>
+                        <TableCell>{element.productID?.name || "Unknown Product"}</TableCell>
+                        <TableCell>{element.customerID?.username || "Unknown Customer"}</TableCell>
+                        <TableCell>{element.stockSold}</TableCell>
+                        <TableCell>{new Date(element.saleDate).toLocaleDateString()}</TableCell>
+                        <TableCell>{element.totalSaleAmount}</TableCell>
+                      </TableRow>
+                    ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
+
           <TablePagination
             rowsPerPageOptions={[5, 10, 25]}
             component="div"
