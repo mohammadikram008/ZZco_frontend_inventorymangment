@@ -226,7 +226,7 @@ export default function AddSale({
                 </FormControl>
               </Grid>
               {/* Bank Selection for Cash Payment */}
-              {sale.paymentMethod === "online" && (
+              {sale.paymentMethod === "online" || sale.paymentMethod === "cheque" && (
                 <Grid item xs={12} sm={6}>
                   <FormControl fullWidth margin="normal">
                     <InputLabel id="bankID-label">Bank Name</InputLabel>

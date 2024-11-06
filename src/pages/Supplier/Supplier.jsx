@@ -99,7 +99,7 @@ const Supplier = () => {
           <TextField
             fullWidth
             margin="normal"
-            label="Username"
+            label="Name"
             name="username"
             value={username}
             onChange={handleInputChange}
@@ -107,7 +107,7 @@ const Supplier = () => {
           <TextField
             fullWidth
             margin="normal"
-            label="Email"
+            label="Email (optional)"
             name="email"
             type="email"
             value={email}
@@ -116,7 +116,7 @@ const Supplier = () => {
           <TextField
             fullWidth
             margin="normal"
-            label="Password"
+            label="Password (optional)"
             name="password"
             type="password"
             value={password}
