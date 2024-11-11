@@ -42,8 +42,6 @@ const ProductForm = ({
   handleSupplierChange,
 }) => {
 
-  console.log("Suppliers in ProductForm:", suppliers);
-
   const handleFormSubmit = (event) => {
     event.preventDefault();
     saveProduct();

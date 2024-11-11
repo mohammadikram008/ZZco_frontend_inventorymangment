@@ -5,7 +5,8 @@ import { Box, Button, Grid, Modal, TextField, Typography } from "@mui/material";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { getSuppliers, createSupplier, reset } from "../../redux/features/supplier/supplierSlice";
- 
+import AddSupplierModal from '../../components/Models/addSupplierModel'; // Import the new modal component
+
 const Supplier = () => {
   const dispatch = useDispatch();
   const { suppliers, isLoading, isError, message } = useSelector((state) => state.supplier);
@@ -80,7 +81,17 @@ const Supplier = () => {
       <SupplierList suppliers={suppliers} />
 
       {/* Add Supplier Modal */}
-      <Modal
+      <AddSupplierModal 
+        open={openModal} 
+        handleClose={handleCloseModal} 
+        // handleSubmit={handleSubmit} 
+        // username={username} 
+        // email={email} 
+        // password={password} 
+        // phone={phone} 
+        // handleInputChange={handleInputChange} 
+      />
+      {/* <Modal
         open={openModal}
         onClose={handleCloseModal}
         aria-labelledby="modal-title"
@@ -138,7 +149,7 @@ const Supplier = () => {
             Submit
           </Button>
         </Box>
-      </Modal>
+      </Modal> */}
 
       <ToastContainer />
     </Box>

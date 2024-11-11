@@ -8,6 +8,8 @@ import {
   createProduct,
   selectIsLoading,
 } from "../../redux/features/product/productSlice";
+import Modal from "@mui/material/Modal"; // Import the Modal component
+import Supplier from "../Supplier/Supplier"; // Import the Supplier component
 import { getWarehouses } from "../../redux/features/WareHouse/warehouseSlice";
 import { getBanks } from "../../redux/features/Bank/bankSlice";
 import { getSuppliers } from '../../redux/features/supplier/supplierSlice';
@@ -31,6 +33,8 @@ import {
   Select,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
+import AddSupplierModal from "../../components/Models/addSupplierModel";
+import AddWareHouseModal from "../../components/Models/AddWareHouse";
 
 const BACKEND_URL = "https://zzcoinventorymanagmentbackend.up.railway.app";
 const API_URL = `${BACKEND_URL}/api/suppliers`;
@@ -69,7 +73,12 @@ const AddProduct = () => {
   const [shippingType, setShippingType] = useState("local");
   const [supplier, setSupplier] = useState({ id: "", name: "" });
   const [activeStep, setActiveStep] = useState(0);
-
+  const [openSupplierModal, setOpenSupplierModal] = useState(false); // State to control the supplier modal
+  const [openWareHouseModal, setOpenWareHosueModal] = useState(false); // State to control the supplier modal
+  const handleOpenModal = () => setOpenSupplierModal(true);
+  const handleCloseModal = () => setOpenSupplierModal(false);
+  const handleOpenModalwarehouse = () => setOpenWareHosueModal(true);
+  const handleCloseModalwarehouse = () => setOpenWareHosueModal(false);
   const isLoading = useSelector(selectIsLoading);
   const banks = useSelector((state) => state.bank.banks);
   const warehouses = useSelector((state) => state.warehouse.warehouses);
@@ -80,6 +89,8 @@ const AddProduct = () => {
     dispatch(getWarehouses());
     dispatch(getSuppliers());
   }, [dispatch]);
+  const handleOpenSupplierModal = () => setOpenSupplierModal(true); // Function to open the supplier modal
+  const handleCloseSupplierModal = () => setOpenSupplierModal(false); // Function to close the supplier modal
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -110,7 +121,7 @@ const AddProduct = () => {
     if (!supplier.id || !product.price) return;
 
     const transactionData = {
-      amount: product.price,
+      amount: product.price*product.quantity,
       paymentMethod: paymentMethod,
       chequeDate: paymentMethod === "cheque" ? chequeDate : null,
       type: "debit",
@@ -241,6 +252,9 @@ const AddProduct = () => {
                             {warehouse.name}
                           </MenuItem>
                         ))}
+                          <MenuItem value="addNew" onClick={handleOpenModalwarehouse} style={{ backgroundColor: 'silver' }}>
+                        Add New WareHouse
+                      </MenuItem>
                       </Select>
                     </FormControl>
                   </Grid>
@@ -308,7 +322,7 @@ const AddProduct = () => {
                     </FormControl>
                   </Grid>
                 )}
-                <Grid item xs={12} sm={6}>
+                <Grid item xs={12} sm={6} display="flex" flexDirection="row" justifyContent="space-between">
                   <FormControl fullWidth>
                     <InputLabel>Supplier</InputLabel>
                     <Select
@@ -321,9 +335,13 @@ const AddProduct = () => {
                           {s.username}
                         </MenuItem>
                       ))}
+                      <MenuItem value="addNew" onClick={handleOpenModal} style={{ backgroundColor: 'silver' }}>
+                        Add New Supplier
+                      </MenuItem>
                     </Select>
                   </FormControl>
                 </Grid>
+                
               </Grid>
             </CardContent>
           </StyledCard>
@@ -353,6 +371,7 @@ const AddProduct = () => {
         <Typography variant="h4" gutterBottom align="center">
           Add New Product
         </Typography>
+      
         <Stepper activeStep={activeStep} alternativeLabel>
           {steps.map((label) => (
             <Step key={label}>
@@ -392,7 +411,18 @@ const AddProduct = () => {
         </Box>
       </StyledPaper>
       {isLoading && <Loader />}
+      <AddSupplierModal
+        open={openSupplierModal}
+        handleClose={handleCloseModal}
+
+      />
+        <AddWareHouseModal
+        open={openWareHouseModal}
+        onClose={handleCloseModalwarehouse}
+
+      />
       <ToastContainer />
+
     </Container>
   );
 };

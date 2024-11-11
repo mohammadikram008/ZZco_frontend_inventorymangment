@@ -46,8 +46,6 @@ const Customer = () => {
     }
   };
   useEffect(() => {
-   
-
     fetchCustomers();
   }, []);
   const refreshCustomers = () => {
