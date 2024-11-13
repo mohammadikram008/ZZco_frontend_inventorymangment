@@ -40,9 +40,9 @@ const Home = () => {
       {/* HERO SECTION */}
       <section className="container hero">
         <div className="hero-text">
-          <h2>ZZco {"&"} Stock Management Solution</h2>
+          <h2>Z{"&"}Z.co {"&"} Stock Management Solution</h2>
           <p>
-            Inventory system to control and manage proucts in the ZZco
+            Inventory system to control and manage proucts in the Z{"&"}Z.co
            
           </p>
           {/* <div className="hero-buttons">

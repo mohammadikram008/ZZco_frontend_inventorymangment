@@ -65,13 +65,18 @@ const menu = [
     
     ],
   },
+  {
+    title: "Add Manager",
+    icon: <GrUserManager />,
+    path: "/add-manager",
+  },
   // {
   //   title: "Order",
   //   icon: <FaBookMedical />,
   //   path: "/order",
   // },
   {
-    title: "Account",
+    title: "Profile Setting",
     icon: <FaRegChartBar />,
     childrens: [
       {
@@ -92,16 +97,12 @@ const menu = [
       // },
     ],
   },
-  {
-    title: "Add Manager",
-    icon: <GrUserManager />,
-    path: "/add-manager",
-  },
-  {
-    title: "Report Bug",
-    icon: <FaCommentAlt />,
-    path: "/contact-us",
-  },
+  
+  // {
+  //   title: "Report Bug",
+  //   icon: <FaCommentAlt />,
+  //   path: "/contact-us",
+  // },
 ];
 
 export default menu;

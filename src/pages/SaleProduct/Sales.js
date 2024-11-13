@@ -32,7 +32,7 @@ function Sales() {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [loading, setLoading] = useState(true); 
 
-  const BACKEND_URL = "https://zzcoinventorymanagmentbackend.up.railway.app";
+  const BACKEND_URL = "http://localhost:5001";
   const API_URL = `${BACKEND_URL}/api`;
 
   useRedirectLoggedOutUser("/login");
@@ -158,8 +158,9 @@ function Sales() {
             <AddSale
               addSaleModalSetting={addSaleModalSetting}
               products={products}
-              stores={customer}
+              customer={customer}
               banks={banks}
+              fetchCustomerData={fetchCustomerData}
               handlePageUpdate={handlePageUpdate}
               onSaleSubmit={handleSaleSubmit}
             />

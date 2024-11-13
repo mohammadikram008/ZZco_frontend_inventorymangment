@@ -24,7 +24,7 @@ const AddBalanceModal = ({ open, onClose, customer, onSuccess }) => {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
-  const BACKEND_URL ="https://zzcoinventorymanagmentbackend.up.railway.app";
+  const BACKEND_URL ="http://localhost:5001";
   const API_URL = `${BACKEND_URL}/api/customers`;
   const dispatch = useDispatch();
   const banks = useSelector((state) => state.bank.banks);

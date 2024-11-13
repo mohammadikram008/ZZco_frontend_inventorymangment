@@ -22,7 +22,7 @@ const AddExpense = () => {
     expenseDate: "",
   });
 
-  const BACKEND_URL = "https://zzcoinventorymanagmentbackend.up.railway.app";
+  const BACKEND_URL = "http://localhost:5001";
   const API_URL = `${BACKEND_URL}/api`;
 
   // Function to handle input changes

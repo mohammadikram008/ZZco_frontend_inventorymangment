@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, Fragment } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import AddCustomerModal from "../Models/AddCustomer"; // Import the new component
 
 import {
   Dialog,
@@ -23,7 +24,8 @@ import axios from "axios";
 export default function AddSale({
   addSaleModalSetting,
   products,
-  stores,
+  customer,
+  fetchCustomerData,
   handlePageUpdate,
 }) {
   const dispatch = useDispatch();
@@ -40,11 +42,21 @@ export default function AddSale({
     warehouseID: "",
     status: false
   });
+  const [openModal, setOpenModal] = useState(false); // State to control modal visibility
+  const [customers, setCustomers] = useState([]); // Assuming you have a state for customers
+
+  const handleOpenModal = () => {
+    setOpenModal(true); // Open the modal
+  };
+
+  const handleCloseModal = () => {
+    setOpenModal(false); // Close the modal
+  };
   const [open, setOpen] = useState(true);
   const [image, setImage] = useState(null);
   const [imagePreview, setImagePreview] = useState("");
   const cancelButtonRef = useRef(null);
-  const BACKEND_URL = "https://zzcoinventorymanagmentbackend.up.railway.app";
+  const BACKEND_URL = "http://localhost:5001";
   const API_URL = `${BACKEND_URL}/api`;
 
   const banks = useSelector((state) => state.bank.banks);
@@ -108,6 +120,9 @@ export default function AddSale({
         console.error("Error:", error);
         toast.error(error.response?.data?.message || "Failed to add sale. Please try again.");
       });
+  };
+  const refreshCustomers = () => {
+    fetchCustomerData();
   };
 
   return (
@@ -178,10 +193,10 @@ export default function AddSale({
                     onChange={handleInputChange}
                     label="Customer"
                   >
-                    <MenuItem value="">
-                      <em>Select Store</em>
-                    </MenuItem>
-                    {stores.map((store) => (
+                    <MenuItem value="addNew" onClick={handleOpenModal} style={{ backgroundColor: 'silver' }}>
+                        Add New Customer
+                      </MenuItem>
+                    {customer.map((store) => (
                       <MenuItem key={store._id} value={store._id}>
                         {store.username}
                       </MenuItem>
@@ -226,7 +241,7 @@ export default function AddSale({
                 </FormControl>
               </Grid>
               {/* Bank Selection for Cash Payment */}
-              {sale.paymentMethod === "online" || sale.paymentMethod === "cheque" && (
+              {(sale.paymentMethod === "online" || sale.paymentMethod === "cheque") && (
                 <Grid item xs={12} sm={6}>
                   <FormControl fullWidth margin="normal">
                     <InputLabel id="bankID-label">Bank Name</InputLabel>
@@ -349,6 +364,11 @@ export default function AddSale({
           </Button>
         </DialogActions>
       </Dialog>
+      <AddCustomerModal // Use the new component
+        open={openModal}
+        handleClose={handleCloseModal}
+        refreshCustomers={refreshCustomers}
+      />
     </Fragment>
   );
 }

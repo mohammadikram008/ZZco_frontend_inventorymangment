@@ -43,9 +43,9 @@ const WarehouseManager = () => {
   const [warehouseProducts, setWarehouseProducts] = useState([]);
   const [warehouseList, setWarehouseList] = useState([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
-  const BACKEND_URL = "https://zzcoinventorymanagmentbackend.up.railway.app";
+  const BACKEND_URL = "http://localhost:5001";
   const API_URL = `${BACKEND_URL}/api/warehouses`;
-
+console.log("warehouseProducts",warehouseProducts);
   useEffect(() => {
     dispatch(getWarehouses());
   }, [dispatch]);
@@ -73,7 +73,9 @@ console.log("warehouses",warehouses);
   };
 
   const handleDelete = (id) => {
+    console.log("id",id);
     if (!isAdmin && !canDeleteWarehouse) {
+    
       toast.error("You do not have permission to delete this warehouse.");
       return;
     }
@@ -138,19 +140,50 @@ console.log("warehouses",warehouses);
       renderCell: (params) => (
         <>
           <IconButton onClick={() => handleViewProducts(params._id)}>
-            <VisibilityIcon />
+            {productsModalOpen ? null : <VisibilityIcon />}
           </IconButton>
           <IconButton onClick={() => handleEdit(params)}>
-            <EditIcon />
+          {productsModalOpen ? null : <EditIcon/>}
+         
           </IconButton>
           {(isAdmin || canDeleteWarehouse) && (
             <IconButton onClick={() => handleDelete(params._id)}>
-              <DeleteIcon />
+          {productsModalOpen ? null : <DeleteIcon/>}
+          
             </IconButton>
           )}
         </>
       ),
     },
+  ];
+  const column = [
+    { field: 'name', headerName: 'Name' },
+    { field: 'quantity', headerName: 'Quantity' ,
+      renderCell: (params) => params?.quantity ? params.quantity : "N/A"
+    },
+    { field: 'price', headerName: 'Price' ,
+      renderCell: (params) => params?.price ? params.price : "N/A"
+    },
+    { field: 'category', headerName: 'Category' ,
+      renderCell: (params) => params?.category ? params.category : "N/A"
+    },
+    { field: 'shippingType', headerName: 'Shipping Type' ,
+      renderCell: (params) => params?.shippingType ? params.shippingType : "N/A"
+    },
+    { field: 'receivedQuantity', headerName: 'Received Quantity' ,
+      renderCell: (params) => params?.receivedQuantity ? params.receivedQuantity : "N/A"
+    },
+    {
+      field: 'createdAt',
+      headerName: 'Created At',
+      renderCell: (params) => params?.createdAt ? new Date(params.createdAt).toLocaleString() : "N/A"
+    },
+    // {
+    //   field: 'updatedAt',
+    //   headerName: 'Updated At',
+    //   renderCell: (params) => params?.updatedAt ? new Date(params.updatedAt).toLocaleString() : "N/A"
+    // },
+    
   ];
   
   
@@ -247,7 +280,7 @@ console.log("warehouses",warehouses);
           <Box sx={{ mt: 2 }}>
             {warehouseProducts ? (
               <CustomTable
-                columns={columns}
+                columns={column}
                 data={warehouseProducts}
                 page={0}
                 rowsPerPage={5}

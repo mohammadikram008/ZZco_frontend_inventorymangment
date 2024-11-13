@@ -62,8 +62,8 @@ const ProductSummary = ({ products,bank ,cashs}) => {
   const fetchCashAndBanks = async () => {
     try {
       const [cashResponse, bankResponse] = await Promise.all([
-        axios.get("https://zzcoinventorymanagmentbackend.up.railway.app"),
-        axios.get("https://zzcoinventorymanagmentbackend.up.railway.app"),
+        axios.get("http://localhost:5001"),
+        axios.get("http://localhost:5001"),
       ]);
   
       setCash(Array.isArray(cashResponse.data) ? cashResponse.data : []);

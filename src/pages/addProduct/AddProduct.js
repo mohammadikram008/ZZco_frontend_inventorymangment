@@ -36,7 +36,7 @@ import { styled } from "@mui/material/styles";
 import AddSupplierModal from "../../components/Models/addSupplierModel";
 import AddWareHouseModal from "../../components/Models/AddWareHouse";
 
-const BACKEND_URL = "https://zzcoinventorymanagmentbackend.up.railway.app";
+const BACKEND_URL = "http://localhost:5001";
 const API_URL = `${BACKEND_URL}/api/suppliers`;
 
 const StyledPaper = styled(Paper)(({ theme }) => ({

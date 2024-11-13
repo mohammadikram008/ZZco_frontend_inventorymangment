@@ -7,7 +7,7 @@ const EditSupplierModal = ({ open, onClose, supplier, onSuccess }) => {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
 
-  const BACKEND_URL = "https://zzcoinventorymanagmentbackend.up.railway.app";
+  const BACKEND_URL = "http://localhost:5001";
   const API_URL = `${BACKEND_URL}/api/suppliers`;
 
   useEffect(() => {

@@ -4,6 +4,7 @@ import { Box, Button, Grid, Modal, TextField, Typography } from "@mui/material";
 import axios from 'axios';
 import { toast,ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import AddCustomerModal from "../../components/Models/AddCustomer"; // Import the new component
 
 const Customer = () => {
   const [openModal, setOpenModal] = useState(false);
@@ -38,7 +39,7 @@ const Customer = () => {
   const [customers, setCustomers] = useState([]);
   const fetchCustomers = async () => {
     try {
-      const response = await axios.get("https://zzcoinventorymanagmentbackend.up.railway.app/api/customers/allcustomer");
+      const response = await axios.get("http://localhost:5001/api/customers/allcustomer");
       setCustomers(response.data);
       console.log("response", response);
     } catch (error) {
@@ -53,7 +54,7 @@ const Customer = () => {
   };
   const handleSubmit = async () => {
     try {
-      const res = await axios.post("https://zzcoinventorymanagmentbackend.up.railway.app/api/customers/customerRegister", {
+      const res = await axios.post("http://localhost:5001/api/customers/customerRegister", {
         username,
         email,
         password,
@@ -85,65 +86,11 @@ const Customer = () => {
       </Grid>
       <CustomerList customers={customers} refreshCustomers={refreshCustomers} />
       
-      <Modal
+      <AddCustomerModal // Use the new component
         open={openModal}
-        onClose={handleCloseModal}
-        aria-labelledby="modal-title"
-        aria-describedby="modal-description"
-      >
-        <Box sx={{ 
-          width: 400, 
-          p: 3, 
-          mx: "auto", 
-          mt: 5, 
-          bgcolor: "background.paper", 
-          boxShadow: 24, 
-          borderRadius: 1 
-        }}>
-          <Typography variant="h6" id="modal-title">Add Customer</Typography>
-          <TextField
-            fullWidth
-            margin="normal"
-            label="Name"
-            name="username"
-            value={username}
-            onChange={handleInputChange}
-          />
-          <TextField
-            fullWidth
-            margin="normal"
-            label="Email (optional)"
-            name="email"
-            type="email"
-            value={email}
-            onChange={handleInputChange}
-          />
-          <TextField
-            fullWidth
-            margin="normal"
-            label="Password (optional)"
-            name="password"
-            type="password"
-            value={password}
-            onChange={handleInputChange}
-          />
-          <TextField
-            fullWidth
-            margin="normal"
-            label="Phone"
-            name="phone"
-            value={phone}
-            onChange={handleInputChange}
-          />
-          <Button 
-            variant="contained" 
-            color="primary" 
-            onClick={handleSubmit}
-          >
-            Submit
-          </Button>
-        </Box>
-      </Modal>
+        handleClose={handleCloseModal}
+        refreshCustomers={refreshCustomers}
+      />
       <ToastContainer />
     </Box>
   );

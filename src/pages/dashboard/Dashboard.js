@@ -32,7 +32,7 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchCashData = async () => { // {{ edit_3 }}
       try {
-        const response = await axios.get('https://zzcoinventorymanagmentbackend.up.railway.app/api/cash/all',{withCredentials:true}); // Replace with your API endpoint
+        const response = await axios.get('http://localhost:5001/api/cash/all',{withCredentials:true}); // Replace with your API endpoint
         console.log("Response", response.data);
         setCash(response.data); // Store the fetched cash data
       } catch (error) {
