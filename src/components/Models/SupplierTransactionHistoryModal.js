@@ -11,6 +11,7 @@ const SupplierTransactionHistoryModal = ({ open, onClose, supplier }) => {
 
   const BACKEND_URL = "http://localhost:5001";
   const API_URL = `${BACKEND_URL}/api/suppliers`;
+  const [runningBalance, setRunningBalance] = useState(0); // State to store running balance
 
   useEffect(() => {
     if (open && supplier) {
@@ -26,20 +27,24 @@ const SupplierTransactionHistoryModal = ({ open, onClose, supplier }) => {
             const credit = isDebit ? 0 : transaction.amount;
             balance += credit - debit;
 
+            // Update running balance after each transaction
+            setRunningBalance(prevBalance => prevBalance + credit - debit);
+
             return {
               ...transaction,
               debit,
               credit,
+              runningBalance: balance, // Add running balance to each transaction
             };
           });
 
           setTransactions(ledger);
           setTotalBalance(balance); // Set the total balance after all calculations
+          setRunningBalance(0); // Reset running balance for new transactions
         } catch (error) {
           console.error("Error fetching transaction history:", error);
         }
       };
-      
       fetchTransactions();
     }
   }, [open, supplier, API_URL]);
@@ -50,6 +55,10 @@ const SupplierTransactionHistoryModal = ({ open, onClose, supplier }) => {
       field: 'date', 
       headerName: 'Date', 
       renderCell: (row) => new Date(row.date).toLocaleDateString() 
+    },
+    { 
+      field: 'productName', 
+      headerName: 'Product Name' 
     },
     { 
       field: 'paymentMethod', 
@@ -77,6 +86,15 @@ const SupplierTransactionHistoryModal = ({ open, onClose, supplier }) => {
       field: 'chequeDate', 
       headerName: 'Cheque Date', 
       renderCell: (row) => row.chequeDate ? new Date(row.chequeDate).toLocaleDateString() : '-'
+    },
+    { 
+      field: 'runningBalance', 
+      headerName: 'Running Balance', 
+      renderCell: (row) => (
+        <span>
+          {row.runningBalance.toFixed(2)}
+        </span>
+      ) 
     },
   ];
 
