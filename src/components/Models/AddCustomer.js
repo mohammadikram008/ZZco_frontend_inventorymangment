@@ -31,7 +31,7 @@ const AddCustomerModal = ({ open, handleClose, refreshCustomers }) => {
 
   const handleSubmit = async () => {
     try {
-      const res = await axios.post("http://localhost:5001/api/customers/customerRegister", {
+      const res = await axios.post("https://zzcoinventorymanagmentbackend.up.railway.app/api/customers/customerRegister", {
         username,
         email,
         password,

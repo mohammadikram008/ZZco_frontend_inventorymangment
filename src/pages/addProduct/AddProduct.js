@@ -36,7 +36,7 @@ import { styled } from "@mui/material/styles";
 import AddSupplierModal from "../../components/Models/addSupplierModel";
 import AddWareHouseModal from "../../components/Models/AddWareHouse";
 
-const BACKEND_URL = "http://localhost:5001";
+const BACKEND_URL = "https://zzcoinventorymanagmentbackend.up.railway.app";
 const API_URL = `${BACKEND_URL}/api/suppliers`;
 
 const StyledPaper = styled(Paper)(({ theme }) => ({
@@ -121,7 +121,8 @@ const AddProduct = () => {
     if (!supplier.id || !product.price) return;
 
     const transactionData = {
-      amount: product.price*product.quantity,
+      name: product.name,
+      amount: product.price * product.quantity,
       paymentMethod: paymentMethod,
       chequeDate: paymentMethod === "cheque" ? chequeDate : null,
       type: "debit",
@@ -158,6 +159,10 @@ const AddProduct = () => {
   };
 
   const handleSubmit = async () => {
+    if (product.quantity <= 0 || product.price <= 0) {
+      toast.error("Quantity and Price must be greater than 0.");
+      return; // Exit the function if validation fails
+    }
     await saveProduct();
     await recordSupplierTransaction();
     handleNext();
@@ -252,9 +257,9 @@ const AddProduct = () => {
                             {warehouse.name}
                           </MenuItem>
                         ))}
-                          <MenuItem value="addNew" onClick={handleOpenModalwarehouse} style={{ backgroundColor: 'silver' }}>
-                        Add New WareHouse
-                      </MenuItem>
+                        <MenuItem value="addNew" onClick={handleOpenModalwarehouse} style={{ backgroundColor: 'silver' }}>
+                          Add New WareHouse
+                        </MenuItem>
                       </Select>
                     </FormControl>
                   </Grid>
@@ -341,7 +346,7 @@ const AddProduct = () => {
                     </Select>
                   </FormControl>
                 </Grid>
-                
+
               </Grid>
             </CardContent>
           </StyledCard>
@@ -371,7 +376,7 @@ const AddProduct = () => {
         <Typography variant="h4" gutterBottom align="center">
           Add New Product
         </Typography>
-      
+
         <Stepper activeStep={activeStep} alternativeLabel>
           {steps.map((label) => (
             <Step key={label}>
@@ -416,7 +421,7 @@ const AddProduct = () => {
         handleClose={handleCloseModal}
 
       />
-        <AddWareHouseModal
+      <AddWareHouseModal
         open={openWareHouseModal}
         onClose={handleCloseModalwarehouse}
 

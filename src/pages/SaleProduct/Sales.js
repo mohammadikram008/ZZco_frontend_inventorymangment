@@ -32,7 +32,7 @@ function Sales() {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [loading, setLoading] = useState(true); 
 
-  const BACKEND_URL = "http://localhost:5001";
+  const BACKEND_URL = "https://zzcoinventorymanagmentbackend.up.railway.app";
   const API_URL = `${BACKEND_URL}/api`;
 
   useRedirectLoggedOutUser("/login");

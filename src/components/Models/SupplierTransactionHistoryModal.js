@@ -9,7 +9,7 @@ const SupplierTransactionHistoryModal = ({ open, onClose, supplier }) => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5); 
 
-  const BACKEND_URL = "http://localhost:5001";
+  const BACKEND_URL = "https://zzcoinventorymanagmentbackend.up.railway.app";
   const API_URL = `${BACKEND_URL}/api/suppliers`;
   const [runningBalance, setRunningBalance] = useState(0); // State to store running balance
 

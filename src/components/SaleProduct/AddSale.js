@@ -44,6 +44,7 @@ export default function AddSale({
   });
   const [openModal, setOpenModal] = useState(false); // State to control modal visibility
   const [customers, setCustomers] = useState([]); // Assuming you have a state for customers
+  const [errors, setErrors] = useState({}); // State to hold validation errors
 
   const handleOpenModal = () => {
     setOpenModal(true); // Open the modal
@@ -56,7 +57,7 @@ export default function AddSale({
   const [image, setImage] = useState(null);
   const [imagePreview, setImagePreview] = useState("");
   const cancelButtonRef = useRef(null);
-  const BACKEND_URL = "http://localhost:5001";
+  const BACKEND_URL = "https://zzcoinventorymanagmentbackend.up.railway.app";
   const API_URL = `${BACKEND_URL}/api`;
 
   const banks = useSelector((state) => state.bank.banks);
@@ -73,6 +74,17 @@ export default function AddSale({
       ...prevSale,
       [name]: value,
     }));
+    if (name === "stockSold" && (value <= 0 || value > 999)) {
+      setErrors((prevErrors) => ({ ...prevErrors, stockSold: "Stock Sold must be between 1 and 999." }));
+    } else {
+      setErrors((prevErrors) => ({ ...prevErrors, stockSold: "" }));
+    }
+
+    if (name === "totalSaleAmount" && value <= 0) {
+      setErrors((prevErrors) => ({ ...prevErrors, totalSaleAmount: "Total Sale Amount must be greater than 0." }));
+    } else {
+      setErrors((prevErrors) => ({ ...prevErrors, totalSaleAmount: "" }));
+    }
   };
 
   // Handle Image Change
@@ -96,8 +108,14 @@ export default function AddSale({
     formData.append("paymentMethod", sale.paymentMethod);
     formData.append("warehouseID", sale.warehouseID);
     formData.append("status", sale.status);
+    if (errors.stockSold || errors.totalSaleAmount) {
+      toast.error("Please fix the validation errors before submitting.");
+      return;
+    }
     if (sale.paymentMethod === "cheque") {
       formData.append("chequeDate", sale.chequeDate);
+      formData.append("bankID", sale.bankID);
+
     }
     if (sale.paymentMethod === "online") {
       formData.append("bankID", sale.bankID);
@@ -179,6 +197,9 @@ export default function AddSale({
                   placeholder="0 - 999"
                   margin="normal"
                   InputLabelProps={{ shrink: true }}
+                  error={!!errors.stockSold} // Show error state
+                  helperText={errors.stockSold} // Show error message
+                
                 />
               </Grid>
               {/* Store Selection */}
@@ -213,9 +234,12 @@ export default function AddSale({
                   name="totalSaleAmount"
                   value={sale.totalSaleAmount}
                   onChange={handleInputChange}
-                  placeholder="$299"
+                  placeholder="299"
                   margin="normal"
                   InputLabelProps={{ shrink: true }}
+                  error={!!errors.stockSold} // Show error state
+                  helperText={errors.stockSold} // Show error message
+                
                 />
               </Grid>
               {/* Payment Method Selection */}

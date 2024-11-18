@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 
-const BACKEND_URL = "http://localhost:5001";
+const BACKEND_URL = "https://zzcoinventorymanagmentbackend.up.railway.app";
 const API_URL = `${BACKEND_URL}/api/products/`;
 
 const getCheques = async () => {

@@ -3,7 +3,7 @@ import { Modal, Box, Button, Typography } from "@mui/material";
 import axios from 'axios';
 
 const ConfirmDeleteModal = ({ open, onClose, entry, entryType, onSuccess }) => {
-  const BACKEND_URL = "http://localhost:5001";
+  const BACKEND_URL = "https://zzcoinventorymanagmentbackend.up.railway.app";
 
   // Determine API URL based on entry type
   const API_URL = entryType === "supplier"

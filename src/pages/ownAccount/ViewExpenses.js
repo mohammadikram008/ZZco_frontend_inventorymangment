@@ -37,6 +37,7 @@ const ViewExpenses = () => {
   const { customers } = useSelector((state) => state.customer);
   const { suppliers } = useSelector((state) => state.supplier);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [sales, setSales] = useState([]); // Add state to hold sales data
 
   const [filteredEntries, setFilteredEntries] = useState([]);
   const [showExpenseModal, setShowExpenseModal] = useState(false);
@@ -60,7 +61,7 @@ const ViewExpenses = () => {
   const [totalPages, setTotalPages] = useState(0);
   const [runningBalance, setRunningBalance] = useState(0);
 
-  const BACKEND_URL = "http://localhost:5001";
+  const BACKEND_URL = "https://zzcoinventorymanagmentbackend.up.railway.app";
   const API_URL = `${BACKEND_URL}/api`;
   const { products } = useSelector((state) => state.product);
 
@@ -70,86 +71,90 @@ const ViewExpenses = () => {
     dispatch(getSuppliers());
     fetchSales();
     fetchExpenses();
-    fetchCustomerTransactions();
-    fetchSupplierTransactions();
-    fetchShippingEntries();
+    // fetchCustomerTransactions();
+    // fetchSupplierTransactions();
+    // fetchShippingEntries();
   }, [dispatch]);
 
   useEffect(() => {
     filterEntriesByDate();
   }, [selectedDate, ledgerEntries]);
-  const fetchCustomerTransactions = async () => {
-    try {
-      const response = await axios.get(`${API_URL}/customers/transactions`, { withCredentials: true });
-      const customerTransactions = response.data.map(transaction => ({
-        ...transaction,
-        type: transaction.amount > 0 ? 'Customer Payment' : 'Customer Credit',
-        amount: transaction.amount,
-        date: new Date(transaction.date),
-        description: `${transaction.amount > 0 ? 'Payment from' : 'Credit to'} customer ${transaction.customerName}`,
-      }));
-      updateLedger(customerTransactions);
-    } catch (err) {
-      console.error("Error fetching customer transactions:", err);
-    }
-  };
+  // const fetchCustomerTransactions = async () => {
+  //   try {
+  //     const response = await axios.get(`${API_URL}/customers/transactions`, { withCredentials: true });
+  //     const customerTransactions = response.data.map(transaction => ({
+  //       ...transaction,
+  //       type: transaction.amount > 0 ? 'Customer Payment' : 'Customer Credit',
+  //       amount: transaction.amount,
+  //       date: new Date(transaction.date),
+  //       description: `${transaction.amount > 0 ? 'Payment from' : 'Credit to'} customer ${transaction.customerName}`,
+  //     }));
+  //     updateLedger(customerTransactions);
+  //   } catch (err) {
+  //     console.error("Error fetching customer transactions:", err);
+  //   }
+  // };
 
-  const fetchSupplierTransactions = async () => {
-    try {
-      const response = await axios.get(`${API_URL}/suppliers/transactions`, { withCredentials: true });
-      const supplierTransactions = response.data.map(transaction => ({
-        ...transaction,
-        type: transaction.amount > 0 ? 'Supplier Payment' : 'Supplier Credit',
-        amount: -transaction.amount, // Negative for payments, positive for credits
-        date: new Date(transaction.date),
-        description: `${transaction.amount > 0 ? 'Payment to' : 'Credit from'} supplier ${transaction.supplierName}`,
-      }));
-      updateLedger(supplierTransactions);
-    } catch (err) {
-      console.error("Error fetching supplier transactions:", err);
-    }
-  };
+  // const fetchSupplierTransactions = async () => {
+  //   try {
+  //     const response = await axios.get(`${API_URL}/suppliers/`, { withCredentials: true });
+  //     console.log("Supplier",response.data);
+  //     const supplierTransactions = response.data.map(transaction => ({
+  //       ...transaction,
+  //       type: transaction.amount > 0 ? 'Supplier Payment' : 'Supplier Credit',
+  //       amount: -transaction.amount, // Negative for payments, positive for credits
+  //       date: new Date(transaction.date),
+  //       description: `${transaction.amount > 0 ? 'Payment to' : 'Credit from'} supplier ${transaction.supplierName}`,
+  //     }));
+  //     updateLedger(supplierTransactions);
+  //   } catch (err) {
+  //     console.error("Error fetching supplier transactions:", err);
+  //   }
+  // };
 
-  const fetchShippingEntries = async () => {
-    try {
-      const response = await axios.get(`${API_URL}/shipping/entries`, { withCredentials: true });
-      const shippingEntries = response.data.map(entry => ({
-        ...entry,
-        type: 'Shipping',
-        amount: 0, // Shipping doesn't affect balance directly
-        date: new Date(entry.date),
-        description: `Added ${entry.quantity} ${entry.productName} to stock from shipping`,
-      }));
-      updateLedger(shippingEntries);
-    } catch (err) {
-      console.error("Error fetching shipping entries:", err);
-    }
-  };
+  // const fetchShippingEntries = async () => {
+  //   try {
+  //     const response = await axios.get(`${API_URL}/shipping/entries`, { withCredentials: true });
+  //     const shippingEntries = response.data.map(entry => ({
+  //       ...entry,
+  //       type: 'Shipping',
+  //       amount: 0, // Shipping doesn't affect balance directly
+  //       date: new Date(entry.date),
+  //       description: `Added ${entry.quantity} ${entry.productName} to stock from shipping`,
+  //     }));
+  //     updateLedger(shippingEntries);
+  //   } catch (err) {
+  //     console.error("Error fetching shipping entries:", err);
+  //   }
+  // };
   const fetchSales = async () => {
     try {
-      const response = await axios.get(`${API_URL}/sales/allsales`, { withCredentials: true });
+        const response = await axios.get(`${API_URL}/sales/allsales`, { withCredentials: true });
 
-      console.log("Sale",response.data);
-      const salesData = response.data.map(sale => ({
-        ...sale,
-        type: 'Sale',
-        amount: sale.totalSaleAmount, // Positive amount for sales (debit)
-        date: new Date(sale.saleDate),
-        description: `Sale of ${sale.stockSold} units of product ${sale.productID.name} to customer ${sale.customerID.username}`,
-      }));
-      updateLedger(salesData);
+        const salesData = response.data.map(sale => ({
+            ...sale,
+            id: sale._id, // Added id for identifier
+            type: 'Sale',
+            amount: sale.totalSaleAmount, // Positive amount for sales (debit)
+            date: new Date(sale.saleDate),
+            description: `Sale of ${sale.stockSold} units of product ${sale.productID ? sale.productID.name : 'Unknown'} to customer ${sale.customerID ? sale.customerID.username : 'Unknown'}`,
+        }));
+        // setSales(salesData); // Store sales data in state
+        // console.log("Sale", salesData);
+
+        updateLedger(salesData);
     } catch (err) {
-      console.error("Error fetching sales:", err);
+        console.error("Error fetching sales:", err);
     }
-  };
-
+};
   const fetchExpenses = async () => {
     try {
       const response = await axios.get(`${API_URL}/expenses/all`);
       const expensesData = response.data.map(expense => ({
         ...expense,
+        id: expense._id,
         type: 'Expense',
-        amount: -expense.amount, // Negative amount for expenses (credit)
+        amount: expense.amount, // Negative amount for expenses (credit)
         date: new Date(expense.createdAt),
         description: expense.description || expense.expenseName,
       }));
@@ -158,19 +163,29 @@ const ViewExpenses = () => {
       console.error("Error fetching expenses:", err);
     }
   };
-
   const updateLedger = (newEntries) => {
+    console.log("NEWSale", newEntries);
     setLedgerEntries(prevEntries => {
-      const updatedEntries = [...newEntries, ...prevEntries].sort((a, b) => new Date(b.date) - new Date(a.date));
-      return updatedEntries;
-    });
-  };
+        const updatedEntries = [...prevEntries];
 
+        newEntries.forEach(newEntry => {
+            // Check if the entry already exists based on a unique identifier (e.g., date and description)
+            const exists = updatedEntries.some(entry => 
+                 entry.id === newEntry.id
+            );
+            if (!exists) {
+                updatedEntries.push(newEntry);
+            }
+        });
+
+        return updatedEntries.sort((a, b) => new Date(b.date) - new Date(a.date));
+    });
+};
   useEffect(() => {
     if (products.length > 0) {
-      console.log("productsssssss",products);
       const purchaseEntries = products.map(product => ({
         type: 'Purchase',
+        id: product._id, // Added id for identifier
         amount: -product.price * product.quantity, // Negative amount for purchases (credit)
         date: new Date(product.createdAt),
         description: `Purchase of ${product.quantity} ${product.name} from supplier ${product.supplier ? product.supplier.username : 'Unknown'} at ${product.price} each`,
@@ -179,10 +194,10 @@ const ViewExpenses = () => {
       }));
       updateLedger(purchaseEntries);
     }
+    // if (sales.length > 0) {
+    //   updateLedger(sales); // Update ledger with sales data
+    // }
   }, [products]);
-
-
-
 
 
   const handleInputChange = (e) => {
@@ -266,6 +281,17 @@ const ViewExpenses = () => {
       headerName: 'Date',
       renderCell: (row) => new Date(row.date).toLocaleDateString()
     },
+    // {
+    //   field: 'Productname',
+    //   headerName: 'Product Name',
+    //   // renderCell: (row) => new Date(row.date).toLocaleDateString()
+    // },
+      // Add a new column for sales details if needed
+    // {
+    //     field: 'salesDetail',
+    //     headerName: 'Sales Detail',
+    //     renderCell: (row) => row.type === 'Sale' ? row.description : ''
+    // },
     {
       field: 'type',
       headerName: 'Type'
@@ -308,6 +334,8 @@ const ViewExpenses = () => {
     ...entry,
     debit: entry.amount,
     credit: entry.amount,
+    key: `${entry.date}-${entry.description}` // Ensure this key is unique
+
   }));
   return (
     <Container>
@@ -350,6 +378,8 @@ const ViewExpenses = () => {
                 rowsPerPage={rowsPerPage}
                 onPageChange={handlePageChange}
                 onRowsPerPageChange={handleRowsPerPageChange}
+                // rowKey={(row) => `${row.date}-${row.description}`} // Pass the unique key
+
               />
             </>
           )}

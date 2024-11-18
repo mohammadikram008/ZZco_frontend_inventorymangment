@@ -43,7 +43,7 @@ const WarehouseManager = () => {
   const [warehouseProducts, setWarehouseProducts] = useState([]);
   const [warehouseList, setWarehouseList] = useState([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
-  const BACKEND_URL = "http://localhost:5001";
+  const BACKEND_URL = "https://zzcoinventorymanagmentbackend.up.railway.app";
   const API_URL = `${BACKEND_URL}/api/warehouses`;
 console.log("warehouseProducts",warehouseProducts);
   useEffect(() => {

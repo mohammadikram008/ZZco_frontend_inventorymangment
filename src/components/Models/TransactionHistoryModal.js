@@ -8,8 +8,9 @@ const TransactionHistoryModal = ({ open, onClose, customer }) => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [totalBalance, setTotalBalance] = useState(0);
+  const [runningBalance, setRunningBalance] = useState(0); // State to store running balance
 
-  const BACKEND_URL = "http://localhost:5001";
+  const BACKEND_URL = "https://zzcoinventorymanagmentbackend.up.railway.app";
   const API_URL = `${BACKEND_URL}/api/customers`;
 
   useEffect(() => {
@@ -25,17 +26,22 @@ const TransactionHistoryModal = ({ open, onClose, customer }) => {
             const credit = transaction.type.toLowerCase() === "credit" ? transaction.amount : 0;
 
             // Correct balance calculation: if debit is negative, subtract it
-            balance += credit - (debit < 0 ? -debit : debit); // Ensure correct subtraction of debit
+            balance += credit + debit; // Ensure correct subtraction of debit
+
+            // Update running balance after each transaction
+            setRunningBalance(prevBalance => prevBalance + credit - debit);
 
             return {
               ...transaction,
               debit,
               credit,
+              runningBalance: balance, // Add running balance to each transaction
             };
           });
 
           setTransactions(ledger);
           setTotalBalance(balance); // Set total balance to be displayed below
+          setRunningBalance(0); // Reset running balance for new transactions
         } catch (error) {
           console.error("Error fetching transaction history:", error);
         }
@@ -51,6 +57,10 @@ const TransactionHistoryModal = ({ open, onClose, customer }) => {
       field: "date",
       headerName: "Date",
       renderCell: (row) => new Date(row.date).toLocaleDateString(),
+    },
+    {
+      field: "productName",
+      headerName: "Product Name",
     },
     {
       field: "paymentMethod",
@@ -70,6 +80,15 @@ const TransactionHistoryModal = ({ open, onClose, customer }) => {
       field: "chequeDate",
       headerName: "Cheque Date",
       renderCell: (row) => (row.chequeDate ? new Date(row.chequeDate).toLocaleDateString() : "-"),
+    },
+    { 
+      field: 'runningBalance', 
+      headerName: 'Running Balance', 
+      renderCell: (row) => (
+        <span>
+          {row.runningBalance.toFixed(2)}
+        </span>
+      ) 
     },
   ];
 

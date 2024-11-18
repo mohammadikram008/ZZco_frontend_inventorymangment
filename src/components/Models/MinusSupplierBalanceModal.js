@@ -20,7 +20,7 @@ const MinusSupplierBalanceModal = ({ open, onClose, supplier, onSuccess }) => {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
-  const BACKEND_URL = "http://localhost:5001";
+  const BACKEND_URL = "https://zzcoinventorymanagmentbackend.up.railway.app";
 
   const dispatch = useDispatch();
   const banks = useSelector((state) => state.bank.banks);
