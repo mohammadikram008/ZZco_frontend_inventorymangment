@@ -12,8 +12,11 @@ import {
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { ViewArrayOutlined } from '@mui/icons-material';
+import { BsEyeFill } from 'react-icons/bs';
 
-const CustomTable = ({ columns, data, onEdit, onDelete }) => {
+const CustomTable = ({ columns, data, onEdit, onDelete,onView ,cashtrue}) => {
+  console.log("cashtrue",cashtrue);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
@@ -57,6 +60,11 @@ const CustomTable = ({ columns, data, onEdit, onDelete }) => {
                     <IconButton onClick={() => onDelete(row)}>
                       <DeleteIcon />
                     </IconButton>
+                    <IconButton onClick={() => onView(row)}>
+                    {cashtrue === "true" ?"": <BsEyeFill/> }
+                    </IconButton>
+                    {/* {renderRowActions && renderRowActions(row)} // New line for rendering row actions */}
+
                   </TableCell>
                 </TableRow>
               ))}

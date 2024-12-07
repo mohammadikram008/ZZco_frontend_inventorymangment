@@ -12,9 +12,11 @@ import {
   ListItemText,
   Stack,
   Button,
+  Modal
 } from '@mui/material';
 import { getPendingCheques, updateChequeStatus } from '../../redux/features/cheque/chequeSlice';
 import CustomTable from '../../components/CustomTable/CustomTable';
+const baseUrl = "https://zzcoinventorymanagmentbackend.up.railway.app/"; // Base URL for the image path
 
 const ChequeDetails = () => {
   const dispatch = useDispatch();
@@ -25,8 +27,9 @@ const ChequeDetails = () => {
   const [todayCheques, setTodayCheques] = useState([]);
   const [upcomingCheques, setUpcomingCheques] = useState([]);
   const [selectedCheques, setSelectedCheques] = useState([]);
+  const [selectedImage, setSelectedImage] = useState(null); // State to manage the selected image
+  console.log("cheques",cheques);
 
-console.log("cheques",cheques)
   useEffect(() => {
     dispatch(getPendingCheques());
   }, [dispatch]);
@@ -63,11 +66,11 @@ console.log("cheques",cheques)
       setSelectedCheques(prev => prev.filter(id => id !== chequeId));
     }
   };
-  
   const handleSubmit = () => {
+
     selectedCheques.forEach(chequeId => {
       const cheque = cheques.find(c => c._id === chequeId);
-      dispatch(updateChequeStatus({ id: chequeId, status: true, type: cheque.type }));
+      dispatch(updateChequeStatus({ id: chequeId, status: true, type: cheque.type ,amount:cheque.amount,bank:cheque.bank}));
     });
     setSelectedCheques([]);
     dispatch(getPendingCheques()); // Fetch updated cheques after submission
@@ -75,7 +78,9 @@ console.log("cheques",cheques)
   // const handleStatusChange = (chequeId, newStatus, type) => {
   //   dispatch(updateChequeStatus({ id: chequeId, status: newStatus, type }));
   // };
-
+  const handleCloseModal = () => {
+    setSelectedImage(null);
+  };
   const columns = [
     { field: 'chequeDate', headerName: 'Date', renderCell: (row) => new Date(row.chequeDate).toLocaleDateString() },
     { field: 'name', headerName: 'Name' },
@@ -89,6 +94,18 @@ console.log("cheques",cheques)
           checked={selectedCheques.includes(row._id)}
           onChange={(e) => handleStatusChange(row._id, e.target.checked)}
         />
+      )
+    },
+    { 
+      field: 'view', 
+      headerName: 'View', 
+      renderCell: (row) => (
+        <Button 
+          variant="outlined" 
+          onClick={() => setSelectedImage(baseUrl+row.chequeImage.filePath)} // Use filePath for the image
+        >
+          View
+        </Button>
       )
     },
   ];
@@ -154,6 +171,17 @@ console.log("cheques",cheques)
         Cash Out Selected Cheques ({selectedCheques.length})
       </Button>
       </Paper>
+      <Modal
+        open={Boolean(selectedImage)}
+        onClose={handleCloseModal}
+        aria-labelledby="modal-title"
+        aria-describedby="modal-description"
+      >
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', position: 'relative' }}>
+          <img src={selectedImage} alt="Cheque" style={{ maxWidth: '90%', maxHeight: '90%',  }} />
+          <Button onClick={handleCloseModal} style={{ position: 'absolute', top: 20, right: 20, zIndex: 1 ,backgroundColor:'black',color:"white"}}>Close</Button>
+        </div>
+      </Modal>
     </div>
   );
 };

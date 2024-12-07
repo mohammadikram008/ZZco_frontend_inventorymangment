@@ -3,6 +3,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import axios from 'axios';
 import Loader from "../../components/loader/Loader";
+import { getProducts } from "../../redux/features/product/productSlice"; // Import getProducts
+
 import ProductForm from "../../components/product/productForm/ProductForm";
 import {
   createProduct,
@@ -31,6 +33,11 @@ import {
   FormControl,
   InputLabel,
   Select,
+  Table, // Add this import
+  TableHead, // Add this import
+  TableBody, // Add this import
+  TableRow, // Add this import
+  TableCell,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import AddSupplierModal from "../../components/Models/addSupplierModel";
@@ -62,6 +69,17 @@ const initialState = {
 const AddProduct = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const products = useSelector((state) => state.product.products); // Fetch existing products
+  const [showStepper, setShowStepper] = useState(false); // State to control stepper visibility
+  const [openModal, setOpenModal] = useState(false); // State to control the modal visibility
+
+  useEffect(() => {
+    dispatch(getProducts()); // Fetch products on component mount
+  }, [dispatch]);
+  const handleAddProductClick = () => {
+    setOpenModal(true); // Show the modal when button is clicked
+    setActiveStep(0); // Reset to the first step
+  };
   const [product, setProduct] = useState(initialState);
   const [productImage, setProductImage] = useState("");
   const [imagePreview, setImagePreview] = useState(null);
@@ -372,18 +390,84 @@ const AddProduct = () => {
 
   return (
     <Container maxWidth="md">
-      <StyledPaper elevation={3}>
-        <Typography variant="h4" gutterBottom align="center">
-          Add New Product
-        </Typography>
 
-        <Stepper activeStep={activeStep} alternativeLabel>
-          {steps.map((label) => (
-            <Step key={label}>
-              <StepLabel>{label}</StepLabel>
-            </Step>
-          ))}
-        </Stepper>
+      <StyledPaper elevation={3}>
+        <Button variant="contained" color="primary" onClick={handleAddProductClick}>
+          Add Product
+        </Button>
+        <Typography variant="h4" gutterBottom align="center">
+          Existing Products        </Typography>
+        {/* <Typography variant="h6" gutterBottom>
+          Existing Products
+        </Typography> */}
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>Name</TableCell>
+              <TableCell>Category</TableCell>
+              <TableCell>Price</TableCell>
+              <TableCell>Quantity</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {products.map((product) => (
+              <TableRow key={product._id}>
+                <TableCell>{product.name}</TableCell>
+                <TableCell>{product.category}</TableCell>
+                <TableCell>{product.price}</TableCell>
+                <TableCell>{product.quantity}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </StyledPaper>
+
+      <Modal open={openModal} onClose={() => setOpenModal(false)} style={{ width: '50%', margin: 'auto' }}>
+        <StyledPaper elevation={2}>
+          <Stepper activeStep={activeStep} alternativeLabel>
+            {steps.map((label) => (
+              <Step key={label}>
+                <StepLabel>{label}</StepLabel>
+              </Step>
+            ))}
+          </Stepper>
+          <Box mt={4}>
+            {getStepContent(activeStep)}
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+              <Button
+                disabled={activeStep === 0}
+                onClick={handleBack}
+                sx={{ mr: 1 }}
+              >
+                Back
+              </Button>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={activeStep === steps.length - 1 ? handleSubmit : handleNext}
+              >
+                {activeStep === steps.length - 1 ? 'Submit' : 'Next'}
+              </Button>
+              <Button
+                onClick={() => setOpenModal(false)}
+                sx={{ ml: 1 }}
+              >
+                Close
+              </Button>
+            </Box>
+          </Box>
+        </StyledPaper>
+      </Modal>
+      {/* {showStepper && (
+          
+          <Stepper activeStep={activeStep} alternativeLabel>
+            {steps.map((label) => (
+              <Step key={label}>
+                <StepLabel>{label}</StepLabel>
+              </Step>
+            ))}
+          </Stepper>
+        )}
         <Box mt={4}>
           {activeStep === steps.length ? (
             <Box>
@@ -414,7 +498,7 @@ const AddProduct = () => {
             </Box>
           )}
         </Box>
-      </StyledPaper>
+      </StyledPaper> */}
       {isLoading && <Loader />}
       <AddSupplierModal
         open={openSupplierModal}

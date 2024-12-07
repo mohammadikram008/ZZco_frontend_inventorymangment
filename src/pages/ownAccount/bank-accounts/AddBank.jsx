@@ -5,7 +5,6 @@ import axios from 'axios';
 import Select from 'react-select'; // Importing react-select for a searchable dropdown
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
 const Customer = () => {
   
 const BACKEND_URL = "https://zzcoinventorymanagmentbackend.up.railway.app";
@@ -14,6 +13,7 @@ const API_URL = `${BACKEND_URL}/api/Cash`;
   const [openCashModal, setOpenCashModal] = useState(false);
   const [bankName, setBankName] = useState(""); // State for bank name
   const [amount, setAmount] = useState(""); // State for amount
+  
 
   const handleOpenCashModal = () => setOpenCashModal(true);
   const handleCloseCashModal = () => setOpenCashModal(false);
@@ -36,6 +36,7 @@ const API_URL = `${BACKEND_URL}/api/Cash`;
     latestEntry: null,
     allEntries: []
   });
+
 
   const fetchBanks = async () => {
     try {
@@ -169,7 +170,7 @@ const API_URL = `${BACKEND_URL}/api/Cash`;
           Add Cash
         </Button>
       </Grid>
-      <BankList banks={banks} refreshBanks={refreshBanks} cash={cashData}/>
+      <BankList banks={banks} refreshBanks={refreshBanks} cash={cashData} />
       
       <Modal
         open={openModal}
@@ -248,6 +249,7 @@ const API_URL = `${BACKEND_URL}/api/Cash`;
           </Button>
         </Box>
       </Modal>
+    
       <ToastContainer />
     </Box>
   );

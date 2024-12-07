@@ -18,9 +18,9 @@ export const getPendingCheques = createAsyncThunk(
 
 export const updateChequeStatus = createAsyncThunk(
   'cheque/updateStatus',
-  async ({ id, status, type }, thunkAPI) => {
+  async ({ id, status, type ,amount,bank}, thunkAPI) => {
     try {
-      const response = await axios.patch(`${API_URL}/update-status/${id}`, { status, type });
+      const response = await axios.patch(`${API_URL}/update-status/${id}`, { status, type,amount ,bank});
       return response.data;
     } catch (error) {
       return thunkAPI.rejectWithValue(error.response.data);

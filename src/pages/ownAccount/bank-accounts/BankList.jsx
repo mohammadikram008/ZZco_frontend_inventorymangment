@@ -1,16 +1,18 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { Box, Typography } from "@mui/material";
+import { Box, Button, Typography } from "@mui/material";
 import ConfirmDeleteModal from "../../../components/Models/ConfirmDeleteModal";
 import EditBankModal from "../../../components/Models/EditBankModal";
 import CustomTable from "../../../components/CustomTable/OwnAccount";
 import { useSelector } from "react-redux";
 import { selectCanDelete } from "../../../redux/features/auth/authSlice";
- 
+import TransactionHistoryModal from "../../../components/Models/TransactionModal"; // Import the new modal component
+
 const BankList = ({ banks, refreshBanks, cash }) => {
   const [selectedEntry, setSelectedEntry] = useState(null);
   const [entryType, setEntryType] = useState("bank");
   const [isEditModalOpen, setEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [openModal, setOpenModal] = useState(false);
 
   const canDelete = useSelector((state) => selectCanDelete(state));
 
@@ -23,7 +25,12 @@ const BankList = ({ banks, refreshBanks, cash }) => {
     setEntryType(type);
     setEditModalOpen(true);
   };
-
+  const opentransectiopnModal = (entry, type) => {
+   
+    setSelectedEntry(entry);
+    setEntryType(type);
+    setOpenModal(true);
+  };
   const openDeleteModal = (entry, type) => {
     if (!canDelete) {
       alert("You do not have permission to delete this entry.");
@@ -37,6 +44,11 @@ const BankList = ({ banks, refreshBanks, cash }) => {
   const closeModals = () => {
     setEditModalOpen(false);
     setDeleteModalOpen(false);
+    setSelectedEntry(null);
+  };
+  const closeTransectionModals = () => {
+    setEditModalOpen(false);
+    setOpenModal(false);
     setSelectedEntry(null);
   };
 
@@ -87,6 +99,8 @@ const BankList = ({ banks, refreshBanks, cash }) => {
         data={banks || []}
         onEdit={(bank) => openEditModal(bank, "bank")}
         onDelete={(bank) => openDeleteModal(bank, "bank")}
+        onView={(bank) => opentransectiopnModal(bank,"bank")}
+        cashtrue={"false"}
       />
 
       <Box display={"flex"} justifyContent={"center"} alignContent={"center"} mt={3}>
@@ -99,6 +113,7 @@ const BankList = ({ banks, refreshBanks, cash }) => {
         onEdit={(cashEntry) => openEditModal(cashEntry, "cash")}
         onDelete={(cashEntry) => openDeleteModal(cashEntry, "cash")}
         sx={{ marginTop: 3 }}
+        cashtrue={"true"}
       />
 
       {/* Display total amounts with color styling */}
@@ -132,6 +147,11 @@ const BankList = ({ banks, refreshBanks, cash }) => {
         entry={selectedEntry}
         entryType={entryType}
         onSuccess={refreshBanks}
+      />
+        <TransactionHistoryModal 
+        open={openModal} 
+        onClose={closeTransectionModals} 
+        transactions={selectedEntry} 
       />
     </Box>
   );
