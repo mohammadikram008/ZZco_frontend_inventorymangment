@@ -137,6 +137,7 @@ const ProductList = ({ products, isLoading }) => {
               </thead>
               <tbody>
                 {currentItems.map((product, index) => {
+                   
                   const { _id, name, category, price, quantity, paymentMethod, shippingType, status } = product;
 
                   let displayStatus;

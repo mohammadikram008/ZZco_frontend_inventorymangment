@@ -60,9 +60,13 @@ const CustomTable = ({ columns, data, onEdit, onDelete,onView ,cashtrue}) => {
                     <IconButton onClick={() => onDelete(row)}>
                       <DeleteIcon />
                     </IconButton>
-                    <IconButton onClick={() => onView(row)}>
-                    {cashtrue === "true" ?"": <BsEyeFill/> }
-                    </IconButton>
+                    {cashtrue !== "true" && (
+  <IconButton onClick={() => onView(row)}>
+    <BsEyeFill />
+  </IconButton>
+)}
+
+
                     {/* {renderRowActions && renderRowActions(row)} // New line for rendering row actions */}
 
                   </TableCell>

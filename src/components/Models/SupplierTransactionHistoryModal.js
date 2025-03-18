@@ -2,16 +2,16 @@ import React, { useEffect, useState } from "react";
 import { Modal, Box, Typography, Button } from "@mui/material";
 import axios from 'axios';
 import CustomTable from "../CustomTable/CustomTable";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable"; // ✅ Correct import
 
 const SupplierTransactionHistoryModal = ({ open, onClose, supplier }) => {
   const [transactions, setTransactions] = useState([]); 
-  const [totalBalance, setTotalBalance] = useState(0); // State to store total balance
-  const [page, setPage] = useState(0);
+  const [totalBalance, setTotalBalance] = useState(0);
+  const [page, setPage] = useState(0);  
   const [rowsPerPage, setRowsPerPage] = useState(5); 
-
-  const BACKEND_URL = "https://zzcoinventorymanagmentbackend.up.railway.app";
-  const API_URL = `${BACKEND_URL}/api/suppliers`;
-  const [runningBalance, setRunningBalance] = useState(0); // State to store running balance
+  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+  const API_URL = `${BACKEND_URL}api/suppliers`;
 
   useEffect(() => {
     if (open && supplier) {
@@ -27,20 +27,16 @@ const SupplierTransactionHistoryModal = ({ open, onClose, supplier }) => {
             const credit = isDebit ? 0 : transaction.amount;
             balance += credit - debit;
 
-            // Update running balance after each transaction
-            setRunningBalance(prevBalance => prevBalance + credit - debit);
-
             return {
               ...transaction,
               debit,
               credit,
-              runningBalance: balance, // Add running balance to each transaction
+              runningBalance: balance,
             };
           });
 
           setTransactions(ledger);
-          setTotalBalance(balance); // Set the total balance after all calculations
-          setRunningBalance(0); // Reset running balance for new transactions
+          setTotalBalance(balance);
         } catch (error) {
           console.error("Error fetching transaction history:", error);
         }
@@ -49,63 +45,54 @@ const SupplierTransactionHistoryModal = ({ open, onClose, supplier }) => {
     }
   }, [open, supplier, API_URL]);
 
-  // Column definitions with color styling for debit and credit
+  // ✅ Function to download the PDF
+  const downloadPDF = () => {
+    const doc = new jsPDF();
+    doc.text(`Ledger for ${supplier?.username}`, 14, 10);
+
+    const tableColumn = ["Date", "Product Name", "Payment Type", "Debit", "Credit", "Cheque Date", "Running Balance"];
+    const tableRows = transactions.map(transaction => [
+      new Date(transaction.date).toLocaleDateString(),
+      transaction.productName || "-",
+      transaction.paymentMethod || "-",
+      transaction.debit.toFixed(2),
+      transaction.credit.toFixed(2),
+      transaction.chequeDate ? new Date(transaction.chequeDate).toLocaleDateString() : "-",
+      transaction.runningBalance.toFixed(2),
+    ]);
+
+    // ✅ Correct usage of autoTable
+    autoTable(doc, {
+      head: [tableColumn],
+      body: tableRows,
+      startY: 20,
+    });
+
+    doc.text(`Total Balance: ${totalBalance.toFixed(2)}`, 14, doc.lastAutoTable.finalY + 10);
+    doc.save(`Supplier_Transaction_History_${supplier?.username}.pdf`);
+  };
+
   const columns = [
+    { field: 'date', headerName: 'Date', renderCell: (row) => new Date(row.date).toLocaleDateString() },
+    { field: 'productName', headerName: 'Product Name' },
+    { field: 'paymentMethod', headerName: 'Payment Type' },
     { 
-      field: 'date', 
-      headerName: 'Date', 
-      renderCell: (row) => new Date(row.date).toLocaleDateString() 
+      field: 'debit', headerName: 'Debit', 
+      renderCell: (row) => <span style={{ color: 'red' }}>{row.debit.toFixed(2)}</span> 
     },
     { 
-      field: 'productName', 
-      headerName: 'Product Name' 
+      field: 'credit', headerName: 'Credit', 
+      renderCell: (row) => <span style={{ color: 'green' }}>{row.credit.toFixed(2)}</span> 
     },
     { 
-      field: 'paymentMethod', 
-      headerName: 'Payment Type' 
+      field: 'chequeDate', headerName: 'Cheque Date', 
+      renderCell: (row) => row.chequeDate ? new Date(row.chequeDate).toLocaleDateString() : '-' 
     },
     { 
-      field: 'debit', 
-      headerName: 'Debit', 
-      renderCell: (row) => (
-        <span style={{ color: 'red' }}>
-          {row.debit.toFixed(2)}
-        </span>
-      ) 
-    },
-    { 
-      field: 'credit', 
-      headerName: 'Credit', 
-      renderCell: (row) => (
-        <span style={{ color: 'green' }}>
-          {row.credit.toFixed(2)}
-        </span>
-      ) 
-    },
-    { 
-      field: 'chequeDate', 
-      headerName: 'Cheque Date', 
-      renderCell: (row) => row.chequeDate ? new Date(row.chequeDate).toLocaleDateString() : '-'
-    },
-    { 
-      field: 'runningBalance', 
-      headerName: 'Running Balance', 
-      renderCell: (row) => (
-        <span>
-          {row.runningBalance.toFixed(2)}
-        </span>
-      ) 
+      field: 'runningBalance', headerName: 'Running Balance', 
+      renderCell: (row) => <span>{row.runningBalance.toFixed(2)}</span> 
     },
   ];
-
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
 
   return (
     <Modal open={open} onClose={onClose}>
@@ -128,11 +115,9 @@ const SupplierTransactionHistoryModal = ({ open, onClose, supplier }) => {
           data={transactions}
           page={page}
           rowsPerPage={rowsPerPage}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
         />
 
-        {/* Footer section with total balance and pagination controls */}
+        {/* Footer section with total balance, download PDF, and close buttons */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
           <Typography 
             variant="subtitle1" 
@@ -140,10 +125,16 @@ const SupplierTransactionHistoryModal = ({ open, onClose, supplier }) => {
           >
             Total Balance: {totalBalance.toFixed(2)}
           </Typography>
-          
-          <Button variant="contained" color="primary" onClick={onClose}>
-            Close
-          </Button>
+
+          <Box>
+            <Button variant="contained" color="secondary" onClick={downloadPDF} sx={{ mr: 2 }}>
+              Download PDF
+            </Button>
+
+            <Button variant="contained" color="primary" onClick={onClose}>
+              Close
+            </Button>
+          </Box>
         </Box>
       </Box>
     </Modal>

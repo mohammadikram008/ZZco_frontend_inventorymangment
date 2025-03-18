@@ -16,11 +16,11 @@ const EditBankModal = ({ open, onClose, entry, entryType, onSuccess, totalCashAm
   const [amount, setAmount] = useState("");
   const [balance, setBalance] = useState("");
   const [type, setType] = useState("add");
-
-  const BACKEND_URL = "https://zzcoinventorymanagmentbackend.up.railway.app";
+  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+  // const BACKEND_URL = "https://zzcoinventorymanagmentbackend.up.railway.app";
   const API_URL = entryType === "bank"
-    ? `${BACKEND_URL}/api/banks`
-    : `${BACKEND_URL}/api/cash`;
+    ? `${BACKEND_URL}api/banks`
+    : `${BACKEND_URL}api/cash`;
 
   useEffect(() => {
     if (entry) {

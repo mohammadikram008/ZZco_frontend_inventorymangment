@@ -1,18 +1,24 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { Box, Button, Typography } from "@mui/material";
+import { Box, Button, Typography, FormControl, InputLabel, Select, MenuItem } from "@mui/material";
 import ConfirmDeleteModal from "../../../components/Models/ConfirmDeleteModal";
 import EditBankModal from "../../../components/Models/EditBankModal";
 import CustomTable from "../../../components/CustomTable/OwnAccount";
 import { useSelector } from "react-redux";
 import { selectCanDelete } from "../../../redux/features/auth/authSlice";
-import TransactionHistoryModal from "../../../components/Models/TransactionModal"; // Import the new modal component
+import TransactionHistoryModal from "../../../components/Models/TransactionModal";
+import CashTransactionHistoryModal from "../../../components/Models/CashTransactionModal";
 
 const BankList = ({ banks, refreshBanks, cash }) => {
   const [selectedEntry, setSelectedEntry] = useState(null);
   const [entryType, setEntryType] = useState("bank");
   const [isEditModalOpen, setEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [openModal, setOpenModal] = useState(false);
+  const [isTransactionModalOpen, setTransactionModalOpen] = useState(false); // Renamed state
+
+  // Report selection (monthly/yearly)
+  const [reportType, setReportType] = useState("monthly");
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
 
   const canDelete = useSelector((state) => selectCanDelete(state));
 
@@ -20,18 +26,17 @@ const BankList = ({ banks, refreshBanks, cash }) => {
     console.log("Banks data:", banks);
   }, [banks]);
 
-  const openEditModal = (entry, type) => {
+  // ✅ Open Edit Modal
+  const handleOpenEditModal = (entry, type) => {
+    console.log("Opening Edit Modal for:", entry);
     setSelectedEntry(entry);
     setEntryType(type);
     setEditModalOpen(true);
   };
-  const opentransectiopnModal = (entry, type) => {
-   
-    setSelectedEntry(entry);
-    setEntryType(type);
-    setOpenModal(true);
-  };
-  const openDeleteModal = (entry, type) => {
+
+  // ✅ Open Delete Modal
+  const handleOpenDeleteModal = (entry, type) => {
+    console.log("Opening Delete Modal for:", entry);
     if (!canDelete) {
       alert("You do not have permission to delete this entry.");
       return;
@@ -41,27 +46,54 @@ const BankList = ({ banks, refreshBanks, cash }) => {
     setDeleteModalOpen(true);
   };
 
+  // ✅ Open Transaction Modal
+  const handleOpenTransactionModal = (entry, type) => {
+    console.log("Opening Transaction Modal for:", entry);
+    setSelectedEntry(entry);
+    setEntryType(type);
+    setTransactionModalOpen(true);
+  };
+
+  // ✅ Close all modals
   const closeModals = () => {
+    console.log("Closing modals...");
     setEditModalOpen(false);
     setDeleteModalOpen(false);
-    setSelectedEntry(null);
-  };
-  const closeTransectionModals = () => {
-    setEditModalOpen(false);
-    setOpenModal(false);
+    setTransactionModalOpen(false);
     setSelectedEntry(null);
   };
 
-  const totalBankAmount = useMemo(() => {
-    return banks?.reduce((total, bank) => total + (bank.balance || 0), 0) || 0;
-  }, [banks]);
+  // ✅ Filter transactions based on report type
+  const filterTransactionsByDate = (transactions) => {
+    return transactions.filter((entry) => {
+      const entryDate = new Date(entry.createdAt);
+      const entryYear = entryDate.getFullYear();
+      const entryMonth = entryDate.getMonth() + 1;
 
-  const totalCashAmount = useMemo(() => {
-    return cash?.allEntries?.reduce((total, entry) => {
-      const balance = entry.type === "deduct" ? -Math.abs(entry.balance || 0) : Math.abs(entry.balance || 0);
-      return total + balance;
-    }, 0) || 0;
-  }, [cash]);
+      if (reportType === "monthly") {
+        return entryYear === selectedYear && entryMonth === selectedMonth;
+      } else if (reportType === "yearly") {
+        return entryYear === selectedYear;
+      }
+      return true;
+    });
+  };
+
+  const filteredCashTransactions = useMemo(
+    () => filterTransactionsByDate(cash?.allEntries || []),
+    [cash, reportType, selectedYear, selectedMonth]
+  );
+
+  // ✅ Compute Income and Expenses
+  const totalIncome = useMemo(() => {
+    return filteredCashTransactions.reduce((total, entry) => entry.type === "add" ? total + (entry.balance || 0) : total, 0);
+  }, [filteredCashTransactions]);
+
+  const totalExpenses = useMemo(() => {
+    return filteredCashTransactions.reduce((total, entry) => entry.type === "deduct" ? total + (entry.balance || 0) : total, 0);
+  }, [filteredCashTransactions]);
+
+  const netBalance = totalIncome - totalExpenses;
 
   const bankColumns = [
     { field: "bankName", headerName: "Bank Name" },
@@ -72,87 +104,125 @@ const BankList = ({ banks, refreshBanks, cash }) => {
     {
       field: "createdAt",
       headerName: "Date",
-      valueGetter: (params) => {
-        const date = new Date(params.row.createdAt);
-        return date.toISOString().slice(0, 10);
-      },
+      valueGetter: (params) => new Date(params.row.createdAt).toISOString().slice(0, 10),
     },
+  
     { field: "balance", headerName: "Balance", align: "right" },
     { field: "type", headerName: "Type" },
   ];
 
   return (
-    <Box
-      sx={{
-        margin: 3,
-        bgcolor: "white",
-        borderRadius: 2,
-        padding: 3,
-        width: "auto",
-      }}
-    >
-      <Box display={"flex"} justifyContent={"center"} alignContent={"center"} mt={3}>
-        <Typography variant="h3">Banks List</Typography>
+    <Box sx={{ margin: 3, bgcolor: "white", borderRadius: 2, padding: 3, width: "auto" }}>
+      
+      {/* 🔹 Report Type Selection */}
+      <Box display="flex" alignItems="center" justifyContent="space-between" mb={3}>
+        <FormControl>
+          <InputLabel>Report Type</InputLabel>
+          <Select value={reportType} onChange={(e) => setReportType(e.target.value)}>
+            <MenuItem value="monthly">Monthly</MenuItem>
+            <MenuItem value="yearly">Yearly</MenuItem>
+          </Select>
+        </FormControl>
+
+        {reportType === "monthly" && (
+          <FormControl>
+            <InputLabel>Month</InputLabel>
+            <Select value={selectedMonth} onChange={(e) => setSelectedMonth(parseInt(e.target.value))}>
+              {Array.from({ length: 12 }, (_, i) => (
+                <MenuItem key={i + 1} value={i + 1}>{new Date(2022, i).toLocaleString("default", { month: "long" })}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        )}
+
+        <FormControl>
+          <InputLabel>Year</InputLabel>
+          <Select value={selectedYear} onChange={(e) => setSelectedYear(parseInt(e.target.value))}>
+            {Array.from({ length: 5 }, (_, i) => (
+              <MenuItem key={i} value={new Date().getFullYear() - i}>{new Date().getFullYear() - i}</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
       </Box>
+
+      {/* 🔹 Banks List */}
+      <Typography variant="h3" align="center">Banks List</Typography>
       <CustomTable
-        columns={bankColumns}
-        data={banks || []}
-        onEdit={(bank) => openEditModal(bank, "bank")}
-        onDelete={(bank) => openDeleteModal(bank, "bank")}
-        onView={(bank) => opentransectiopnModal(bank,"bank")}
-        cashtrue={"false"}
-      />
+  columns={bankColumns}
+  data={banks || []}
+  onEdit={(bank) => handleOpenEditModal(bank, "bank")}
+  onDelete={(bank) => handleOpenDeleteModal(bank, "bank")}
+  onView={(bank) => handleOpenTransactionModal(bank, "bank")}
+  cashtrue={false}  // ✅ Proper Boolean
+/>
 
-      <Box display={"flex"} justifyContent={"center"} alignContent={"center"} mt={3}>
-        <Typography variant="h3">Cash List</Typography>
-      </Box>
-
+      {/* 🔹 Cash Transactions */}
+      <Typography variant="h3" align="center" mt={3}>Cash List</Typography>
       <CustomTable
-        columns={cashColumns}
-        data={cash?.allEntries || []}
-        onEdit={(cashEntry) => openEditModal(cashEntry, "cash")}
-        onDelete={(cashEntry) => openDeleteModal(cashEntry, "cash")}
-        sx={{ marginTop: 3 }}
-        cashtrue={"true"}
-      />
+  columns={cashColumns}
+  data={filteredCashTransactions}
+  onEdit={(cashEntry) => handleOpenEditModal(cashEntry, "cash")}
+  onDelete={(cashEntry) => handleOpenDeleteModal(cashEntry, "cash")}
+  onView={(cashEntry) => handleOpenTransactionModal(cashEntry, "cash")}
+  cashtrue={true}  // ✅ Proper Boolean
+/>
 
-      {/* Display total amounts with color styling */}
-      <Box display={"flex"} justifyContent={"space-between"} alignItems={"center"} sx={{ mt: 2 }}>
-        <Box sx={{ textAlign: "left" }}>
-          <Typography variant="h5" sx={{ color: "#388E3C", fontWeight: "bold" }}>
-            Total Cash Amount: {totalCashAmount}
-          </Typography>
-        </Box>
-        <Box sx={{ textAlign: "right" }}>
-          <Typography variant="h5" sx={{ color: "#1976D2", fontWeight: "bold" }}>
-            Total Bank Amount: {totalBankAmount}
-          </Typography>
-        </Box>
+
+      {/* 🔹 Total Income and Expenses */}
+      <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ mt: 2 }}>
+        <Typography variant="h5" sx={{ color: "#388E3C", fontWeight: "bold" }}>Total Income: {totalIncome}</Typography>
+        <Typography variant="h5" sx={{ color: "#D32F2F", fontWeight: "bold" }}>Total Expenses: {totalExpenses}</Typography>
+        <Typography variant="h5" sx={{ color: netBalance >= 0 ? "#1976D2" : "#D32F2F", fontWeight: "bold" }}>Net Balance: {netBalance}</Typography>
       </Box>
 
-      {/* Edit Bank/Cash Modal */}
-      <EditBankModal
-        open={isEditModalOpen}
-        onClose={closeModals}
-        entry={selectedEntry}
-        entryType={entryType}
-        onSuccess={refreshBanks}
-        totalCashAmount={totalCashAmount}
-      />
+      {/* Modals */}
+      {isEditModalOpen && (
+  <EditBankModal
+    open={isEditModalOpen}
+    onClose={closeModals}
+    entry={selectedEntry}
+    entryType={entryType}      // ✅ Pass entryType to modal
+    onSuccess={refreshBanks}   // ✅ Optional: refresh list after update
+  />
+)}
 
-      {/* Confirm Delete Modal */}
-      <ConfirmDeleteModal
-        open={isDeleteModalOpen}
-        onClose={closeModals}
-        entry={selectedEntry}
-        entryType={entryType}
-        onSuccess={refreshBanks}
-      />
-        <TransactionHistoryModal 
-        open={openModal} 
-        onClose={closeTransectionModals} 
-        transactions={selectedEntry} 
-      />
+
+
+
+
+
+      {isDeleteModalOpen && (
+  <ConfirmDeleteModal
+    open={isDeleteModalOpen}
+    onClose={closeModals}
+    entry={selectedEntry}
+    entryType={entryType} // ✅ Pass this to avoid defaulting to 'suppliers'
+    onSuccess={refreshBanks}
+  />
+)}
+
+{/* 🔹 Bank Transactions Modal */}
+{isTransactionModalOpen && entryType === "bank" && (
+  <TransactionHistoryModal
+    open={isTransactionModalOpen}
+    onClose={closeModals}
+    entry={selectedEntry}
+    entryType="bank"
+  />
+)}
+
+{/* 🔹 Cash Transactions Modal */}
+{isTransactionModalOpen && entryType === "cash" && (
+  <CashTransactionHistoryModal
+    open={isTransactionModalOpen}
+    onClose={closeModals}
+    cashEntry={selectedEntry}  // ✅ correct prop
+  />
+)}
+
+
+
+
     </Box>
   );
 };

@@ -57,8 +57,9 @@ export default function AddSale({
   const [image, setImage] = useState(null);
   const [imagePreview, setImagePreview] = useState("");
   const cancelButtonRef = useRef(null);
-  const BACKEND_URL = "https://zzcoinventorymanagmentbackend.up.railway.app";
-  const API_URL = `${BACKEND_URL}/api`;
+  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+  // const BACKEND_URL = "https://zzcoinventorymanagmentbackend.up.railway.app";
+  const API_URL = `${BACKEND_URL}api`;
 
   const banks = useSelector((state) => state.bank.banks);
   const warehouses = useSelector((state) => state.warehouse.warehouses);
@@ -70,22 +71,35 @@ export default function AddSale({
   // Handling Input Change for input fields
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    
     setSale((prevSale) => ({
       ...prevSale,
       [name]: value,
     }));
+  
+    // ✅ Auto-fill saleDate when Cash or Credit is selected
+    if (name === "paymentMethod" && (value === "cash" || value === "credit")) {
+      setSale((prevSale) => ({
+        ...prevSale,
+        saleDate: new Date().toISOString().split("T")[0], // Get current date
+      }));
+    }
+  
+    // ✅ Validate stockSold
     if (name === "stockSold" && (value <= 0 || value > 999)) {
       setErrors((prevErrors) => ({ ...prevErrors, stockSold: "Stock Sold must be between 1 and 999." }));
     } else {
       setErrors((prevErrors) => ({ ...prevErrors, stockSold: "" }));
     }
-
+  
+    // ✅ Validate totalSaleAmount
     if (name === "totalSaleAmount" && value <= 0) {
       setErrors((prevErrors) => ({ ...prevErrors, totalSaleAmount: "Total Sale Amount must be greater than 0." }));
     } else {
       setErrors((prevErrors) => ({ ...prevErrors, totalSaleAmount: "" }));
     }
   };
+  
 
   // Handle Image Change
   const handleImageChange = (e) => {
@@ -356,17 +370,19 @@ export default function AddSale({
               </Grid>
               {/* Sales Date */}
               <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Sales Date"
-                  type="date"
-                  id="saleDate"
-                  name="saleDate"
-                  value={sale.saleDate}
-                  onChange={handleInputChange}
-                  InputLabelProps={{ shrink: true }}
-                  margin="normal"
-                />
+              <TextField
+  fullWidth
+  label="Sales Date"
+  type="date"
+  id="saleDate"
+  name="saleDate"
+  value={sale.saleDate}
+  onChange={handleInputChange}
+  InputLabelProps={{ shrink: true }}
+  margin="normal"
+  disabled={sale.paymentMethod === "cash" || sale.paymentMethod === "credit"} // ✅ Disable when cash or credit
+/>
+
               </Grid>
             </Grid>
           </form>

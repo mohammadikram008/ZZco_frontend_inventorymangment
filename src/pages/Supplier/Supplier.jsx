@@ -13,8 +13,8 @@ const Supplier = () => {
 
   const [openModal, setOpenModal] = useState(false);
   const [username, setUsername] = useState("");
-  const [email, setEmail] = useState(""); 
-  const [password, setPassword] = useState("");
+  // const [email, setEmail] = useState(""); 
+  // const [password, setPassword] = useState("");
   const [phone, setPhone] = useState("");
 
   const handleOpenModal = () => setOpenModal(true);
@@ -26,12 +26,12 @@ const Supplier = () => {
       case "username":
         setUsername(value);
         break;
-      case "email":
-        setEmail(value);
-        break;
-      case "password":
-        setPassword(value);
-        break;
+      // case "email":
+      //   setEmail(value);
+      //   break;
+      // case "password":
+      //   setPassword(value);
+      //   break;
       case "phone":
         setPhone(value);
         break;
@@ -53,8 +53,8 @@ const Supplier = () => {
   const handleSubmit = () => {
     const supplierData = {
       username,
-      email,
-      password,
+      // email,
+      // password,
       phone,
     };
     dispatch(createSupplier(supplierData));

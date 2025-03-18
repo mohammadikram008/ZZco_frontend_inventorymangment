@@ -3,8 +3,9 @@ import { Modal, Box, Button, Typography } from "@mui/material";
 import axios from 'axios';
 
 const ConfirmDeleteSupplierModal = ({ open, onClose, supplier, onSuccess }) => {
-  const BACKEND_URL = "https://zzcoinventorymanagmentbackend.up.railway.app";
-  const API_URL = `${BACKEND_URL}/api/suppliers`;
+  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+  // const BACKEND_URL = "https://zzcoinventorymanagmentbackend.up.railway.app";
+  const API_URL = `${BACKEND_URL}api/suppliers`;
 
   const handleDelete = async () => {
     if (!supplier || !supplier._id) return; // Ensure valid supplier is selected

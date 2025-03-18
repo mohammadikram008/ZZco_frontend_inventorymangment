@@ -6,9 +6,9 @@ import Select from 'react-select'; // Importing react-select for a searchable dr
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 const Customer = () => {
-  
-const BACKEND_URL = "https://zzcoinventorymanagmentbackend.up.railway.app";
-const API_URL = `${BACKEND_URL}/api/Cash`;
+  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+// const BACKEND_URL = "https://zzcoinventorymanagmentbackend.up.railway.app";
+const API_URL = `${BACKEND_URL}api/Cash/`;
   const [openModal, setOpenModal] = useState(false);
   const [openCashModal, setOpenCashModal] = useState(false);
   const [bankName, setBankName] = useState(""); // State for bank name
@@ -40,7 +40,7 @@ const API_URL = `${BACKEND_URL}/api/Cash`;
 
   const fetchBanks = async () => {
     try {
-      const response = await axios.get("https://zzcoinventorymanagmentbackend.up.railway.app/api/banks/all");
+      const response = await axios.get(`${BACKEND_URL}api/banks/all`);
       setBanks(response.data);
       console.log("Fetched banks:", response.data);
     } catch (error) {
@@ -70,7 +70,7 @@ const API_URL = `${BACKEND_URL}/api/Cash`;
 
   const handleSubmit = async () => {
     try {
-      const res = await axios.post("https://zzcoinventorymanagmentbackend.up.railway.app/api/banks/add", {
+      const res = await axios.post(`${BACKEND_URL}api/banks/add`, {
         bankName,
         amount,
       }, { withCredentials: true });
@@ -89,7 +89,7 @@ const API_URL = `${BACKEND_URL}/api/Cash`;
   const handleCashSubmit = async () => {
     try {
       console.log(amount);
-      const res = await axios.post(`https://zzcoinventorymanagmentbackend.up.railway.app/api/cash/add`, {
+      const res = await axios.post(`${BACKEND_URL}api/cash/add`, {
         balance: amount,
         type:"add",
       }, { withCredentials: true });

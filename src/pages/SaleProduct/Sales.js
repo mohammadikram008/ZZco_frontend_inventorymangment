@@ -26,14 +26,13 @@ function Sales() {
   const [showSaleModal, setShowSaleModal] = useState(false);
   const [sales, setAllSalesData] = useState([]);
   const [customer, setAllCustomer] = useState([]);
-  const [banks, setBanks] = useState([]); 
+  const [banks, setBanks] = useState([]); // ✅ Added state for banks
   const [updatePage, setUpdatePage] = useState(true);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [loading, setLoading] = useState(true); 
-
-  const BACKEND_URL = "https://zzcoinventorymanagmentbackend.up.railway.app";
-  const API_URL = `${BACKEND_URL}/api`;
+  const [loading, setLoading] = useState(true); // ✅ Added loading state
+  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+  const API_URL = `${BACKEND_URL}api`;
 
   useRedirectLoggedOutUser("/login");
   const dispatch = useDispatch();
@@ -55,7 +54,7 @@ function Sales() {
   useEffect(() => {
     if (isLoggedIn) {
       setLoading(true); 
-      Promise.all([fetchSalesData(), fetchCustomerData(), fetchBankData()])
+      Promise.all([fetchSalesData(), fetchCustomerData(), fetchBankData()]) // ✅ Fetch banks
         .then(() => setLoading(false)) 
         .catch(() => setLoading(false)); 
     }
@@ -83,13 +82,14 @@ function Sales() {
       .catch((err) => console.log(err));
   };
 
+  // ✅ Fetch bank data
   const fetchBankData = () => {
     return fetch(`${API_URL}/banks/all`, {
       credentials: "include",
     })
       .then((response) => response.json())
       .then((data) => {
-        setBanks(data);
+        setBanks(data);  // ✅ Store fetched banks in state
       })
       .catch((err) => console.log(err));
   };
@@ -102,7 +102,7 @@ function Sales() {
     setUpdatePage(!updatePage);
   };
 
-  // New function to record the sale transaction in the customer's ledger
+  // ✅ New function to record the sale transaction in the customer's ledger
   const recordSaleTransaction = async (saleData) => {
     try {
       await axios.post(`${API_URL}/customers/sale-transaction`, saleData, { withCredentials: true });
@@ -114,28 +114,23 @@ function Sales() {
 
   const handleSaleSubmit = (saleData) => {
     const saleTransactionData = {
-      customerId: saleData.customerID, // Pass customer ID
-      amount: saleData.totalSaleAmount, // Pass the sale amount as credit
-      paymentMethod: saleData.paymentMethod || 'cash', // Optional
-      saleDate: saleData.saleDate || new Date(), // Optional
+      customerId: saleData.customerID,
+      amount: saleData.totalSaleAmount,
+      paymentMethod: saleData.paymentMethod || 'cash',
+      saleDate: saleData.saleDate || new Date(),
     };
   
-    // Record the sale as a credit in the customer's ledger
     recordSaleTransaction(saleTransactionData);
-  
-    handlePageUpdate(); // Refresh data after the sale
+    handlePageUpdate();
   };
   
-  
-
-  // Define missing handleChangePage and handleChangeRowsPerPage functions
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
 
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0); // Reset to the first page
+    setPage(0);
   };
 
   return (
@@ -159,7 +154,7 @@ function Sales() {
               addSaleModalSetting={addSaleModalSetting}
               products={products}
               customer={customer}
-              banks={banks}
+              banks={banks}  // ✅ Pass banks to AddSale
               fetchCustomerData={fetchCustomerData}
               handlePageUpdate={handlePageUpdate}
               onSaleSubmit={handleSaleSubmit}

@@ -42,9 +42,9 @@ import {
 import { styled } from "@mui/material/styles";
 import AddSupplierModal from "../../components/Models/addSupplierModel";
 import AddWareHouseModal from "../../components/Models/AddWareHouse";
-
-const BACKEND_URL = "https://zzcoinventorymanagmentbackend.up.railway.app";
-const API_URL = `${BACKEND_URL}/api/suppliers`;
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+// const BACKEND_URL = "https://zzcoinventorymanagmentbackend.up.railway.app";
+const API_URL = `${BACKEND_URL}api/suppliers`;
 
 const StyledPaper = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(3),
@@ -63,6 +63,7 @@ const initialState = {
   category: "",
   quantity: "",
   price: "",
+  description: "",
   status: false,
 };
 
@@ -101,6 +102,9 @@ const AddProduct = () => {
   const banks = useSelector((state) => state.bank.banks);
   const warehouses = useSelector((state) => state.warehouse.warehouses);
   const suppliers = useSelector((state) => state.supplier.suppliers);
+  const [openImageModal, setOpenImageModal] = useState(false);
+const [selectedImage, setSelectedImage] = useState(null);
+
 
   useEffect(() => {
     dispatch(getBanks());
@@ -115,6 +119,12 @@ const AddProduct = () => {
     setProduct({ ...product, [name]: value });
   };
 
+  const handleImageClick = (imageUrl) => {
+    setSelectedImage(imageUrl);
+    setOpenImageModal(true);
+  };
+  
+
   const handleSupplierChange = (event) => {
     const selectedSupplier = suppliers.find(s => s._id === event.target.value);
     if (selectedSupplier) {
@@ -122,9 +132,14 @@ const AddProduct = () => {
     }
   };
 
+  
+
   const handleImageChange = (e) => {
-    setProductImage(e.target.files[0]);
-    setImagePreview(URL.createObjectURL(e.target.files[0]));
+    const file = e.target.files[0];
+    if (file) {
+      setProductImage(file);
+      setImagePreview(URL.createObjectURL(file));
+    }
   };
 
   const handleNext = () => {
@@ -236,11 +251,37 @@ const AddProduct = () => {
                     fullWidth
                     multiline
                     rows={4}
+                     name="description"
+                    type="string"
                     label="Description"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
+                    value={product.description}
+                    onChange={handleInputChange}
                   />
                 </Grid>
+
+                <Grid item xs={12}>
+  <input
+    accept="image/*"
+    style={{ display: 'none' }}
+    id="raised-button-file"
+    type="file"
+    onChange={handleImageChange}
+  />
+  <label htmlFor="raised-button-file">
+    <Button variant="contained" component="span">
+      Upload Product Image
+    </Button>
+  </label>
+  
+  {imagePreview && (
+    <img 
+      src={imagePreview} 
+      alt="Preview" 
+      style={{ marginTop: 10, maxWidth: '100%', maxHeight: 200 }} 
+    />
+  )}
+</Grid>
+
               </Grid>
             </CardContent>
           </StyledCard>
@@ -377,6 +418,7 @@ const AddProduct = () => {
               <Typography>Name: {product.name}</Typography>
               <Typography>Category: {product.category}</Typography>
               <Typography>Price: ${product.price}</Typography>
+              <Typography>Description: {product.description}</Typography>
               <Typography>Quantity: {product.quantity}</Typography>
               <Typography>Shipping Type: {shippingType}</Typography>
               <Typography>Payment Method: {paymentMethod}</Typography>
@@ -400,26 +442,35 @@ const AddProduct = () => {
         {/* <Typography variant="h6" gutterBottom>
           Existing Products
         </Typography> */}
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Name</TableCell>
-              <TableCell>Category</TableCell>
-              <TableCell>Price</TableCell>
-              <TableCell>Quantity</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {products.map((product) => (
-              <TableRow key={product._id}>
-                <TableCell>{product.name}</TableCell>
-                <TableCell>{product.category}</TableCell>
-                <TableCell>{product.price}</TableCell>
-                <TableCell>{product.quantity}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+       <Table>
+  <TableHead>
+    <TableRow>
+      <TableCell>Name</TableCell>
+      <TableCell>Category</TableCell>
+      <TableCell>Price</TableCell>
+      <TableCell>Description</TableCell>
+      <TableCell>Quantity</TableCell>
+    
+      <TableCell>Created Date</TableCell>  
+    </TableRow>
+  </TableHead>
+  <TableBody>
+    {products.map((product) => (
+      <TableRow key={product._id}>
+        <TableCell>{product.name}</TableCell>
+        <TableCell>{product.category}</TableCell>
+        <TableCell>{product.price}</TableCell>
+        <TableCell>{product.description}</TableCell>
+        <TableCell>{product.quantity}</TableCell>
+       
+
+
+        <TableCell>{new Date(product.createdAt).toLocaleDateString()}</TableCell> {/* Format Date */}
+      </TableRow>
+    ))}
+  </TableBody>
+</Table>
+
       </StyledPaper>
 
       <Modal open={openModal} onClose={() => setOpenModal(false)} style={{ width: '50%', margin: 'auto' }}>

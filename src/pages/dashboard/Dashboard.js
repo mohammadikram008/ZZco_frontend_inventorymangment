@@ -7,7 +7,9 @@ import { selectIsLoggedIn } from "../../redux/features/auth/authSlice";
 import { getProducts } from "../../redux/features/product/productSlice";
 import { getBanks, selectBanks, selectIsLoading } from "../../redux/features/Bank/bankSlice";
 import axios from "axios";
-
+const API_URL  = process.env.REACT_APP_BACKEND_URL;
+  
+  const BACKEND_URL = `${API_URL}`;
 const Dashboard = () => {
   useRedirectLoggedOutUser("/login");
   const dispatch = useDispatch();
@@ -32,7 +34,7 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchCashData = async () => { // {{ edit_3 }}
       try {
-        const response = await axios.get('https://zzcoinventorymanagmentbackend.up.railway.app/api/cash/all',{withCredentials:true}); // Replace with your API endpoint
+        const response = await axios.get(`${API_URL}api/cash/all`,{withCredentials:true}); // Replace with your API endpoint
         console.log("Response", response.data);
         setCash(response.data); // Store the fetched cash data
       } catch (error) {

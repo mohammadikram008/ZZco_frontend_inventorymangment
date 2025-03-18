@@ -15,8 +15,11 @@ import {
   Modal
 } from '@mui/material';
 import { getPendingCheques, updateChequeStatus } from '../../redux/features/cheque/chequeSlice';
+
 import CustomTable from '../../components/CustomTable/CustomTable';
-const baseUrl = "https://zzcoinventorymanagmentbackend.up.railway.app/"; // Base URL for the image path
+const API_URL  = process.env.REACT_APP_BACKEND_URL;
+  
+const baseUrl = `${API_URL}`; // Base URL for the image path
 
 const ChequeDetails = () => {
   const dispatch = useDispatch();

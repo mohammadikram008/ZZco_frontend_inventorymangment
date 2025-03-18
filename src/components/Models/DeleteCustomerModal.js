@@ -6,8 +6,8 @@ import { useSelector } from "react-redux";
 import { selectCanDelete } from "../../redux/features/auth/authSlice"; // Import privilege selector
 
 const DeleteCustomerModal = ({ open, onClose, customer, onSuccess }) => {
-  const BACKEND_URL = "https://zzcoinventorymanagmentbackend.up.railway.app";
-
+  // const BACKEND_URL = "https://zzcoinventorymanagmentbackend.up.railway.app";
+  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
   // Retrieve the user role from localStorage and check delete privilege
   const userRole = localStorage.getItem("userRole");
   const hasDeletePermission = useSelector((state) => selectCanDelete(state, "deleteCustomer"));
@@ -24,7 +24,7 @@ const DeleteCustomerModal = ({ open, onClose, customer, onSuccess }) => {
     }
 
     try {
-      const response = await axios.delete(`${BACKEND_URL}/api/customers/delete-customer/${customer._id}`);
+      const response = await axios.delete(`${BACKEND_URL}api/customers/delete-customer/${customer._id}`);
       toast.success(response.data.message || "Customer deleted successfully");
       onSuccess(); // Callback to refresh the customer list
       onClose(); // Close the modal

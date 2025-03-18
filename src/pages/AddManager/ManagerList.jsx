@@ -14,7 +14,7 @@ const CustomerList = ({ customers }) => {
     },
     { field: "_id", headerName: "ID", width: 150 },
     { field: "username", headerName: "Username", width: 150 },
-    { field: "email", headerName: "Email", width: 200 },
+    // { field: "email", headerName: "Email", width: 200 },
     { field: "phone", headerName: "Phone", width: 150 },
   ];
 

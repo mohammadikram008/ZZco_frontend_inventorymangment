@@ -3,10 +3,14 @@ import { Box, Button, Modal, TextField, Typography } from "@mui/material";
 import axios from 'axios';
 import { toast } from "react-toastify";
 
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+// const BACKEND_URL ="https://zzcoinventorymanagmentbackend.up.railway.app";
+const API_URL = `${BACKEND_URL}api/customers/`;
+
 const AddCustomerModal = ({ open, handleClose, refreshCustomers }) => {
   const [username, setUsername] = useState("");  
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  // const [email, setEmail] = useState("");
+  // const [password, setPassword] = useState("");
   const [phone, setPhone] = useState("");
 
   const handleInputChange = (event) => {
@@ -15,12 +19,12 @@ const AddCustomerModal = ({ open, handleClose, refreshCustomers }) => {
       case "username":
         setUsername(value);
         break;
-      case "email":
-        setEmail(value);
-        break;
-      case "password":
-        setPassword(value);
-        break;
+      // case "email":
+      //   setEmail(value);
+      //   break;
+      // case "password":
+      //   setPassword(value);
+      //   break;
       case "phone":
         setPhone(value);
         break;
@@ -31,10 +35,12 @@ const AddCustomerModal = ({ open, handleClose, refreshCustomers }) => {
 
   const handleSubmit = async () => {
     try {
-      const res = await axios.post("https://zzcoinventorymanagmentbackend.up.railway.app/api/customers/customerRegister", {
+      const res = await axios.post(`${API_URL}customerRegister`, {
+       
+       
         username,
-        email,
-        password,
+        // email,
+        // password,
         phone,
       }, { withCredentials: true });
   
@@ -74,7 +80,7 @@ const AddCustomerModal = ({ open, handleClose, refreshCustomers }) => {
           value={username}
           onChange={handleInputChange}
         />
-        <TextField
+        {/* <TextField
           fullWidth
           margin="normal"
           label="Email (optional)"
@@ -91,7 +97,7 @@ const AddCustomerModal = ({ open, handleClose, refreshCustomers }) => {
           type="password"
           value={password}
           onChange={handleInputChange}
-        />
+        /> */}
         <TextField
           fullWidth
           margin="normal"

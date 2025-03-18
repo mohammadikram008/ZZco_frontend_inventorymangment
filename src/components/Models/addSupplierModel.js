@@ -7,15 +7,15 @@ const AddSupplierModal = ({ open, handleClose }) => {
     const dispatch = useDispatch();
 
     const [username, setUsername] = useState("");
-    const [email, setEmail] = useState(""); 
-    const [password, setPassword] = useState("");
+    // const [email, setEmail] = useState(""); 
+    // const [password, setPassword] = useState("");
     const [phone, setPhone] = useState("");
       // Handle form submission to add a new supplier
   const handleSubmit = () => {
     const supplierData = {
       username,
-      email,
-      password,
+      // email,
+      // password,
       phone,
     };
     dispatch(createSupplier(supplierData));
@@ -27,12 +27,12 @@ const AddSupplierModal = ({ open, handleClose }) => {
       case "username":
         setUsername(value);
         break;
-      case "email":
-        setEmail(value);
-        break;
-      case "password":
-        setPassword(value);
-        break;
+      // case "email":
+      //   setEmail(value);
+      //   break;
+      // case "password":
+      //   setPassword(value);
+      //   break;
       case "phone":
         setPhone(value);
         break;
@@ -65,7 +65,7 @@ const AddSupplierModal = ({ open, handleClose }) => {
           value={username}
           onChange={handleInputChange}
         />
-        <TextField
+        {/* <TextField
           fullWidth
           margin="normal"
           label="Email (optional)"
@@ -82,7 +82,7 @@ const AddSupplierModal = ({ open, handleClose }) => {
           type="password"
           value={password}
           onChange={handleInputChange}
-        />
+        /> */}
         <TextField
           fullWidth
           margin="normal"

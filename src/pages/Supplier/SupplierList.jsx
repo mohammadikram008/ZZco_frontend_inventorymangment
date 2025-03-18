@@ -88,7 +88,7 @@ const SupplierList = ({ suppliers, refreshSuppliers }) => {
     },
     { field: "_id", headerName: "ID", width: 220 },
     { field: "username", headerName: "Username", width: 150 },
-    { field: "email", headerName: "Email", width: 200 },
+    // { field: "email", headerName: "Email", width: 200 },
     { field: "phone", headerName: "Phone", width: 120 },
     {
       field: "balance",
@@ -185,7 +185,7 @@ const SupplierList = ({ suppliers, refreshSuppliers }) => {
 
       {/* Transaction History Modal */}
       {isHistoryModalOpen && (
-        <SupplierTransactionHistoryModal
+        <SupplierTransactionHistoryModal 
           open={isHistoryModalOpen}
           onClose={closeModals}
           supplier={selectedSupplier}

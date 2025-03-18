@@ -19,7 +19,8 @@
     "axios": "^0.27.2",
     "date-fns": "^3.6.0",
     "dompurify": "^2.4.0",
-    "node-sass": "^9.0.0",
+    "jspdf": "^3.0.0",
+    "jspdf-autotable": "^5.0.2",
     "react": "^18.2.0",
     "react-confirm-alert": "^3.0.6",
     "react-dom": "^18.2.0",
@@ -34,6 +35,8 @@
     "react-toastify": "^9.0.8",
     "web-vitals": "^2.1.4"
   },
+  "proxy": "http://localhost:5000",
+
   "scripts": {
     "start": "set PORT=3001 && react-scripts start",
     "build": "react-scripts build",
@@ -57,5 +60,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "sass": "^1.85.0"
   }
 }

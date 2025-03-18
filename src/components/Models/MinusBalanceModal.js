@@ -27,8 +27,8 @@ const MinusBalanceModal = ({ open, onClose, customer, onSuccess }) => {
   const [image, setImage] = useState(null); // State for the image
   const [imagePreview, setImagePreview] = useState(""); // State for image preview
   const [errors, setErrors] = useState({}); // State for validation errors
-
-  const BACKEND_URL = "https://zzcoinventorymanagmentbackend.up.railway.app";
+  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+  // const BACKEND_URL = "https://zzcoinventorymanagmentbackend.up.railway.app";
   const dispatch = useDispatch();
   const banks = useSelector((state) => state.bank.banks);
 
@@ -36,7 +36,7 @@ const MinusBalanceModal = ({ open, onClose, customer, onSuccess }) => {
     dispatch(getBanks());
   }, [dispatch]);
 
-  const API_URL = `${BACKEND_URL}/api/customers`;
+  const API_URL = `${BACKEND_URL}api/customers`;
 
   const validateForm = () => {
     let formErrors = {};
@@ -90,7 +90,7 @@ const MinusBalanceModal = ({ open, onClose, customer, onSuccess }) => {
       toast.success(response.data.message || "Balance subtracted successfully");
   
       // Update cash API
-      await axios.post(`${BACKEND_URL}/api/cash/add`, {
+      await axios.post(`${BACKEND_URL}api/cash/add`, {
         balance: -Math.abs(parseFloat(amount)), // Deducting amount from cash
         type: "deduct", // Explicitly set the type as deduct here as well
         description: `Subtracted balance for customer ${customer.username}`,

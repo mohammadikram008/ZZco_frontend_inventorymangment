@@ -5,11 +5,17 @@ import axios from 'axios';
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
+
+const API_URL  = process.env.REACT_APP_BACKEND_URL;
+  
+  const BACKEND_URL = `${API_URL}api/`;
+
+
 const Customer = () => {
   const [openModal, setOpenModal] = useState(false);
   const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  // const [email, setEmail] = useState("");
+  // const [password, setPassword] = useState("");
   const [phone, setPhone] = useState("");
   const [privileges, setPrivileges] = useState([]);
   const [customers, setCustomers] = useState([]);
@@ -30,7 +36,7 @@ const Customer = () => {
   // Fetch list of managers
   const fetchCustomers = async () => {
     try {
-      const response = await axios.get("https://zzcoinventorymanagmentbackend.up.railway.app/api/manager/allmanager");
+      const response = await axios.get(`${BACKEND_URL}manager/allmanager`)
       setCustomers(response.data);
     } catch (error) {
       console.error("Error fetching manager data:", error);
@@ -47,12 +53,7 @@ const Customer = () => {
       case "username":
         setUsername(value);
         break;
-      case "email":
-        setEmail(value);
-        break;
-      case "password":
-        setPassword(value);
-        break;
+     
       case "phone":
         setPhone(value);
         break;
@@ -74,12 +75,11 @@ const Customer = () => {
     }, {});
 
     try {
-      const res = await axios.post(
-        "https://zzcoinventorymanagmentbackend.up.railway.app/api/manager/managerRegister",
+      const res = await axios.post(`${BACKEND_URL}manager/managerRegister`
+         ,
         {
           username,
-          email,
-          password,
+         
           phone,
           privileges: privilegesObject, // Send object instead of array
         },
@@ -129,7 +129,7 @@ const Customer = () => {
             value={username}
             onChange={handleInputChange}
           />
-          <TextField
+          {/* <TextField
             fullWidth
             margin="normal"
             label="Email"
@@ -146,7 +146,7 @@ const Customer = () => {
             type="password"
             value={password}
             onChange={handleInputChange}
-          />
+          /> */}
           <TextField
             fullWidth
             margin="normal"

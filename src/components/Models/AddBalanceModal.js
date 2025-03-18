@@ -23,9 +23,10 @@ const AddBalanceModal = ({ open, onClose, customer, onSuccess }) => {
   const [imagePreview, setImagePreview] = useState("");
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
-
-  const BACKEND_URL ="https://zzcoinventorymanagmentbackend.up.railway.app";
-  const API_URL = `${BACKEND_URL}/api/customers`;
+  
+  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+  // const BACKEND_URL ="https://zzcoinventorymanagmentbackend.up.railway.app";
+  const API_URL = `${BACKEND_URL}api/customers`;
   const dispatch = useDispatch();
   const banks = useSelector((state) => state.bank.banks);
 
@@ -98,7 +99,7 @@ const AddBalanceModal = ({ open, onClose, customer, onSuccess }) => {
       toast.success(response.data.message || 'Balance added successfully');
 
       // Update cash API
-      await axios.post(`${BACKEND_URL}/api/cash/add`, {
+      await axios.post(`${BACKEND_URL}api/cash/add`, {
         balance: parseFloat(amount),
         type: "add", 
         description: `Added balance for customer ${customer.username}`,

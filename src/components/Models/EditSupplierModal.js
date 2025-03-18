@@ -4,16 +4,16 @@ import axios from 'axios';
 
 const EditSupplierModal = ({ open, onClose, supplier, onSuccess }) => {
   const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
+  // const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-
-  const BACKEND_URL = "https://zzcoinventorymanagmentbackend.up.railway.app";
-  const API_URL = `${BACKEND_URL}/api/suppliers`;
+  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+  // const BACKEND_URL = "https://zzcoinventorymanagmentbackend.up.railway.app";
+  const API_URL = `${BACKEND_URL}api/suppliers`;
 
   useEffect(() => {
     if (supplier) {
       setUsername(supplier.username || "");
-      setEmail(supplier.email || "");
+      // setEmail(supplier.email || "");
       setPhone(supplier.phone || "");
     }
   }, [supplier]);
@@ -21,7 +21,7 @@ const EditSupplierModal = ({ open, onClose, supplier, onSuccess }) => {
   const handleSubmit = async () => {
     const updatedSupplierData = {
       username,
-      email,
+      // email,
       phone,
     };
 
@@ -61,14 +61,14 @@ const EditSupplierModal = ({ open, onClose, supplier, onSuccess }) => {
           value={username}
           onChange={(e) => setUsername(e.target.value)}
         />
-        <TextField
+        {/* <TextField
           label="Email"
           fullWidth
           margin="normal"
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-        />
+        /> */}
         <TextField
           label="Phone"
           fullWidth

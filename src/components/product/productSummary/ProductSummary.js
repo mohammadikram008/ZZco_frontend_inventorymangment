@@ -29,6 +29,9 @@ const outOfStockIcon = <BsCartX size={40} color="#fff" />;
 const bankIcon = <BsBank2 size={40} color="#fff" />;
 const cashIcon = <FaMoneyBillWave size={40} color="#fff" />;
 
+const API_URL  = process.env.REACT_APP_BACKEND_URL;
+  
+  const BACKEND_URL = `${API_URL}api/customers`;
 // Format Amount
 export const formatNumbers = (x) => {
   return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -66,8 +69,8 @@ const ProductSummary = ({ products, bank, cashs }) => {
   const fetchCashAndBanks = async () => {
     try {
       const [cashResponse, bankResponse] = await Promise.all([
-        axios.get("https://zzcoinventorymanagmentbackend.up.railway.app"),
-        axios.get("https://zzcoinventorymanagmentbackend.up.railway.app"),
+        axios.get(`${BACKEND_URL}` ),
+        axios.get(`${BACKEND_URL}`),
       ]);
 
       setCash(Array.isArray(cashResponse.data) ? cashResponse.data : []);

@@ -9,15 +9,15 @@ const AddSupplierModal = ({ open, onClose, onSuccess }) => {
   const { isLoading, isError, isSuccess, message } = useSelector((state) => state.supplier);
 
   const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  // const [email, setEmail] = useState("");
+  // const [password, setPassword] = useState("");
   const [phone, setPhone] = useState("");
 
   const handleSubmit = () => {
     const supplierData = {
       username,
-      email,
-      password,
+      // email,
+      // password,
       phone,
     };
 
@@ -63,7 +63,7 @@ const AddSupplierModal = ({ open, onClose, onSuccess }) => {
           value={username}
           onChange={(e) => setUsername(e.target.value)}
         />
-        <TextField
+        {/* <TextField
           label="Email"
           fullWidth
           margin="normal"
@@ -78,7 +78,7 @@ const AddSupplierModal = ({ open, onClose, onSuccess }) => {
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-        />
+        /> */}
         <TextField
           label="Phone"
           fullWidth

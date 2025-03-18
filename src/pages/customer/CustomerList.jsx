@@ -68,7 +68,7 @@ const CustomerList = ({ customers, refreshCustomers }) => {
     },
     { field: "_id", headerName: "ID", width: 220 },
     { field: "username", headerName: "Username", width: 150 },
-    { field: "email", headerName: "Email", width: 200 },
+    
     { field: "phone", headerName: "Phone", width: 120 },
     { field: "balance", headerName: "Balance", width: 120 },
     {

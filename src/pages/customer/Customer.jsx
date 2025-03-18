@@ -5,12 +5,15 @@ import axios from 'axios';
 import { toast,ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import AddCustomerModal from "../../components/Models/AddCustomer"; // Import the new component
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+// const BACKEND_URL ="https://zzcoinventorymanagmentbackend.up.railway.app";
+const API_URL = `${BACKEND_URL}api/customers/`;
 
 const Customer = () => {
   const [openModal, setOpenModal] = useState(false);
   const [username, setUsername] = useState("");  
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  // const [email, setEmail] = useState("");
+  // const [password, setPassword] = useState("");
   const [phone, setPhone] = useState("");
 
   const handleOpenModal = () => setOpenModal(true);
@@ -22,12 +25,12 @@ const Customer = () => {
       case "username":
         setUsername(value);
         break;
-      case "email":
-        setEmail(value);
-        break;
-      case "password":
-        setPassword(value);
-        break;
+      // case "email":
+      //   setEmail(value);
+      //   break;
+      // case "password":
+      //   setPassword(value);
+      //   break;
       case "phone":
         setPhone(value);
         break;
@@ -39,9 +42,9 @@ const Customer = () => {
   const [customers, setCustomers] = useState([]);
   const fetchCustomers = async () => {
     try {
-      const response = await axios.get("https://zzcoinventorymanagmentbackend.up.railway.app/api/customers/allcustomer");
+      const response = await axios.get(`${API_URL}allcustomer`, );
       setCustomers(response.data);
-      console.log("response", response);
+      console.log("response", response); 
     } catch (error) {
       console.error("There was an error fetching the customer data!", error);
     }
@@ -54,10 +57,9 @@ const Customer = () => {
   };
   const handleSubmit = async () => {
     try {
-      const res = await axios.post("https://zzcoinventorymanagmentbackend.up.railway.app/api/customers/customerRegister", {
+      const res = await axios.post(`${API_URL}/customerRegister/customerRegister`, {
         username,
-        email,
-        password,
+         
         phone,
       }, { withCredentials: true });
   
